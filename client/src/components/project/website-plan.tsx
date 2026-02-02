@@ -29,8 +29,10 @@ import {
   Check,
   Rocket,
   CheckCircle,
+  Wand2,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SectionEditor } from "./section-editor";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
 
 interface WebsitePlanProps {
@@ -167,35 +169,32 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
   };
 
   const renderSectionContent = (section: SectionContent) => {
-    const data = section.data || {};
+    const data = (section.data || {}) as Record<string, unknown>;
+    
+    const headline = typeof data.headline === "string" ? data.headline : null;
+    const subheadline = typeof data.subheadline === "string" ? data.subheadline : null;
+    const content = typeof data.content === "string" ? data.content : null;
+    const description = typeof data.description === "string" ? data.description : null;
+    const ctaText = typeof data.ctaText === "string" ? data.ctaText : null;
+    const items = Array.isArray(data.items) ? data.items as Array<{title?: string; description?: string; icon?: string}> : null;
     
     return (
       <div className="space-y-2">
-        {data.headline && (
-          <h4 className="font-semibold">{data.headline as string}</h4>
-        )}
-        {data.subheadline && (
-          <p className="text-sm text-muted-foreground">{data.subheadline as string}</p>
-        )}
-        {data.content && (
-          <p className="text-sm text-muted-foreground">{data.content as string}</p>
-        )}
-        {data.description && (
-          <p className="text-sm text-muted-foreground">{data.description as string}</p>
-        )}
-        {data.ctaText && (
-          <Badge variant="outline">CTA: {data.ctaText as string}</Badge>
-        )}
-        {data.items && Array.isArray(data.items) && data.items.length > 0 && (
+        {headline ? <h4 className="font-semibold">{headline}</h4> : null}
+        {subheadline ? <p className="text-sm text-muted-foreground">{subheadline}</p> : null}
+        {content ? <p className="text-sm text-muted-foreground">{content}</p> : null}
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+        {ctaText ? <Badge variant="outline">CTA: {ctaText}</Badge> : null}
+        {items && items.length > 0 ? (
           <div className="grid gap-2 mt-2">
-            {(data.items as Array<{title?: string; description?: string; icon?: string}>).map((item, i) => (
+            {items.map((item, i) => (
               <div key={i} className="text-sm p-2 bg-muted/30 rounded">
-                {item.title && <span className="font-medium">{item.title}</span>}
-                {item.description && <span className="text-muted-foreground ml-2">- {item.description}</span>}
+                {item.title ? <span className="font-medium">{item.title}</span> : null}
+                {item.description ? <span className="text-muted-foreground ml-2">- {item.description}</span> : null}
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     );
   };
@@ -326,10 +325,14 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+        <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
           <TabsTrigger value="structure" data-testid="tab-website-structure">
             <Layout className="w-4 h-4 mr-2" />
             Structure
+          </TabsTrigger>
+          <TabsTrigger value="edit" data-testid="tab-website-edit">
+            <Wand2 className="w-4 h-4 mr-2" />
+            Edit
           </TabsTrigger>
           <TabsTrigger value="preview" data-testid="tab-website-preview">
             <Eye className="w-4 h-4 mr-2" />
@@ -378,6 +381,14 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="edit" className="mt-4">
+          <EditableSectionsPanel 
+            projectId={projectId}
+            websiteContent={websiteContent}
+            onUpdate={() => refetchWebsiteContent()}
+          />
         </TabsContent>
 
         <TabsContent value="structure" className="mt-4 space-y-6">
@@ -481,6 +492,158 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
       </Accordion>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+interface EditableSectionsPanelProps {
+  projectId: number;
+  websiteContent: WebsiteContent;
+  onUpdate: () => void;
+}
+
+function EditableSectionsPanel({ projectId, websiteContent, onUpdate }: EditableSectionsPanelProps) {
+  const [selectedSection, setSelectedSection] = useState<{ section: SectionContent; pageSlug: string } | null>(null);
+
+  const getSectionIcon = (type: string) => {
+    const icons: Record<string, typeof Layout> = {
+      hero: Globe,
+      features: List,
+      services: Sparkles,
+      testimonials: Users,
+      cta: Rocket,
+      contact: Mail,
+      pricing: DollarSign,
+      stats: BarChart3,
+      team: Users,
+      faq: FileText,
+      gallery: Image,
+      text: Type,
+      process: List,
+      case_studies: FileText,
+      trust_signals: CheckCircle,
+      benefits: Sparkles,
+      comparison: BarChart3,
+      brand_story: Type,
+      story: Type,
+    };
+    return icons[type] || Layout;
+  };
+
+  const getSectionTypeName = (type: string): string => {
+    const names: Record<string, string> = {
+      hero: "Hero Section",
+      features: "Features",
+      testimonials: "Testimonials",
+      pricing: "Pricing",
+      cta: "Call to Action",
+      services: "Services",
+      team: "Team",
+      faq: "FAQ",
+      stats: "Statistics",
+      gallery: "Gallery",
+      contact: "Contact",
+      process: "Process Steps",
+      case_studies: "Case Studies",
+      trust_signals: "Trust Signals",
+      benefits: "Benefits",
+      comparison: "Comparison",
+      brand_story: "Brand Story",
+      story: "Story",
+      text: "Text",
+    };
+    return names[type] || type;
+  };
+
+  const getPreviewText = (section: SectionContent): string => {
+    const data = section.data || {};
+    if ((data as { headline?: string }).headline) return (data as { headline?: string }).headline as string;
+    if ((data as { title?: string }).title) return (data as { title?: string }).title as string;
+    if ((data as { sectionTitle?: string }).sectionTitle) return (data as { sectionTitle?: string }).sectionTitle as string;
+    return `${getSectionTypeName(section.type)} content`;
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Wand2 className="w-5 h-5" />
+            Edit Website Sections
+          </CardTitle>
+          <CardDescription>
+            Click on any section to refine it with AI-powered suggestions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {websiteContent.pages?.map((page) => (
+            <div key={page.slug} className="space-y-3">
+              <h3 className="font-semibold text-base capitalize">{page.title || page.slug}</h3>
+              <div className="grid gap-3">
+                {page.sections.map((section) => {
+                  const Icon = getSectionIcon(section.type);
+                  const isSelected = selectedSection?.section.id === section.id;
+                  
+                  return (
+                    <Card 
+                      key={section.id}
+                      className={`cursor-pointer transition-all hover-elevate ${
+                        isSelected ? "ring-2 ring-primary" : ""
+                      }`}
+                      onClick={() => setSelectedSection({ section, pageSlug: page.slug })}
+                      data-testid={`card-section-${section.id}`}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-muted">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="capitalize">
+                                {getSectionTypeName(section.type)}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1 truncate">
+                              {getPreviewText(section)}
+                            </p>
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSection({ section, pageSlug: page.slug });
+                            }}
+                            data-testid={`button-edit-${section.id}`}
+                          >
+                            <Wand2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {selectedSection && (
+        <div className="sticky bottom-4 z-50">
+          <SectionEditor
+            projectId={projectId}
+            section={selectedSection.section}
+            pageSlug={selectedSection.pageSlug}
+            onClose={() => setSelectedSection(null)}
+            onUpdate={() => {
+              setSelectedSection(null);
+              onUpdate();
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

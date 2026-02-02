@@ -89,6 +89,20 @@ Following Replit-style isolation:
 
 ## Recent Changes
 
+### 2026-02-02: AI-Powered Section Editing System
+- **Prompt-Based Section Refinement**: Users can click any website section and give natural language instructions to refine it
+- **Edit Tab in Website Plan**: New "Edit" tab shows all sections with clickable cards for editing
+- **SectionEditor Component** (`client/src/components/project/section-editor.tsx`):
+  - Quick prompts per section type (hero, features, testimonials, etc.)
+  - Custom instruction input for freeform refinement
+  - Toast notifications for success/error feedback
+  - Section-type-aware guidance for AI refinement
+- **API Routes for Section Editing** (`server/routes.ts`):
+  - POST `/api/projects/:id/sections/:sectionId/refine` - AI-powered section refinement
+  - PATCH `/api/projects/:id/sections/:sectionId` - Direct section data updates
+- **Storage Method**: `updateWebsiteContent()` for partial updates without full regeneration
+- **OpenAI Connector**: `refine_section` action with section-type-specific guidance for optimal copy
+
 ### 2026-02-02: Advanced Agency-Quality Website Engine
 - **Design Token System** (`client/src/lib/design-tokens.ts`):
   - Typography scales (12 sizes from xs to display)

@@ -719,6 +719,82 @@ Requirements:
         }
       }
 
+      case "refine_section": {
+        const input = task.input as {
+          section: { id: string; type: string; data: Record<string, unknown> };
+          instruction: string;
+          businessContext: {
+            businessName: string;
+            industry?: string;
+            tone?: string;
+            brandVoice?: string;
+          };
+        };
+
+        const sectionTypeGuidance = getSectionTypeGuidance(input.section.type);
+
+        const prompt = `You are an elite website copywriter and UX designer. Refine this website section based on the user's instruction.
+
+BUSINESS CONTEXT:
+- Business: ${input.businessContext.businessName}
+- Industry: ${input.businessContext.industry || "General"}
+- Tone: ${input.businessContext.tone || "Professional"}
+- Brand Voice: ${input.businessContext.brandVoice || "Professional and approachable"}
+
+CURRENT SECTION (type: ${input.section.type}):
+${JSON.stringify(input.section.data, null, 2)}
+
+USER'S INSTRUCTION:
+"${input.instruction}"
+
+${sectionTypeGuidance}
+
+IMPORTANT:
+- Apply the user's instruction while maintaining brand consistency
+- Keep the same section structure and data format
+- Improve the content quality based on the instruction
+- Make it feel premium, authentic, and conversion-focused
+- Return the refined section data in the exact same JSON format
+
+Return ONLY the refined section data as valid JSON (same structure as the current section data).`;
+
+        try {
+          const response = await client.chat.completions.create({
+            model: "gpt-4o",
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" },
+            max_completion_tokens: 4000,
+          });
+
+          const content = response.choices[0]?.message?.content || "{}";
+          
+          let refinedData: Record<string, unknown> = {};
+          try {
+            refinedData = JSON.parse(content);
+          } catch (parseError) {
+            console.error("[OpenAI] Failed to parse refined section JSON:", content);
+            throw new Error("Failed to parse AI response for section refinement");
+          }
+
+          return {
+            success: true,
+            data: {
+              id: input.section.id,
+              type: input.section.type,
+              data: refinedData,
+            } as O,
+            provider: "openai",
+          };
+        } catch (error) {
+          console.error("[OpenAI] Section refinement failed:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Section refinement failed",
+            provider: "openai",
+          };
+        }
+      }
+
       default:
         return {
           success: false,
@@ -728,3 +804,62 @@ Requirements:
     }
   },
 });
+
+function getSectionTypeGuidance(sectionType: string): string {
+  const guidance: Record<string, string> = {
+    hero: `HERO SECTION GUIDANCE:
+- Headline: 4-8 words, powerful and benefit-focused
+- Subheadline: Expand on the value, create urgency
+- CTA: First-person, action-oriented
+- Badge: Short, attention-grabbing`,
+    
+    features: `FEATURES SECTION GUIDANCE:
+- Each feature title: 3-5 words
+- Each feature description: 20-40 words, benefit-focused
+- Focus on outcomes, not just features`,
+    
+    testimonials: `TESTIMONIALS GUIDANCE:
+- Write as real people speak - natural, not corporate
+- Include specific outcomes: numbers, timeframes, emotions
+- 40-60 words per quote
+- Each testimonial should address a different objection`,
+    
+    pricing: `PRICING GUIDANCE:
+- Clear tier differentiation
+- Feature lists that justify price differences
+- Highlight most popular option
+- Use psychological pricing`,
+    
+    process: `PROCESS GUIDANCE:
+- 3-5 clear steps
+- Each step: short title + descriptive explanation
+- Show progression and outcomes`,
+    
+    cta: `CTA SECTION GUIDANCE:
+- Headline: Create urgency and desire
+- First-person CTA: "Start My..." not "Start Your..."
+- Include trust signals or guarantees`,
+    
+    services: `SERVICES GUIDANCE:
+- Each service: clear title + benefit-focused description
+- 40-60 words per service description
+- Include what makes each service unique`,
+    
+    team: `TEAM GUIDANCE:
+- Lead with their superpower or unique approach
+- Include one unexpected personal detail
+- 30-40 words that make them memorable`,
+    
+    faq: `FAQ GUIDANCE:
+- Questions should mirror actual customer concerns
+- Answers: 50-80 words, reassuring and specific
+- End each answer on a confident note`,
+    
+    stats: `STATS GUIDANCE:
+- Believable but impressive numbers
+- Include timeframes for context
+- Use social proof where appropriate`,
+  };
+  
+  return guidance[sectionType] || "Improve the content to be more compelling, specific, and conversion-focused.";
+}

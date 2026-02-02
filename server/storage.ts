@@ -52,6 +52,7 @@ export interface IStorage {
   getWebsiteContent(projectId: number): Promise<WebsiteContent | undefined>;
   getWebsiteContentByToken(token: string): Promise<WebsiteContent | undefined>;
   upsertWebsiteContent(data: InsertWebsiteContent & { projectId: number }): Promise<WebsiteContent>;
+  updateWebsiteContent(projectId: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined>;
   publishWebsiteContent(projectId: number, publishedUrl: string): Promise<WebsiteContent | undefined>;
 
   // Graphic Assets
@@ -187,6 +188,15 @@ class DatabaseStorage implements IStorage {
     const previewToken = crypto.randomUUID();
     const [created] = await db.insert(websiteContents).values({ ...data, previewToken }).returning();
     return created;
+  }
+
+  async updateWebsiteContent(projectId: number, data: Partial<WebsiteContent>): Promise<WebsiteContent | undefined> {
+    const [updated] = await db
+      .update(websiteContents)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(websiteContents.projectId, projectId))
+      .returning();
+    return updated;
   }
 
   async publishWebsiteContent(projectId: number, publishedUrl: string): Promise<WebsiteContent | undefined> {

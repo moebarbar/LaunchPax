@@ -289,6 +289,163 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // ============================================================================
+  // SECTION EDITING API (Prompt-Based Refinement)
+  // ============================================================================
+
+  // Refine a single section using AI
+  app.post("/api/projects/:id/sections/:sectionId/refine", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const sectionId = req.params.sectionId;
+    const { instruction, pageSlug } = req.body;
+
+    if (!instruction || typeof instruction !== "string") {
+      return res.status(400).json({ error: "Instruction is required" });
+    }
+
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Get current website content
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    // Find the section in the pages
+    const pages = websiteContent.pages || [];
+    let targetSection: { id: string; type: string; data: Record<string, unknown> } | null = null;
+    let targetPageIndex = -1;
+    let targetSectionIndex = -1;
+
+    for (let pi = 0; pi < pages.length; pi++) {
+      const page = pages[pi];
+      if (pageSlug && page.slug !== pageSlug) continue;
+      
+      for (let si = 0; si < page.sections.length; si++) {
+        if (page.sections[si].id === sectionId) {
+          targetSection = page.sections[si] as { id: string; type: string; data: Record<string, unknown> };
+          targetPageIndex = pi;
+          targetSectionIndex = si;
+          break;
+        }
+      }
+      if (targetSection) break;
+    }
+
+    if (!targetSection) {
+      return res.status(404).json({ error: "Section not found" });
+    }
+
+    // Get brand kit for context
+    const brandKit = await storage.getBrandKit(projectId);
+
+    // Call AI to refine the section
+    const result = await connectorRegistry.execute(
+      "text_generation",
+      "refine_section",
+      {
+        section: targetSection,
+        instruction,
+        businessContext: {
+          businessName: project.name,
+          industry: project.industry,
+          tone: project.tone,
+          brandVoice: brandKit?.brandVoice,
+        },
+      }
+    );
+
+    if (!result.success) {
+      return res.status(500).json({ error: result.error || "Failed to refine section" });
+    }
+
+    // Update the section in the pages array
+    const refinedSection = result.data as { id: string; type: string; data: Record<string, unknown> };
+    const updatedPages = [...pages];
+    updatedPages[targetPageIndex].sections[targetSectionIndex] = {
+      ...targetSection,
+      data: refinedSection.data,
+    };
+
+    // Save updated content
+    await storage.updateWebsiteContent(projectId, { pages: updatedPages });
+
+    // Log the activity
+    await storage.createActivityLog({
+      projectId,
+      action: "Section refined",
+      details: `Refined ${targetSection.type} section with instruction: "${instruction.substring(0, 50)}..."`,
+      status: "completed",
+    });
+
+    res.json({
+      success: true,
+      section: {
+        ...targetSection,
+        data: refinedSection.data,
+      },
+    });
+  });
+
+  // Update a section directly (manual edits)
+  app.patch("/api/projects/:id/sections/:sectionId", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const sectionId = req.params.sectionId;
+    const { data, pageSlug } = req.body;
+
+    if (!data) {
+      return res.status(400).json({ error: "Section data is required" });
+    }
+
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Get current website content
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    // Find and update the section
+    const pages = websiteContent.pages || [];
+    let updated = false;
+
+    for (let pi = 0; pi < pages.length; pi++) {
+      const page = pages[pi];
+      if (pageSlug && page.slug !== pageSlug) continue;
+      
+      for (let si = 0; si < page.sections.length; si++) {
+        if (page.sections[si].id === sectionId) {
+          pages[pi].sections[si] = {
+            ...pages[pi].sections[si],
+            data,
+          };
+          updated = true;
+          break;
+        }
+      }
+      if (updated) break;
+    }
+
+    if (!updated) {
+      return res.status(404).json({ error: "Section not found" });
+    }
+
+    // Save updated content
+    await storage.updateWebsiteContent(projectId, { pages });
+
+    res.json({ success: true });
+  });
+
+  // ============================================================================
   // GRAPHICS API
   // ============================================================================
 

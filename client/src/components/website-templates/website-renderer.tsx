@@ -12,6 +12,12 @@ import SectionStats from "./section-stats";
 import SectionServices from "./section-services";
 import SectionGallery from "./section-gallery";
 import SectionStory from "./section-story";
+import { SectionProcess } from "./section-process";
+import { SectionCaseStudies } from "./section-case-studies";
+import { SectionTrustSignals } from "./section-trust-signals";
+import { SectionBenefits } from "./section-benefits";
+import { SectionComparison } from "./section-comparison";
+import { SectionBrandStory } from "./section-brand-story";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -229,6 +235,18 @@ function SectionRenderer({ section, globalContent }: { section: SectionContent; 
       return <SectionGallery section={section} />;
     case "story":
       return <SectionStory section={section} />;
+    case "process":
+      return <SectionProcess section={section} />;
+    case "case_studies":
+      return <SectionCaseStudies section={section} />;
+    case "trust_signals":
+      return <SectionTrustSignals section={section} />;
+    case "benefits":
+      return <SectionBenefits section={section} />;
+    case "comparison":
+      return <SectionComparison section={section} />;
+    case "brand_story":
+      return <SectionBrandStory section={section} />;
     default:
       return null;
   }
