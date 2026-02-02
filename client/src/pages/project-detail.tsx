@@ -12,6 +12,7 @@ import {
   Globe,
   Image,
   Activity,
+  Settings,
 } from "lucide-react";
 import type { Project } from "@shared/schema";
 import ProjectOverview from "@/components/project/project-overview";
@@ -20,6 +21,7 @@ import BrandKit from "@/components/project/brand-kit";
 import WebsitePlan from "@/components/project/website-plan";
 import Graphics from "@/components/project/graphics";
 import ActivityLogTab from "@/components/project/activity-log";
+import { SiteSettings } from "@/components/project/site-settings";
 
 export default function ProjectDetailPage() {
   const params = useParams<{ id: string }>();
@@ -113,6 +115,10 @@ export default function ProjectDetailPage() {
             <Activity className="w-4 h-4" />
             <span className="hidden sm:inline">Activity</span>
           </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2" data-testid="tab-settings">
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Settings</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -132,6 +138,9 @@ export default function ProjectDetailPage() {
         </TabsContent>
         <TabsContent value="activity">
           <ActivityLogTab projectId={projectId} />
+        </TabsContent>
+        <TabsContent value="settings">
+          <SiteSettings project={project} />
         </TabsContent>
       </Tabs>
     </div>

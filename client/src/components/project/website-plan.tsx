@@ -30,9 +30,11 @@ import {
   Rocket,
   CheckCircle,
   Wand2,
+  MousePointer,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionEditor } from "./section-editor";
+import { CTAEditor } from "./cta-editor";
 import TechyBuildProgress from "@/components/techy-build-progress";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
 
@@ -332,18 +334,22 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
+        <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
           <TabsTrigger value="structure" data-testid="tab-website-structure">
             <Layout className="w-4 h-4 mr-2" />
-            Structure
+            <span className="hidden sm:inline">Structure</span>
           </TabsTrigger>
           <TabsTrigger value="edit" data-testid="tab-website-edit">
             <Wand2 className="w-4 h-4 mr-2" />
-            Edit
+            <span className="hidden sm:inline">Edit</span>
+          </TabsTrigger>
+          <TabsTrigger value="buttons" data-testid="tab-website-buttons">
+            <MousePointer className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Buttons</span>
           </TabsTrigger>
           <TabsTrigger value="preview" data-testid="tab-website-preview">
             <Eye className="w-4 h-4 mr-2" />
-            Preview
+            <span className="hidden sm:inline">Preview</span>
           </TabsTrigger>
         </TabsList>
 
@@ -392,6 +398,14 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
 
         <TabsContent value="edit" className="mt-4">
           <EditableSectionsPanel 
+            projectId={projectId}
+            websiteContent={websiteContent}
+            onUpdate={() => refetchWebsiteContent()}
+          />
+        </TabsContent>
+
+        <TabsContent value="buttons" className="mt-4">
+          <CTAEditor 
             projectId={projectId}
             websiteContent={websiteContent}
             onUpdate={() => refetchWebsiteContent()}

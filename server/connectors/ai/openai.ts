@@ -311,12 +311,40 @@ Return a JSON object with these fields:
           pages?: string[];
           targetAudience?: string;
           location?: string;
+          designStyle?: string;
+          businessProfile?: {
+            businessName?: string;
+            tagline?: string;
+            yearsInBusiness?: number;
+            teamSize?: string;
+            services?: { name: string; description?: string; price?: string }[];
+            uniqueSellingPoints?: string[];
+            competitiveAdvantages?: string[];
+            customerPainPoints?: string[];
+            targetAudience?: string;
+            contactInfo?: { email?: string; phone?: string; address?: string };
+            socialLinks?: Record<string, string>;
+            businessHours?: Record<string, string>;
+            websiteGoals?: { 
+              primaryPurpose?: string; 
+              primaryCta?: string; 
+              secondaryCta?: string;
+            };
+            brandPreferences?: { visualStyle?: string };
+            communicationTone?: string;
+            founderStory?: string;
+            certifications?: string[];
+            awards?: string[];
+            preferredContactMethod?: string;
+            responseTime?: string;
+          };
         };
 
+        const profile = input.businessProfile;
         const pageList = input.pages || ["home", "about", "services", "contact"];
-        const tone = input.tone || "professional";
+        const tone = profile?.communicationTone || input.tone || "professional";
         const industry = input.industry || "business";
-        const designStyle = (input as { designStyle?: string }).designStyle || "modern";
+        const designStyle = profile?.brandPreferences?.visualStyle || input.designStyle || "modern";
 
         const industryContext = getIndustryContext(industry);
         const styleVariant = getStyleVariant(designStyle);
@@ -331,13 +359,48 @@ Your copy must be:
 - Specific: Use concrete numbers, timeframes, and outcomes
 
 BUSINESS PROFILE:
-- Name: ${input.businessName}
+- Name: ${profile?.businessName || input.businessName}
+- Tagline: ${profile?.tagline || ""}
 - Core Offering: ${input.businessIdea}
 - Industry: ${industry}
-- Target Audience: ${input.targetAudience || "discerning professionals and businesses"}
+- Target Audience: ${input.targetAudience || profile?.targetAudience || "discerning professionals and businesses"}
 - Location: ${input.location || "United States"}
 - Brand Tone: ${tone}
 ${input.brandVoice ? `- Brand Voice: ${input.brandVoice}` : ""}
+${profile?.yearsInBusiness ? `- Years in Business: ${profile.yearsInBusiness}` : ""}
+${profile?.teamSize ? `- Team Size: ${profile.teamSize}` : ""}
+
+${profile?.services && profile.services.length > 0 ? `ACTUAL SERVICES/PRODUCTS TO FEATURE (use these real names and descriptions):
+${profile.services.map((s, i) => `${i + 1}. ${s.name}${s.description ? ` - ${s.description}` : ""}${s.price ? ` (${s.price})` : ""}`).join("\n")}` : ""}
+
+${profile?.uniqueSellingPoints && profile.uniqueSellingPoints.length > 0 ? `UNIQUE SELLING POINTS (incorporate these into features/benefits):
+${profile.uniqueSellingPoints.map(u => `- ${u}`).join("\n")}` : ""}
+
+${profile?.customerPainPoints && profile.customerPainPoints.length > 0 ? `CUSTOMER PAIN POINTS TO ADDRESS (use in testimonials & copy):
+${profile.customerPainPoints.map(p => `- ${p}`).join("\n")}` : ""}
+
+${profile?.certifications?.length || profile?.awards?.length ? `CREDIBILITY SIGNALS:
+${profile?.certifications?.map(c => `- Certification: ${c}`).join("\n") || ""}
+${profile?.awards?.map(a => `- Award: ${a}`).join("\n") || ""}` : ""}
+
+CONTACT & COMMUNICATION:
+${profile?.contactInfo?.email ? `- Email: ${profile.contactInfo.email}` : ""}
+${profile?.contactInfo?.phone ? `- Phone: ${profile.contactInfo.phone}` : ""}
+${profile?.contactInfo?.address ? `- Address: ${profile.contactInfo.address}` : ""}
+${profile?.preferredContactMethod ? `- Preferred Contact: ${profile.preferredContactMethod}` : ""}
+${profile?.responseTime ? `- Response Time: ${profile.responseTime}` : ""}
+
+${profile?.websiteGoals ? `WEBSITE GOALS:
+- Primary Purpose: ${profile.websiteGoals.primaryPurpose || "generate leads"}
+- Primary CTA Text: ${profile.websiteGoals.primaryCta || "Get Started"}
+- Secondary CTA Text: ${profile.websiteGoals.secondaryCta || "Learn More"}
+IMPORTANT: Use "${profile.websiteGoals.primaryCta || "Get Started"}" as the primary CTA button text throughout the site.` : ""}
+
+${profile?.socialLinks ? `SOCIAL LINKS (include in footer):
+${Object.entries(profile.socialLinks).filter(([_, v]) => v).map(([k, v]) => `- ${k}: ${v}`).join("\n")}` : ""}
+
+${profile?.founderStory ? `FOUNDER STORY (use in About page):
+${profile.founderStory}` : ""}
 
 DESIGN STYLE: ${designStyle.toUpperCase()}
 ${styleVariant.description}

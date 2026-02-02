@@ -277,6 +277,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             targetAudience: ctx.project.targetAudience,
             location: ctx.project.location,
             pages: ["home", "about", "services", "contact"],
+            businessProfile: ctx.project.businessProfile,
           }
         );
         

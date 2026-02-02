@@ -11,7 +11,8 @@ import {
   Palette,
   DollarSign,
 } from "lucide-react";
-import type { Project, NamingResult, BrandKit, WebsitePlan, GraphicAsset } from "@shared/schema";
+import type { Project, NamingResult, BrandKit, WebsiteContent, GraphicAsset } from "@shared/schema";
+import { IndustryRecommendations } from "./industry-recommendations";
 
 interface ProjectOverviewProps {
   project: Project;
@@ -26,7 +27,7 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
     queryKey: ["/api/projects", project.id, "brand-kit"],
   });
 
-  const { data: websitePlan } = useQuery<WebsitePlan>({
+  const { data: websitePlan } = useQuery<WebsiteContent>({
     queryKey: ["/api/projects", project.id, "website-plan"],
   });
 
@@ -123,6 +124,11 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Industry Recommendations */}
+        {project.industry && (
+          <IndustryRecommendations industry={project.industry} />
+        )}
 
         {namingResult?.selectedDomain && (
           <Card>
