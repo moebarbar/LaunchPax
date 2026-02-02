@@ -321,7 +321,14 @@ Return a JSON object with these fields:
         const industryContext = getIndustryContext(industry);
         const styleVariant = getStyleVariant(designStyle);
 
-        const prompt = `You are a world-class conversion copywriter and brand strategist. Create a PREMIUM, high-converting website that could win design awards.
+        const prompt = `You are an elite conversion copywriter who has written for Apple, Stripe, Airbnb, and Linear. Create an EXCEPTIONAL, award-winning website that would impress Awwwards judges.
+
+Your copy must be:
+- Magnetic: Headlines that stop scrolling and create instant desire
+- Concise: Every word earns its place. No fluff, no clichés, no "leverage synergies"
+- Benefit-obsessed: Focus on transformation, not features
+- Emotionally resonant: Connect with deep human needs (status, belonging, safety, growth)
+- Specific: Use concrete numbers, timeframes, and outcomes
 
 BUSINESS PROFILE:
 - Name: ${input.businessName}
@@ -360,15 +367,51 @@ PAGE BLUEPRINTS:
 3. SERVICES (5 sections): hero → services (6 comprehensive offerings) → pricing (3 tiers: starter/professional/enterprise) → faq (6 objection-handlers) → cta
 4. CONTACT (4 sections): hero → contact (with form) → text (response commitment, office hours) → cta
 
-COPYWRITING EXCELLENCE REQUIREMENTS:
-- Headlines: Use power words, create curiosity, promise transformation. NO generic phrases like "Welcome to" or "About Us"
-- Subheadlines: Expand on the promise with specific benefits. 2-3 sentences that build desire.
-- Features: Each title should be a benefit statement (not a feature name). Descriptions 20-30 words explaining the transformation.
-- Testimonials: Write as real people speak. Include specific results or emotions. 30-50 words per quote. Use diverse realistic names.
-- Team: Give each member a distinct personality. Include a unique achievement or passion. 25-35 words.
-- FAQ: Address real objections and fears. Answers should reassure and build confidence. 40-60 words each.
-- CTAs: Create urgency without being pushy. Personalize to the action ("Get My Free Strategy Call" not "Submit")
-- Stats: Use believable but impressive numbers with context
+COPYWRITING MASTERY REQUIREMENTS:
+
+HEADLINES (the most important element):
+- Pattern: [Outcome] + [Timeframe/Method] OR [Provocative question]
+- GOOD: "Build websites 10x faster. Ship today, not next month."
+- GOOD: "What if your CRM actually helped you close?"
+- BAD: "Welcome to Our Company" or "About Our Services"
+- Every headline must create curiosity or promise clear value
+
+SUBHEADLINES:
+- 1-2 sentences that expand on the headline with specifics
+- Include a number, timeframe, or concrete benefit
+- Build desire and reduce friction
+
+FEATURES & SERVICES:
+- Title = Benefit statement, not feature name ("Save 10 hours weekly" not "Automation")
+- Description = 25-40 words explaining the transformation and outcome
+- Each item tells a mini story of before → after
+
+TESTIMONIALS (crucial for trust):
+- Write as REAL people speak - natural, not corporate
+- Include specific outcomes: numbers, timeframes, emotions
+- 40-60 words per quote
+- Use diverse, realistic names from different backgrounds
+- Each testimonial should address a different objection
+
+TEAM BIOS:
+- Lead with their superpower or unique approach
+- Include one unexpected personal detail
+- 30-40 words that make them memorable
+
+FAQ:
+- Questions should mirror actual customer concerns and objections
+- Answers: 50-80 words, reassuring and specific
+- End each answer on a confident, forward-looking note
+
+CTAs:
+- First-person: "Start My Free Trial" not "Start Free Trial"
+- Specific: "Book My 15-Minute Strategy Call" not "Contact Us"
+- Create urgency without being sleazy
+
+STATS:
+- Believable but impressive numbers with context
+- Include timeframes: "10,000+ customers served since 2019"
+- Use social proof: "Trusted by teams at Google, Stripe, and Notion"
 
 COLOR PSYCHOLOGY (choose based on ${industry}):
 - Professional services: Deep blues (#1e40af), slate grays, gold accents
