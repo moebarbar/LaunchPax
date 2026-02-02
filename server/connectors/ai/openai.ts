@@ -532,7 +532,7 @@ Return JSON with "graphics" array. Each item has: type, name, dimensions, design
       case "generate_image": {
         const input = task.input as {
           prompt: string;
-          size?: "1024x1024" | "1792x1024" | "1024x1792";
+          size?: "1024x1024" | "1536x1024" | "1024x1536";
           style?: "vivid" | "natural";
           quality?: "standard" | "hd";
         };
@@ -612,7 +612,7 @@ Requirements:
             model: "gpt-image-1",
             prompt: heroPrompt,
             n: 1,
-            size: "1792x1024",
+            size: "1536x1024",
           });
 
           const imageData = imageResponse.data[0];
