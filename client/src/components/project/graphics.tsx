@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import {
   Copy,
   Check,
 } from "lucide-react";
-import { useState } from "react";
 import type { GraphicAsset, WorkflowJob } from "@shared/schema";
 
 interface GraphicsProps {
@@ -25,7 +25,7 @@ export default function Graphics({ projectId }: GraphicsProps) {
   const { toast } = useToast();
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
-  const { data: graphics, isLoading } = useQuery<GraphicAsset[]>({
+  const { data: graphics, isLoading, refetch: refetchGraphics } = useQuery<GraphicAsset[]>({
     queryKey: ["/api/projects", projectId, "graphics"],
   });
 
@@ -33,12 +33,28 @@ export default function Graphics({ projectId }: GraphicsProps) {
     queryKey: ["/api/projects", projectId, "workflows", "graphics", "status"],
     refetchInterval: (query) => {
       const job = query.state.data;
-      if (job?.status === "running" || job?.status === "pending") {
+      // Only poll if workflow is actively running
+      if (job?.status === "running") {
         return 2000;
       }
       return false;
     },
   });
+
+  // Track previous workflow status to detect completion
+  const prevStatusRef = useRef<string | undefined>(undefined);
+  
+  // Refetch results when workflow completes
+  useEffect(() => {
+    const currentStatus = workflowJob?.status;
+    const prevStatus = prevStatusRef.current;
+    
+    if (prevStatus === "running" && currentStatus === "completed") {
+      refetchGraphics();
+    }
+    
+    prevStatusRef.current = currentStatus;
+  }, [workflowJob?.status, refetchGraphics]);
 
   const generateGraphics = useMutation({
     mutationFn: async () => {
@@ -62,7 +78,7 @@ export default function Graphics({ projectId }: GraphicsProps) {
     },
   });
 
-  const isRunning = workflowJob?.status === "running" || workflowJob?.status === "pending";
+  const isRunning = workflowJob?.status === "running";
 
   const getTypeIcon = (type: string) => {
     switch (type) {

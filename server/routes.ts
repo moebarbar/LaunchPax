@@ -191,7 +191,8 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const workflowType = req.params.type;
     
     const job = await storage.getWorkflowJob(projectId, workflowType);
-    res.json(job || { status: "pending", progress: 0 });
+    // Return "not_started" when no job exists, not "pending"
+    res.json(job || { status: "not_started", progress: 0 });
   });
 
   // Run workflow
@@ -218,20 +219,31 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       return res.status(409).json({ message: "Workflow already in progress" });
     }
 
-    // Create job
+    // Create job with running status
     const job = await storage.createWorkflowJob({
       projectId,
       workflowType,
-      status: "pending",
+      status: "running",
       progress: 0,
     });
 
-    // Run workflow async
-    runner({ projectId, project, jobId: job.id }).catch((error) => {
-      console.error(`Workflow ${workflowType} failed:`, error);
-    });
+    console.log(`[Workflow] Starting ${workflowType} for project ${projectId}, job ${job.id}`);
 
-    res.status(202).json({ jobId: job.id, status: "pending" });
+    // Run workflow async
+    runner({ projectId, project, jobId: job.id })
+      .then(() => {
+        console.log(`[Workflow] Completed ${workflowType} for project ${projectId}`);
+      })
+      .catch(async (error) => {
+        console.error(`[Workflow] Failed ${workflowType} for project ${projectId}:`, error);
+        // Update job status to failed
+        await storage.updateWorkflowJob(job.id, {
+          status: "failed",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      });
+
+    res.status(202).json({ jobId: job.id, status: "running" });
   });
 
   // ============================================================================

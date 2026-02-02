@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
 
-  const { data: namingResult, isLoading } = useQuery<NamingResult>({
+  const { data: namingResult, isLoading, refetch: refetchResults } = useQuery<NamingResult>({
     queryKey: ["/api/projects", projectId, "naming-domain", "results"],
   });
 
@@ -38,12 +38,29 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
     queryKey: ["/api/projects", projectId, "workflows", "naming-domain", "status"],
     refetchInterval: (query) => {
       const job = query.state.data;
-      if (job?.status === "running" || job?.status === "pending") {
+      // Only poll if workflow is actively running (not if not_started or completed)
+      if (job?.status === "running") {
         return 2000;
       }
       return false;
     },
   });
+
+  // Track previous workflow status to detect completion
+  const prevStatusRef = useRef<string | undefined>(undefined);
+  
+  // Refetch results when workflow completes
+  useEffect(() => {
+    const currentStatus = workflowJob?.status;
+    const prevStatus = prevStatusRef.current;
+    
+    // If status changed from running to completed, refetch results
+    if (prevStatus === "running" && currentStatus === "completed") {
+      refetchResults();
+    }
+    
+    prevStatusRef.current = currentStatus;
+  }, [workflowJob?.status, refetchResults]);
 
   const runWorkflow = useMutation({
     mutationFn: async () => {
@@ -87,7 +104,8 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
     },
   });
 
-  const isRunning = workflowJob?.status === "running" || workflowJob?.status === "pending";
+  // Only consider "running" as actively in progress (not "pending" fallback or "not_started")
+  const isRunning = workflowJob?.status === "running";
 
   const filteredDomains = namingResult?.availableDomains?.filter((d) => {
     if (showAvailableOnly && !d.available) return false;

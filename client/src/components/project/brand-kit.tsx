@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ interface BrandKitProps {
 export default function BrandKit({ projectId }: BrandKitProps) {
   const { toast } = useToast();
 
-  const { data: brandKit, isLoading } = useQuery<BrandKitType>({
+  const { data: brandKit, isLoading, refetch: refetchBrandKit } = useQuery<BrandKitType>({
     queryKey: ["/api/projects", projectId, "brand-kit"],
   });
 
@@ -31,12 +32,28 @@ export default function BrandKit({ projectId }: BrandKitProps) {
     queryKey: ["/api/projects", projectId, "workflows", "brand-kit", "status"],
     refetchInterval: (query) => {
       const job = query.state.data;
-      if (job?.status === "running" || job?.status === "pending") {
+      // Only poll if workflow is actively running
+      if (job?.status === "running") {
         return 2000;
       }
       return false;
     },
   });
+
+  // Track previous workflow status to detect completion
+  const prevStatusRef = useRef<string | undefined>(undefined);
+  
+  // Refetch results when workflow completes
+  useEffect(() => {
+    const currentStatus = workflowJob?.status;
+    const prevStatus = prevStatusRef.current;
+    
+    if (prevStatus === "running" && currentStatus === "completed") {
+      refetchBrandKit();
+    }
+    
+    prevStatusRef.current = currentStatus;
+  }, [workflowJob?.status, refetchBrandKit]);
 
   const generateBrandKit = useMutation({
     mutationFn: async () => {
@@ -60,7 +77,7 @@ export default function BrandKit({ projectId }: BrandKitProps) {
     },
   });
 
-  const isRunning = workflowJob?.status === "running" || workflowJob?.status === "pending";
+  const isRunning = workflowJob?.status === "running";
 
   if (isLoading) {
     return (
