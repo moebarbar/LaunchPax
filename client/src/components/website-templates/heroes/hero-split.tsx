@@ -51,7 +51,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.1 }}
-                className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]"
+                className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]"
               >
                 {data.headline}
               </motion.h1>
@@ -95,13 +95,13 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex flex-wrap gap-4 pt-4"
+                className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
               >
                 {data.ctaText && (
                   <Button
                     asChild
                     size="lg"
-                    className="rounded-xl shadow-lg"
+                    className="w-full sm:w-auto rounded-xl shadow-lg"
                     style={{ 
                       background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
                     }}
@@ -118,7 +118,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                     asChild
                     size="lg"
                     variant="ghost"
-                    className="h-12 px-8 text-base rounded-xl"
+                    className="w-full sm:w-auto h-12 px-8 text-base rounded-xl"
                   >
                     <a href={data.secondaryCtaLink || "#"}>
                       {data.secondaryCtaText}

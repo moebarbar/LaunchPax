@@ -15,6 +15,7 @@ import {
   Quote,
   Target,
 } from "lucide-react";
+import TechyBuildProgress from "@/components/techy-build-progress";
 import type { BrandKit as BrandKitType, WorkflowJob } from "@shared/schema";
 
 interface BrandKitProps {
@@ -89,6 +90,20 @@ export default function BrandKit({ projectId }: BrandKitProps) {
   }
 
   if (!brandKit || brandKit.status === "pending") {
+    if (isRunning) {
+      return (
+        <Card>
+          <CardContent className="py-8">
+            <TechyBuildProgress 
+              workflowType="brand" 
+              progress={workflowJob?.progress || 0} 
+              isRunning={true}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+    
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -101,13 +116,13 @@ export default function BrandKit({ projectId }: BrandKitProps) {
           </p>
           <Button
             onClick={() => generateBrandKit.mutate()}
-            disabled={generateBrandKit.isPending || isRunning}
+            disabled={generateBrandKit.isPending}
             data-testid="button-generate-brand-kit"
           >
-            {generateBrandKit.isPending || isRunning ? (
+            {generateBrandKit.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
+                Starting...
               </>
             ) : (
               <>
@@ -116,18 +131,6 @@ export default function BrandKit({ projectId }: BrandKitProps) {
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isRunning) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-          <h3 className="font-semibold mb-2">Building Your Brand...</h3>
-          <p className="text-muted-foreground text-sm">This may take a moment</p>
         </CardContent>
       </Card>
     );

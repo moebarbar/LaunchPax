@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionEditor } from "./section-editor";
+import TechyBuildProgress from "@/components/techy-build-progress";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
 
 interface WebsitePlanProps {
@@ -209,6 +210,20 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
   }
 
   if (!websiteContent || websiteContent.status === "pending") {
+    if (isRunning) {
+      return (
+        <Card>
+          <CardContent className="py-8">
+            <TechyBuildProgress 
+              workflowType="website" 
+              progress={workflowJob?.progress || 0} 
+              isRunning={true}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+    
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -221,13 +236,13 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
           </p>
           <Button
             onClick={() => generateWebsitePlan.mutate()}
-            disabled={generateWebsitePlan.isPending || isRunning}
+            disabled={generateWebsitePlan.isPending}
             data-testid="button-generate-website"
           >
-            {generateWebsitePlan.isPending || isRunning ? (
+            {generateWebsitePlan.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
+                Starting...
               </>
             ) : (
               <>
@@ -236,18 +251,6 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isRunning) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-          <h3 className="font-semibold mb-2">Creating Website Plan...</h3>
-          <p className="text-muted-foreground text-sm">This may take a moment</p>
         </CardContent>
       </Card>
     );
@@ -262,11 +265,12 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
             {websiteContent.pages?.length || 0} pages generated
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={() => window.open(`/preview/${websiteContent.previewToken}`, '_blank')}
             data-testid="button-preview-website"
+            className="w-full sm:w-auto"
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             Open Preview
@@ -275,6 +279,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
             variant="outline"
             onClick={() => websiteContent.previewToken && copyShareUrl(websiteContent.previewToken)}
             data-testid="button-share-website"
+            className="w-full sm:w-auto"
           >
             {copied ? (
               <Check className="w-4 h-4 mr-2" />
@@ -288,7 +293,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
               variant="default"
               onClick={() => websiteContent.publishedUrl && window.open(websiteContent.publishedUrl, '_blank')}
               data-testid="button-view-live-site"
-              className="bg-green-600 hover:bg-green-700"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
               View Live Site
@@ -298,6 +303,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
               onClick={() => publishWebsite.mutate()}
               disabled={publishWebsite.isPending}
               data-testid="button-publish-website"
+              className="w-full sm:w-auto"
             >
               {publishWebsite.isPending ? (
                 <>
@@ -317,6 +323,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
             onClick={() => generateWebsitePlan.mutate()}
             disabled={isRunning}
             data-testid="button-regenerate-website"
+            className="w-full sm:w-auto"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Regenerate

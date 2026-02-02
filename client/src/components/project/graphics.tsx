@@ -15,6 +15,7 @@ import {
   Copy,
   Check,
 } from "lucide-react";
+import TechyBuildProgress from "@/components/techy-build-progress";
 import type { GraphicAsset, WorkflowJob } from "@shared/schema";
 
 interface GraphicsProps {
@@ -126,6 +127,20 @@ export default function Graphics({ projectId }: GraphicsProps) {
   }
 
   if (!graphics || graphics.length === 0) {
+    if (isRunning) {
+      return (
+        <Card>
+          <CardContent className="py-8">
+            <TechyBuildProgress 
+              workflowType="graphics" 
+              progress={workflowJob?.progress || 0} 
+              isRunning={true}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+    
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -138,13 +153,13 @@ export default function Graphics({ projectId }: GraphicsProps) {
           </p>
           <Button
             onClick={() => generateGraphics.mutate()}
-            disabled={generateGraphics.isPending || isRunning}
+            disabled={generateGraphics.isPending}
             data-testid="button-generate-graphics"
           >
-            {generateGraphics.isPending || isRunning ? (
+            {generateGraphics.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
+                Starting...
               </>
             ) : (
               <>
@@ -153,18 +168,6 @@ export default function Graphics({ projectId }: GraphicsProps) {
               </>
             )}
           </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isRunning) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-          <h3 className="font-semibold mb-2">Creating Graphics...</h3>
-          <p className="text-muted-foreground text-sm">This may take a moment</p>
         </CardContent>
       </Card>
     );
@@ -241,10 +244,10 @@ export default function Graphics({ projectId }: GraphicsProps) {
                     </Button>
                   </div>
                 )}
-                {graphic.designBrief && (
+                {graphic.designBrief?.prompt && (
                   <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
                     <p className="font-medium mb-1">Design Brief:</p>
-                    <p className="line-clamp-2">{graphic.designBrief}</p>
+                    <p className="line-clamp-2">{graphic.designBrief.prompt}</p>
                   </div>
                 )}
                 <Badge variant="outline" className="capitalize">

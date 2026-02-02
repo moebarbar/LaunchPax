@@ -20,6 +20,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TechyBuildProgress from "@/components/techy-build-progress";
 import type { Project, NamingResult, WorkflowJob } from "@shared/schema";
 
 interface NamingDomainProps {
@@ -174,32 +175,42 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
               </TabsList>
               
               <TabsContent value="generate" className="mt-6">
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <Globe className="w-8 h-8 text-primary" />
+                {isRunning ? (
+                  <div className="py-4">
+                    <TechyBuildProgress 
+                      workflowType="naming" 
+                      progress={workflowJob?.progress || 0} 
+                      isRunning={true}
+                    />
                   </div>
-                  <h3 className="font-semibold mb-2">Generate Domain Suggestions</h3>
-                  <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-                    We'll generate domain names based on "{project.name}" and check availability.
-                  </p>
-                  <Button
-                    onClick={() => runWorkflow.mutate()}
-                    disabled={runWorkflow.isPending || isRunning}
-                    data-testid="button-generate-names"
-                  >
-                    {runWorkflow.isPending || isRunning ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate Names
-                      </>
-                    )}
-                  </Button>
-                </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                      <Globe className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Generate Domain Suggestions</h3>
+                    <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+                      We'll generate domain names based on "{project.name}" and check availability.
+                    </p>
+                    <Button
+                      onClick={() => runWorkflow.mutate()}
+                      disabled={runWorkflow.isPending}
+                      data-testid="button-generate-names"
+                    >
+                      {runWorkflow.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Starting...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Generate Names
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </TabsContent>
               
               <TabsContent value="custom" className="mt-6">

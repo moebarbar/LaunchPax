@@ -72,7 +72,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9]"
+              className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[0.9]"
               style={{ letterSpacing: "-0.03em" }}
             >
               {data.headline?.split(' ').map((word, i, arr) => (
@@ -119,13 +119,13 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap gap-4 pt-4"
+              className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
             >
               {data.ctaText && (
                 <Button
                   asChild
                   size="lg"
-                  className="rounded-full shadow-xl group"
+                  className="w-full sm:w-auto rounded-full shadow-xl group"
                   style={{ 
                     background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
                   }}
@@ -142,7 +142,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
                   asChild
                   size="lg"
                   variant="outline"
-                  className="rounded-full backdrop-blur-sm"
+                  className="w-full sm:w-auto rounded-full backdrop-blur-sm"
                   data-testid="button-hero-secondary-cta"
                 >
                   <a href={data.secondaryCtaLink || "#"}>

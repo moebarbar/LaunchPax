@@ -89,6 +89,23 @@ Following Replit-style isolation:
 
 ## Recent Changes
 
+### 2026-02-02: Mobile Responsiveness & Techy Build Progress
+- **Mobile-First Hero Templates**: All 6 hero archetypes updated with progressive text scaling
+  - Added `xs` breakpoint (475px) to Tailwind for finer mobile control
+  - Headlines scale: `text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl`
+  - CTA buttons: `flex-col sm:flex-row` for mobile stacking, `w-full sm:w-auto` pattern
+- **TechyBuildProgress Component** (`client/src/components/techy-build-progress.tsx`):
+  - Terminal-style output with animated progress visualization
+  - Workflow-specific steps for naming, brand, website, and graphics workflows
+  - Code snippets showing pseudo-function calls during generation
+  - Build step indicators with icons, completion status, and active animations
+  - Animated progress bar with gradient shimmer effect
+  - Dark terminal theme with syntax highlighting
+- **Integrated in All Workflow UIs**:
+  - `website-plan.tsx`, `brand-kit.tsx`, `graphics.tsx`, `naming-domain.tsx`
+  - Replaces basic spinner with engaging visual feedback during AI generation
+- **Footer/Header Mobile Improvements**: Better mobile padding and social link wrapping
+
 ### 2026-02-02: AI-Powered Section Editing System
 - **Prompt-Based Section Refinement**: Users can click any website section and give natural language instructions to refine it
 - **Edit Tab in Website Plan**: New "Edit" tab shows all sections with clickable cards for editing

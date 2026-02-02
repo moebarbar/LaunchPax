@@ -104,7 +104,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 0.2 }}
-          className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.9]"
+          className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white leading-[0.9]"
           style={{ 
             letterSpacing: "-0.04em",
             textShadow: "0 0 80px rgba(0,0,0,0.5)"
@@ -139,13 +139,13 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1 }}
-          className="mt-14 flex flex-wrap justify-center gap-6"
+          className="mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6"
         >
           {data.ctaText && (
             <Button
               asChild
               size="lg"
-              className="rounded-none bg-white text-black"
+              className="w-full sm:w-auto rounded-none bg-white text-black"
               data-testid="button-hero-cta"
             >
               <a href={data.ctaLink || "#contact"}>
@@ -161,7 +161,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
               asChild
               size="lg"
               variant="ghost"
-              className="h-16 px-12 text-lg rounded-none text-white hover:bg-white/10 border border-white/30 group"
+              className="w-full sm:w-auto h-16 px-12 text-lg rounded-none text-white hover:bg-white/10 border border-white/30 group"
             >
               <a href={data.secondaryCtaLink || "#"}>
                 <Play className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />

@@ -80,7 +80,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.1 }}
-            className="text-6xl sm:text-7xl md:text-8xl lg:text-[9rem] xl:text-[11rem] font-black tracking-tighter leading-[0.85]"
+            className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-[9rem] font-black tracking-tighter leading-[0.85]"
           >
             {data.headline?.split(' ').slice(0, 2).join(' ')}
             <br />
@@ -111,13 +111,13 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="flex flex-wrap gap-4 pt-6"
+            className="flex flex-col sm:flex-row flex-wrap gap-4 pt-6"
           >
             {data.ctaText && (
               <Button
                 asChild
                 size="lg"
-                className="rounded-full shadow-2xl"
+                className="w-full sm:w-auto rounded-full shadow-2xl"
                 style={{ 
                   background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`,
                   boxShadow: `0 20px 50px -15px var(--brand-primary, hsl(var(--primary)))`
@@ -135,7 +135,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
                 asChild
                 size="lg"
                 variant="outline"
-                className="h-16 px-10 text-lg rounded-full border-2"
+                className="w-full sm:w-auto h-16 px-10 text-lg rounded-full border-2"
               >
                 <a href={data.secondaryCtaLink || "#"}>
                   {data.secondaryCtaText}

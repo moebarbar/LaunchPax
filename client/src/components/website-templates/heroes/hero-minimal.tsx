@@ -39,7 +39,7 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.15]"
+          className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.15]"
           style={{ letterSpacing: "-0.02em" }}
         >
           {data.headline}
@@ -60,13 +60,13 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-10 flex flex-wrap justify-center gap-4"
+          className="mt-10 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
             <Button
               asChild
               size="lg"
-              className="rounded-lg"
+              className="w-full sm:w-auto rounded-lg"
               style={{ 
                 backgroundColor: "var(--brand-primary, hsl(var(--primary)))"
               }}
@@ -83,7 +83,7 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
               asChild
               size="lg"
               variant="ghost"
-              className="rounded-lg text-muted-foreground"
+              className="w-full sm:w-auto rounded-lg text-muted-foreground"
               data-testid="button-hero-secondary-cta"
             >
               <a href={data.secondaryCtaLink || "#"}>

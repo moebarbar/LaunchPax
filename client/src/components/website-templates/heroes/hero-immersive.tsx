@@ -79,7 +79,7 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold tracking-tight text-white leading-[0.95]"
+          className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-white leading-[0.95]"
           style={{ letterSpacing: "-0.03em" }}
         >
           {data.headline}
@@ -100,13 +100,13 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 flex flex-wrap justify-center gap-4"
+          className="mt-12 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
             <Button
               asChild
               size="lg"
-              className="rounded-full bg-white text-black shadow-2xl"
+              className="w-full sm:w-auto rounded-full bg-white text-black shadow-2xl"
               data-testid="button-hero-cta"
             >
               <a href={data.ctaLink || "#contact"}>
@@ -120,7 +120,7 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
               asChild
               size="lg"
               variant="outline"
-              className="h-14 px-10 text-lg rounded-full border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+              className="w-full sm:w-auto h-14 px-10 text-lg rounded-full border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
             >
               <a href={data.secondaryCtaLink || "#"}>
                 {data.secondaryCtaText}

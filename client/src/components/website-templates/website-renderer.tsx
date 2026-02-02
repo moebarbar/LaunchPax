@@ -406,7 +406,7 @@ function WebsiteFooter({ globalContent, siteSettings }: { globalContent?: Global
         }}
       />
       
-      <div className="max-w-7xl mx-auto px-6 py-16 sm:py-20 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
@@ -428,7 +428,7 @@ function WebsiteFooter({ globalContent, siteSettings }: { globalContent?: Global
               {globalContent?.tagline || "Building the future, one step at a time."}
             </p>
             {footer?.socialLinks && footer.socialLinks.length > 0 && (
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {footer.socialLinks.map((social, index) => (
                   <a
                     key={index}
