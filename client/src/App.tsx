@@ -17,6 +17,7 @@ import ProjectDetailPage from "@/pages/project-detail";
 import ConnectorsPage from "@/pages/connectors";
 import SettingsPage from "@/pages/settings";
 import WebsitePreview from "@/pages/website-preview";
+import PublishedSite from "@/pages/published-site";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
@@ -43,7 +44,7 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AppRouter() {
+function AuthenticatedRoutes() {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -62,21 +63,28 @@ function AppRouter() {
   }
 
   return (
+    <AuthenticatedLayout>
+      <Switch>
+        <Route path="/" component={DashboardPage} />
+        <Route path="/dashboard" component={DashboardPage} />
+        <Route path="/project/new" component={NewProjectPage} />
+        <Route path="/project/:id" component={ProjectDetailPage} />
+        <Route path="/connectors" component={ConnectorsPage} />
+        <Route path="/settings" component={SettingsPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </AuthenticatedLayout>
+  );
+}
+
+function AppRouter() {
+  return (
     <Switch>
+      {/* Public routes - accessible without auth */}
       <Route path="/preview/:token" component={WebsitePreview} />
-      <Route>
-        <AuthenticatedLayout>
-          <Switch>
-            <Route path="/" component={DashboardPage} />
-            <Route path="/dashboard" component={DashboardPage} />
-            <Route path="/project/new" component={NewProjectPage} />
-            <Route path="/project/:id" component={ProjectDetailPage} />
-            <Route path="/connectors" component={ConnectorsPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route component={NotFound} />
-          </Switch>
-        </AuthenticatedLayout>
-      </Route>
+      <Route path="/site/:projectId" component={PublishedSite} />
+      {/* Auth-gated routes */}
+      <Route component={AuthenticatedRoutes} />
     </Switch>
   );
 }

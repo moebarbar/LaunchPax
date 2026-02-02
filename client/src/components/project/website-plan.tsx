@@ -24,6 +24,11 @@ import {
   ExternalLink,
   Monitor,
   Smartphone,
+  Share2,
+  Copy,
+  Check,
+  Rocket,
+  CheckCircle,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
@@ -38,6 +43,19 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<ViewMode>("desktop");
   const [activeTab, setActiveTab] = useState("structure");
+  const [copied, setCopied] = useState(false);
+
+  const copyShareUrl = async (previewToken: string) => {
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/preview/${previewToken}`;
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    toast({
+      title: "Link copied!",
+      description: "Share this link with anyone to show your website.",
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const { data: websiteContent, isLoading, refetch: refetchWebsiteContent } = useQuery<WebsiteContent>({
     queryKey: ["/api/projects", projectId, "website-plan"],
@@ -87,6 +105,27 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
       toast({
         title: "Error",
         description: "Failed to generate website plan.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const publishWebsite = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/projects/${projectId}/publish`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Website published!",
+        description: "Your website is now live and accessible to anyone with the link.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "website-plan"] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to publish website.",
         variant: "destructive",
       });
     },
@@ -224,7 +263,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
             {websiteContent.pages?.length || 0} pages generated
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             onClick={() => window.open(`/preview/${websiteContent.previewToken}`, '_blank')}
@@ -233,6 +272,47 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
             <ExternalLink className="w-4 h-4 mr-2" />
             Open Preview
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => websiteContent.previewToken && copyShareUrl(websiteContent.previewToken)}
+            data-testid="button-share-website"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 mr-2" />
+            ) : (
+              <Share2 className="w-4 h-4 mr-2" />
+            )}
+            {copied ? "Copied!" : "Share"}
+          </Button>
+          {websiteContent.isPublished ? (
+            <Button
+              variant="default"
+              onClick={() => websiteContent.publishedUrl && window.open(websiteContent.publishedUrl, '_blank')}
+              data-testid="button-view-live-site"
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              View Live Site
+            </Button>
+          ) : (
+            <Button
+              onClick={() => publishWebsite.mutate()}
+              disabled={publishWebsite.isPending}
+              data-testid="button-publish-website"
+            >
+              {publishWebsite.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-4 h-4 mr-2" />
+                  Publish
+                </>
+              )}
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => generateWebsitePlan.mutate()}

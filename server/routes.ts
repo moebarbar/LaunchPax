@@ -206,6 +206,88 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(content);
   });
 
+  // Public published site endpoint - serves only published websites
+  app.get("/api/site/:projectId", async (req: Request, res: Response) => {
+    const projectId = parseInt(req.params.projectId);
+    
+    if (isNaN(projectId)) {
+      return res.status(400).json({ error: "Invalid project ID" });
+    }
+    
+    const content = await storage.getWebsiteContent(projectId);
+    
+    if (!content) {
+      return res.status(404).json({ error: "Site not found" });
+    }
+    
+    if (!content.isPublished) {
+      return res.status(403).json({ error: "This site is not published" });
+    }
+    
+    res.json(content);
+  });
+
+  // Get shareable preview URL for a project
+  app.get("/api/projects/:id/preview-url", isAuthenticated, async (req: Request, res: Response) => {
+    const projectId = parseInt(req.params.id);
+    const content = await storage.getWebsiteContent(projectId);
+    
+    if (!content?.previewToken) {
+      return res.status(404).json({ error: "Website content not generated yet" });
+    }
+    
+    const baseUrl = req.headers.host?.includes("localhost") 
+      ? `http://${req.headers.host}`
+      : `https://${req.headers.host}`;
+    
+    const previewUrl = `${baseUrl}/preview/${content.previewToken}`;
+    
+    res.json({ 
+      previewUrl,
+      previewToken: content.previewToken,
+      status: content.status,
+      isPublished: content.isPublished,
+      publishedUrl: content.publishedUrl,
+      publishedAt: content.publishedAt,
+    });
+  });
+
+  // Publish website (mark as published and generate live URL)
+  app.post("/api/projects/:id/publish", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+    
+    const content = await storage.getWebsiteContent(projectId);
+    if (!content || content.status !== "completed") {
+      return res.status(400).json({ error: "Website content not ready for publishing" });
+    }
+    
+    const baseUrl = req.headers.host?.includes("localhost") 
+      ? `http://${req.headers.host}`
+      : `https://${req.headers.host}`;
+    
+    // Published URL uses /site/:projectId route (distinct from preview)
+    const publishedUrl = `${baseUrl}/site/${projectId}`;
+    
+    await storage.publishWebsiteContent(projectId, publishedUrl);
+    
+    const updated = await storage.getWebsiteContent(projectId);
+    
+    res.json({
+      success: true,
+      publishedUrl,
+      projectId,
+      isPublished: true,
+      publishedAt: updated?.publishedAt,
+      message: "Your website is now live!",
+    });
+  });
+
   // ============================================================================
   // GRAPHICS API
   // ============================================================================

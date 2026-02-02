@@ -182,6 +182,12 @@ export const websiteContents = pgTable("website_contents", {
   
   providerUsed: text("provider_used"),
   status: text("status").default("pending").notNull(),
+  
+  // Publishing status
+  isPublished: boolean("is_published").default(false),
+  publishedAt: timestamp("published_at"),
+  publishedUrl: text("published_url"),
+  
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
