@@ -112,6 +112,16 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
         return BarChart3;
       case "image":
         return Image;
+      case "services":
+        return List;
+      case "team":
+        return Users;
+      case "faq":
+        return FileText;
+      case "gallery":
+        return Image;
+      case "text":
+        return Type;
       default:
         return FileText;
     }

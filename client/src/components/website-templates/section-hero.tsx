@@ -14,7 +14,7 @@ interface SectionHeroProps {
 }
 
 export default function SectionHero({ section, siteName }: SectionHeroProps) {
-  const data = section.data as HeroData;
+  const data = (section.data || {}) as HeroData;
   
   return (
     <section className="relative py-20 px-6 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">

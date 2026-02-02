@@ -169,23 +169,94 @@ Return a JSON object with these fields:
           tone?: string;
           brandVoice?: string;
           pages?: string[];
+          targetAudience?: string;
+          location?: string;
         };
 
-        const pageList = input.pages || ["home", "about", "contact"];
+        const pageList = input.pages || ["home", "about", "services", "contact"];
+        const tone = input.tone || "professional";
+        const industry = input.industry || "business";
 
-        const prompt = `Generate website content for ${input.businessName} (${input.businessIdea}).
-Create ${pageList.length} pages: ${pageList.join(", ")}.
+        const prompt = `You are an expert website copywriter creating a COMPLETE professional multi-page website.
 
-Return JSON with: pages (array), globalContent (object), siteSettings (object).
-Each page has: slug, title, metaDescription, sections (array).
-Each section has: id, type (hero/features/cta/text/contact), data object.
-Keep content concise and professional.`;
+BUSINESS DETAILS:
+- Name: ${input.businessName}
+- Description: ${input.businessIdea}
+- Industry: ${industry}
+- Target Audience: ${input.targetAudience || "general consumers"}
+- Location: ${input.location || "United States"}
+- Tone: ${tone}
+${input.brandVoice ? `- Brand Voice: ${input.brandVoice}` : ""}
+
+CREATE THESE PAGES: ${pageList.join(", ")}
+
+SECTION TYPES TO USE (with their data structures):
+- "hero": {headline, subheadline, ctaText, ctaLink} - Bold opening with compelling headline
+- "features": {headline, subheadline, items:[{title, description, icon}]} - 4-6 feature cards. Icons: star, shield, zap, heart, target, users, clock, check, award, globe
+- "services": {headline, subheadline, items:[{title, description, icon, price}]} - Detailed service offerings
+- "testimonials": {headline, items:[{quote, author, role, company}]} - 3-4 customer testimonials with realistic names/companies
+- "team": {headline, subheadline, members:[{name, role, bio}]} - 3-4 team members
+- "stats": {headline, items:[{value, label, suffix}]} - Impressive statistics like "500+" "99%" "10K+"
+- "pricing": {headline, subheadline, plans:[{name, price, period, features:[], highlighted, ctaText}]} - 2-3 pricing tiers
+- "faq": {headline, items:[{question, answer}]} - 5-6 common questions with detailed answers
+- "cta": {headline, subheadline, buttonText, buttonLink} - Call-to-action banner
+- "text": {headline, content, alignment} - Rich text block for about/story content
+- "contact": {headline, subheadline, email, phone, address, showForm:true}
+
+PAGE STRUCTURE REQUIREMENTS:
+1. HOME: hero + features (6 items) + services (4 items) + stats (4 items) + testimonials (3 items) + cta = 6 sections
+2. ABOUT: hero + text (company story, 3 paragraphs) + team (4 members) + stats (4 items) + cta = 5 sections
+3. SERVICES: hero + services (6 detailed) + pricing (3 tiers) + faq (6 items) + cta = 5 sections
+4. CONTACT: hero + contact + text (additional info) + cta = 4 sections
+
+CONTENT QUALITY REQUIREMENTS:
+- Write compelling, specific headlines (not generic)
+- Subheadlines should be 2-3 sentences explaining value
+- Feature descriptions should be 15-25 words each
+- Testimonial quotes should be 25-40 words each
+- Team bios should be 20-30 words each
+- FAQ answers should be 30-50 words each
+- Use realistic statistics (e.g., "500+ Happy Clients", "10+ Years Experience", "98% Satisfaction Rate")
+- Make CTAs action-oriented and specific to the business
+
+RETURN THIS EXACT JSON STRUCTURE:
+{
+  "pages": [
+    {
+      "slug": "home",
+      "title": "Page Title | ${input.businessName}",
+      "metaDescription": "SEO description 150-160 chars",
+      "sections": [...]
+    }
+  ],
+  "globalContent": {
+    "siteName": "${input.businessName}",
+    "tagline": "Compelling 5-8 word tagline",
+    "navigation": [
+      {"label": "Home", "href": "/"},
+      {"label": "About", "href": "/about"},
+      {"label": "Services", "href": "/services"},
+      {"label": "Contact", "href": "/contact"}
+    ],
+    "footer": {
+      "copyright": "© 2024 ${input.businessName}. All rights reserved.",
+      "links": [{"label": "Privacy Policy", "href": "/privacy"}, {"label": "Terms of Service", "href": "/terms"}],
+      "socialLinks": [{"platform": "twitter", "url": "#"}, {"platform": "linkedin", "url": "#"}, {"platform": "facebook", "url": "#"}]
+    }
+  },
+  "siteSettings": {
+    "primaryColor": "#hex appropriate for industry",
+    "secondaryColor": "#hex complementary",
+    "accentColor": "#hex highlight color",
+    "style": "modern"
+  }
+}`;
 
         const response = await client.chat.completions.create({
           model: "gpt-4o-mini",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
-          max_completion_tokens: 3000,
+          max_completion_tokens: 12000,
         });
 
         const content = response.choices[0]?.message?.content || "{}";

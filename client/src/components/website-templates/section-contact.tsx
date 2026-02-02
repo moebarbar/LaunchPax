@@ -11,7 +11,7 @@ interface ContactData {
 }
 
 export default function SectionContact({ section }: { section: SectionContent }) {
-  const data = section.data as ContactData;
+  const data = (section.data || {}) as ContactData;
   
   return (
     <section id="contact" className="py-16 px-6 bg-muted/50">

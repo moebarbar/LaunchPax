@@ -23,7 +23,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default function SectionFeatures({ section }: { section: SectionContent }) {
-  const data = section.data as FeaturesData;
+  const data = (section.data || {}) as FeaturesData;
   const items = data.items || [];
   
   return (

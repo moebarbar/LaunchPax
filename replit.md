@@ -89,13 +89,20 @@ Following Replit-style isolation:
 
 ## Recent Changes
 
-### 2026-02-02: Website Template System & Secure Preview
-- **Section Components**: Created modular website template components (hero, features, cta, contact, text) in `client/src/components/website-templates/`
+### 2026-02-02: Enhanced Website Template System
+- **12 Section Types**: Comprehensive section components for professional websites:
+  - hero, features, services, testimonials, team, stats, pricing, faq, cta, contact, text, gallery
+  - All components in `client/src/components/website-templates/`
+  - Null-safe data handling with `(section.data || {})` pattern
 - **Website Renderer**: Central component that assembles sections with header/footer navigation
-- **Secure Preview System**: Added `previewToken` field to websiteContents table (UUID-based) for secure public access
+- **Preview Navigation**: Client-side page navigation using query parameters (`?page=slug`)
+  - onNavigate callback intercepts internal links
+  - URL updates without full page reload
+  - Supports Home, About, Services, Contact pages
+- **Secure Preview System**: Token-based access via `previewToken` field (UUID)
 - **Public Preview Route**: `/preview/:token` accessible without authentication for iframe embedding
-- **Preview Tab in Website Plan**: Added live preview iframe with desktop/mobile toggle and "Open Preview" button
-- **Href Sanitization**: `sanitizeHref()` function blocks javascript:/data:/vbscript: URLs in navigation links
+- **Preview Tab in Website Plan**: Live preview iframe with desktop/mobile toggle and "Open Preview" button
+- **Href Sanitization**: `sanitizeHref()` function blocks javascript:/data:/vbscript: URLs
 - **UI Guidelines**: All template components use hover-elevate utilities instead of custom hover states
 
 ### 2026-02-02: Workflow Execution Fixes

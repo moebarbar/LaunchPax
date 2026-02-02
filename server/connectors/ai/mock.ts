@@ -111,16 +111,16 @@ export const mockAIConnector = defineConnector({
           pages: [
             {
               slug: "home",
-              title: `${input.businessName} - Home`,
-              metaDescription: `Welcome to ${input.businessName}. ${input.businessIdea}`,
+              title: `${input.businessName} - Transform Your Business`,
+              metaDescription: `Welcome to ${input.businessName}. ${input.businessIdea}. Discover how we can help you achieve your goals.`,
               sections: [
                 {
                   id: "hero-1",
                   type: "hero",
                   data: {
-                    headline: `Welcome to ${input.businessName}`,
-                    subheadline: input.businessIdea,
-                    ctaText: "Get Started",
+                    headline: `Transform Your Business with ${input.businessName}`,
+                    subheadline: `${input.businessIdea}. We deliver exceptional results that drive growth and exceed expectations. Join thousands of satisfied clients who trust us with their success.`,
+                    ctaText: "Get Started Today",
                     ctaLink: "/contact",
                   },
                 },
@@ -128,11 +128,41 @@ export const mockAIConnector = defineConnector({
                   id: "features-1",
                   type: "features",
                   data: {
-                    headline: "Why Choose Us",
+                    headline: "Why Industry Leaders Choose Us",
+                    subheadline: "We combine expertise, innovation, and dedication to deliver outstanding results for every client.",
                     items: [
-                      { title: "Expert Team", description: "Years of industry experience at your service", icon: "users" },
-                      { title: "Quality First", description: "We never compromise on quality", icon: "shield" },
-                      { title: "24/7 Support", description: "Always here when you need us", icon: "clock" },
+                      { title: "Expert Team", description: "Our seasoned professionals bring decades of combined experience to solve your toughest challenges", icon: "users" },
+                      { title: "Proven Results", description: "Track record of delivering measurable outcomes that exceed client expectations", icon: "target" },
+                      { title: "24/7 Support", description: "Round-the-clock assistance ensures you're never left without help when you need it", icon: "clock" },
+                      { title: "Innovation First", description: "We leverage cutting-edge technology and methods to stay ahead of the curve", icon: "zap" },
+                      { title: "Quality Guaranteed", description: "Our rigorous quality standards ensure excellence in every deliverable", icon: "shield" },
+                      { title: "Client-Focused", description: "Your success is our priority - we tailor our approach to your unique needs", icon: "heart" },
+                    ],
+                  },
+                },
+                {
+                  id: "stats-1",
+                  type: "stats",
+                  data: {
+                    headline: "Trusted by Thousands Worldwide",
+                    items: [
+                      { value: "500", suffix: "+", label: "Happy Clients" },
+                      { value: "10", suffix: "+", label: "Years Experience" },
+                      { value: "98", suffix: "%", label: "Client Satisfaction" },
+                      { value: "50", suffix: "K+", label: "Projects Completed" },
+                    ],
+                  },
+                },
+                {
+                  id: "testimonials-1",
+                  type: "testimonials",
+                  data: {
+                    headline: "What Our Clients Say",
+                    subheadline: "Don't just take our word for it - hear from businesses we've helped succeed.",
+                    items: [
+                      { quote: "Working with this team transformed our entire operation. Their expertise and dedication exceeded all expectations. We saw a 40% increase in efficiency within the first quarter.", author: "Sarah Johnson", role: "CEO", company: "TechStart Inc." },
+                      { quote: "The level of professionalism and attention to detail is unmatched. They truly understand our business needs and deliver results that matter.", author: "Michael Chen", role: "Director of Operations", company: "Global Solutions" },
+                      { quote: "From day one, they've been incredible partners. Their innovative approach helped us solve challenges we'd been struggling with for years.", author: "Emily Rodriguez", role: "Founder", company: "Innovation Labs" },
                     ],
                   },
                 },
@@ -140,42 +170,192 @@ export const mockAIConnector = defineConnector({
                   id: "cta-1",
                   type: "cta",
                   data: {
-                    headline: "Ready to Get Started?",
-                    description: "Join thousands of satisfied customers today.",
-                    ctaText: "Contact Us",
-                    ctaLink: "/contact",
+                    headline: "Ready to Transform Your Business?",
+                    subheadline: "Join thousands of satisfied customers and take the first step toward success today.",
+                    buttonText: "Schedule a Free Consultation",
+                    buttonLink: "/contact",
                   },
                 },
               ],
             },
             {
               slug: "about",
-              title: `About ${input.businessName}`,
-              metaDescription: `Learn more about ${input.businessName} and our mission.`,
+              title: `About ${input.businessName} - Our Story`,
+              metaDescription: `Learn about ${input.businessName}'s mission, values, and the team dedicated to your success.`,
               sections: [
                 {
-                  id: "text-1",
+                  id: "hero-about",
+                  type: "hero",
+                  data: {
+                    headline: `About ${input.businessName}`,
+                    subheadline: "Discover the passion, expertise, and vision that drives everything we do.",
+                    ctaText: "Meet Our Team",
+                    ctaLink: "#team",
+                  },
+                },
+                {
+                  id: "text-story",
                   type: "text",
                   data: {
                     headline: "Our Story",
-                    content: `${input.businessName} was founded with a simple mission: ${input.businessIdea}. Today, we continue to serve our customers with the same passion and dedication.`,
+                    content: `${input.businessName} was founded with a simple yet powerful vision: ${input.businessIdea}.\n\nWhat began as a small team with big dreams has grown into a trusted partner for hundreds of businesses across multiple industries. Our journey has been defined by a relentless commitment to excellence and a genuine passion for helping our clients succeed.\n\nToday, we continue to push boundaries and innovate, always staying true to the values that got us here: integrity, excellence, and unwavering dedication to our clients' success.`,
+                    alignment: "left",
+                  },
+                },
+                {
+                  id: "team-1",
+                  type: "team",
+                  data: {
+                    headline: "Meet Our Leadership Team",
+                    subheadline: "The experienced professionals driving our vision forward.",
+                    members: [
+                      { name: "Alexandra Thompson", role: "Chief Executive Officer", bio: "15+ years of industry experience. Former VP at Fortune 500 company. Passionate about innovation and team development." },
+                      { name: "David Martinez", role: "Chief Technology Officer", bio: "Engineering leader with a track record of building scalable solutions. MIT graduate with expertise in AI and cloud architecture." },
+                      { name: "Jennifer Park", role: "Chief Operations Officer", bio: "Operations expert who has optimized processes for dozens of companies. Known for turning challenges into opportunities." },
+                      { name: "Robert Williams", role: "Chief Marketing Officer", bio: "Brand strategist who has led award-winning campaigns. Specialist in digital transformation and customer engagement." },
+                    ],
+                  },
+                },
+                {
+                  id: "stats-about",
+                  type: "stats",
+                  data: {
+                    items: [
+                      { value: "2015", label: "Founded" },
+                      { value: "85", suffix: "+", label: "Team Members" },
+                      { value: "12", label: "Countries Served" },
+                      { value: "5", suffix: "★", label: "Average Rating" },
+                    ],
+                  },
+                },
+                {
+                  id: "cta-about",
+                  type: "cta",
+                  data: {
+                    headline: "Want to Join Our Team?",
+                    subheadline: "We're always looking for talented individuals who share our passion for excellence.",
+                    buttonText: "View Open Positions",
+                    buttonLink: "/careers",
+                  },
+                },
+              ],
+            },
+            {
+              slug: "services",
+              title: `Services | ${input.businessName}`,
+              metaDescription: `Explore our comprehensive range of services designed to help your business grow and succeed.`,
+              sections: [
+                {
+                  id: "hero-services",
+                  type: "hero",
+                  data: {
+                    headline: "Our Services",
+                    subheadline: "Comprehensive solutions tailored to your unique business needs. Discover how we can help you achieve your goals.",
+                    ctaText: "Get a Quote",
+                    ctaLink: "/contact",
+                  },
+                },
+                {
+                  id: "services-1",
+                  type: "services",
+                  data: {
+                    headline: "What We Offer",
+                    subheadline: "From strategy to execution, we provide end-to-end solutions that drive real results.",
+                    items: [
+                      { title: "Strategic Consulting", description: "In-depth analysis and actionable strategies to position your business for long-term success. We identify opportunities and create roadmaps for growth.", icon: "target", price: "Starting at $2,500" },
+                      { title: "Digital Transformation", description: "Modernize your operations with cutting-edge technology solutions. We help you leverage digital tools to increase efficiency and reach.", icon: "zap", price: "Custom Pricing" },
+                      { title: "Brand Development", description: "Create a powerful brand identity that resonates with your audience. From logos to messaging, we build brands that stand out.", icon: "award", price: "Starting at $5,000" },
+                      { title: "Marketing Services", description: "Data-driven marketing strategies that generate leads and drive conversions. We optimize every channel for maximum ROI.", icon: "globe", price: "Starting at $1,500/mo" },
+                      { title: "Training & Support", description: "Comprehensive training programs and ongoing support to ensure your team has the skills and knowledge they need.", icon: "users", price: "Starting at $500/session" },
+                      { title: "Custom Solutions", description: "Bespoke solutions designed specifically for your unique challenges. We work closely with you to create exactly what you need.", icon: "settings", price: "Contact for Quote" },
+                    ],
+                  },
+                },
+                {
+                  id: "pricing-1",
+                  type: "pricing",
+                  data: {
+                    headline: "Simple, Transparent Pricing",
+                    subheadline: "Choose the plan that best fits your needs. All plans include our core features and dedicated support.",
+                    plans: [
+                      { name: "Starter", price: "$499", period: "month", description: "Perfect for small businesses just getting started", features: ["Up to 5 team members", "Basic analytics", "Email support", "Core features", "Monthly reports"], ctaText: "Get Started" },
+                      { name: "Professional", price: "$999", period: "month", description: "Ideal for growing businesses with advanced needs", features: ["Up to 25 team members", "Advanced analytics", "Priority support", "All features", "Weekly reports", "Custom integrations"], highlighted: true, ctaText: "Start Free Trial" },
+                      { name: "Enterprise", price: "Custom", period: "", description: "Tailored solutions for large organizations", features: ["Unlimited team members", "Enterprise analytics", "24/7 phone support", "All features", "Real-time dashboards", "Dedicated account manager", "SLA guarantee"], ctaText: "Contact Sales" },
+                    ],
+                  },
+                },
+                {
+                  id: "faq-1",
+                  type: "faq",
+                  data: {
+                    headline: "Frequently Asked Questions",
+                    subheadline: "Find answers to common questions about our services.",
+                    items: [
+                      { question: "How long does a typical project take?", answer: "Project timelines vary based on scope and complexity. Most projects range from 2-8 weeks. During our initial consultation, we'll provide a detailed timeline tailored to your specific needs." },
+                      { question: "Do you offer a money-back guarantee?", answer: "Yes! We stand behind our work with a 30-day satisfaction guarantee. If you're not completely satisfied with our services, we'll work with you to make it right or provide a full refund." },
+                      { question: "Can you work with our existing systems?", answer: "Absolutely. We specialize in integrating with existing workflows and systems. Our team will assess your current setup and ensure seamless compatibility with our solutions." },
+                      { question: "What industries do you serve?", answer: "We work with clients across various industries including technology, healthcare, finance, retail, and manufacturing. Our approach adapts to the unique needs of each sector." },
+                      { question: "How do we get started?", answer: "Getting started is easy! Simply schedule a free consultation through our contact page. We'll discuss your needs, answer any questions, and create a customized proposal for your project." },
+                      { question: "Do you provide ongoing support?", answer: "Yes, we offer various support packages to ensure your continued success. From basic email support to dedicated account management, we have options to fit every need and budget." },
+                    ],
+                  },
+                },
+                {
+                  id: "cta-services",
+                  type: "cta",
+                  data: {
+                    headline: "Ready to Get Started?",
+                    subheadline: "Let's discuss how we can help your business grow. Schedule a free consultation today.",
+                    buttonText: "Schedule a Call",
+                    buttonLink: "/contact",
                   },
                 },
               ],
             },
             {
               slug: "contact",
-              title: "Contact Us",
-              metaDescription: `Get in touch with ${input.businessName}.`,
+              title: `Contact Us | ${input.businessName}`,
+              metaDescription: `Get in touch with ${input.businessName}. We're here to answer your questions and help you succeed.`,
               sections: [
+                {
+                  id: "hero-contact",
+                  type: "hero",
+                  data: {
+                    headline: "Let's Connect",
+                    subheadline: "Have a question or ready to get started? We'd love to hear from you. Reach out and let's start a conversation.",
+                    ctaText: "Send Us a Message",
+                    ctaLink: "#contact-form",
+                  },
+                },
                 {
                   id: "contact-1",
                   type: "contact",
                   data: {
                     headline: "Get in Touch",
-                    description: "We'd love to hear from you.",
-                    email: "hello@example.com",
+                    subheadline: "Choose your preferred way to reach us. We typically respond within 24 hours.",
+                    email: `hello@${input.businessName.toLowerCase().replace(/\s+/g, "")}.com`,
                     phone: "(555) 123-4567",
+                    address: "123 Business Avenue, Suite 100, New York, NY 10001",
+                    showForm: true,
+                  },
+                },
+                {
+                  id: "text-contact",
+                  type: "text",
+                  data: {
+                    headline: "Office Hours",
+                    content: "Monday - Friday: 9:00 AM - 6:00 PM EST\nSaturday: 10:00 AM - 2:00 PM EST\nSunday: Closed\n\nFor urgent inquiries outside business hours, please email us and we'll respond as soon as possible.",
+                    alignment: "center",
+                  },
+                },
+                {
+                  id: "cta-contact",
+                  type: "cta",
+                  data: {
+                    headline: "Prefer to Schedule a Call?",
+                    subheadline: "Book a time that works for you and we'll call you directly.",
+                    buttonText: "Book a Call",
+                    buttonLink: "#schedule",
                   },
                 },
               ],
@@ -183,9 +363,11 @@ export const mockAIConnector = defineConnector({
           ],
           globalContent: {
             siteName: input.businessName,
+            tagline: "Transforming Ideas Into Success",
             navigation: [
               { label: "Home", href: "/" },
               { label: "About", href: "/about" },
+              { label: "Services", href: "/services" },
               { label: "Contact", href: "/contact" },
             ],
             footer: {
@@ -193,13 +375,22 @@ export const mockAIConnector = defineConnector({
               links: [
                 { label: "Privacy Policy", href: "/privacy" },
                 { label: "Terms of Service", href: "/terms" },
+                { label: "Careers", href: "/careers" },
+              ],
+              socialLinks: [
+                { platform: "twitter", url: "#" },
+                { platform: "linkedin", url: "#" },
+                { platform: "facebook", url: "#" },
               ],
             },
           },
           siteSettings: {
             style: "modern",
             primaryColor: "#2563eb",
+            secondaryColor: "#1e40af",
+            accentColor: "#f59e0b",
             fontFamily: "Inter",
+            headingFont: "Poppins",
           },
         };
 

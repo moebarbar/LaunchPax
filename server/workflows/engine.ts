@@ -274,6 +274,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             industry: ctx.project.industry,
             tone: ctx.project.tone,
             brandVoice: brandKit?.brandVoice,
+            targetAudience: ctx.project.targetAudience,
+            location: ctx.project.location,
             pages: ["home", "about", "services", "contact"],
           }
         );

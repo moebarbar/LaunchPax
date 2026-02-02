@@ -4,6 +4,13 @@ import SectionFeatures from "./section-features";
 import SectionCta from "./section-cta";
 import SectionContact from "./section-contact";
 import SectionText from "./section-text";
+import SectionTestimonials from "./section-testimonials";
+import SectionPricing from "./section-pricing";
+import SectionTeam from "./section-team";
+import SectionFaq from "./section-faq";
+import SectionStats from "./section-stats";
+import SectionServices from "./section-services";
+import SectionGallery from "./section-gallery";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -11,6 +18,7 @@ interface WebsiteRendererProps {
   content: WebsiteContent;
   pageSlug?: string;
   isPreview?: boolean;
+  onNavigate?: (pageSlug: string) => void;
 }
 
 function sanitizeHref(href: string): string {
@@ -48,20 +56,47 @@ function SectionRenderer({ section, globalContent }: { section: SectionContent; 
       return <SectionContact section={section} />;
     case "text":
       return <SectionText section={section} />;
+    case "testimonials":
+      return <SectionTestimonials section={section} />;
+    case "pricing":
+      return <SectionPricing section={section} />;
+    case "team":
+      return <SectionTeam section={section} />;
+    case "faq":
+      return <SectionFaq section={section} />;
+    case "stats":
+      return <SectionStats section={section} />;
+    case "services":
+      return <SectionServices section={section} />;
+    case "gallery":
+      return <SectionGallery section={section} />;
     default:
       return null;
   }
 }
 
-function WebsiteHeader({ globalContent }: { globalContent?: GlobalContent }) {
+function WebsiteHeader({ globalContent, onNavigate }: { globalContent?: GlobalContent; onNavigate?: (pageSlug: string) => void }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigation = globalContent?.navigation || [];
+  
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (onNavigate && href.startsWith("/")) {
+      e.preventDefault();
+      const slug = href === "/" ? "home" : href.substring(1);
+      onNavigate(slug);
+      setMobileMenuOpen(false);
+    }
+  };
   
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <a href="/" className="font-bold text-xl">
+          <a 
+            href="/" 
+            className="font-bold text-xl"
+            onClick={(e) => handleNavClick(e, "/")}
+          >
             {globalContent?.siteName || "Website"}
           </a>
           
@@ -73,6 +108,7 @@ function WebsiteHeader({ globalContent }: { globalContent?: GlobalContent }) {
                     key={index}
                     href={sanitizeHref(item.href)}
                     className="text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={(e) => handleNavClick(e, item.href)}
                   >
                     {item.label}
                   </a>
@@ -96,7 +132,7 @@ function WebsiteHeader({ globalContent }: { globalContent?: GlobalContent }) {
                 key={index}
                 href={sanitizeHref(item.href)}
                 className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, item.href)}
               >
                 {item.label}
               </a>
@@ -141,7 +177,7 @@ function WebsiteFooter({ globalContent }: { globalContent?: GlobalContent }) {
   );
 }
 
-export default function WebsiteRenderer({ content, pageSlug = "home", isPreview = false }: WebsiteRendererProps) {
+export default function WebsiteRenderer({ content, pageSlug = "home", isPreview = false, onNavigate }: WebsiteRendererProps) {
   const pages = content.pages || [];
   const currentPage = pages.find(p => p.slug === pageSlug) || pages[0];
   const globalContent = content.globalContent;
@@ -150,8 +186,8 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">No Content Yet</h1>
-          <p className="text-muted-foreground">Generate website content to see your preview.</p>
+          <h1 className="text-2xl font-bold mb-2">404 Page Not Found</h1>
+          <p className="text-muted-foreground">The page "{pageSlug}" doesn't exist.</p>
         </div>
       </div>
     );
@@ -159,7 +195,7 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   
   return (
     <div className={`min-h-screen bg-background ${isPreview ? "preview-mode" : ""}`}>
-      <WebsiteHeader globalContent={globalContent} />
+      <WebsiteHeader globalContent={globalContent} onNavigate={onNavigate} />
       
       <main>
         {currentPage.sections.map((section) => (

@@ -8,7 +8,7 @@ interface CtaData {
 }
 
 export default function SectionCta({ section }: { section: SectionContent }) {
-  const data = section.data as CtaData;
+  const data = (section.data || {}) as CtaData;
   
   return (
     <section className="py-16 px-6 bg-primary text-primary-foreground">

@@ -7,7 +7,7 @@ interface TextData {
 }
 
 export default function SectionText({ section }: { section: SectionContent }) {
-  const data = section.data as TextData;
+  const data = (section.data || {}) as TextData;
   const alignment = data.alignment || "left";
   
   const alignmentClasses = {
