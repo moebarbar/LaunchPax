@@ -11,6 +11,7 @@ import SectionFaq from "./section-faq";
 import SectionStats from "./section-stats";
 import SectionServices from "./section-services";
 import SectionGallery from "./section-gallery";
+import SectionStory from "./section-story";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -226,6 +227,8 @@ function SectionRenderer({ section, globalContent }: { section: SectionContent; 
       return <SectionServices section={section} />;
     case "gallery":
       return <SectionGallery section={section} />;
+    case "story":
+      return <SectionStory section={section} />;
     default:
       return null;
   }

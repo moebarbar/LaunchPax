@@ -89,6 +89,35 @@ Following Replit-style isolation:
 
 ## Recent Changes
 
+### 2026-02-02: Advanced Agency-Quality Website Engine
+- **Design Token System** (`client/src/lib/design-tokens.ts`):
+  - Typography scales (12 sizes from xs to display)
+  - Spacing system with section spacing presets
+  - Shadow presets including premium and elevated variants
+  - Color palettes (ocean, forest, sunset, midnight, earth, royal)
+  - Font pairings for 8 brand personalities (bold, elegant, playful, minimal, tech, luxury, creative, professional)
+  - Motion presets with Framer Motion configurations
+- **Multiple Hero Archetypes** (`client/src/components/website-templates/heroes/`):
+  - 6 distinct archetypes: editorial, split, immersive, cinematic, bold, minimal
+  - HeroSelector component for intelligent archetype selection
+  - Business type to archetype mapping (SaaS→split/bold, luxury→immersive/cinematic, etc.)
+- **Asymmetric Layout Engine** (`client/src/components/website-templates/layouts/`):
+  - AsymmetricGrid with patterns: 2-1, 1-2, 3-2, 2-3, featured, masonry, bento
+  - AlternatingLayout for zigzag content sections
+  - EditorialGrid with 12-column editorial layouts
+- **Narrative/Story Section** (`client/src/components/website-templates/section-story.tsx`):
+  - Editorial layout with sticky sidebar
+  - Support for paragraphs, quotes, stats, and images
+- **Typography Provider** (`client/src/components/website-templates/typography-provider.tsx`):
+  - Dynamic Google Fonts loading based on brand personality
+  - CSS custom properties for fonts (--font-heading, --font-body)
+- **Signature Visual Moments** (`client/src/components/website-templates/signature-moments.tsx`):
+  - LargeTypography with scroll-driven opacity/parallax
+  - ParallaxDivider with animated gradient lines
+  - AnimatedGradientBg with floating color orbs
+  - FloatingElements, RevealOnScroll, TextReveal components
+- **AI Prompt Upgrade**: Hero archetype selection logic in OpenAI connector
+
 ### 2026-02-02: Premium Website Template Upgrade
 - **Award-Winning Quality**: All website sections upgraded to Awwwards-level premium styling
 - **Framer Motion Animations**: Scroll-triggered animations with staggered reveals across all sections

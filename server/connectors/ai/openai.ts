@@ -349,7 +349,17 @@ ${industryContext}
 PAGES TO CREATE: ${pageList.join(", ")}
 
 AVAILABLE SECTION TYPES:
-- "hero": {headline, subheadline, ctaText, ctaLink} - Powerful opening that stops visitors in their tracks
+- "hero": {headline, subheadline, statement, ctaText, ctaLink, secondaryCtaText, badge, heroArchetype} - Powerful opening
+  - heroArchetype options based on business type:
+    * "editorial" - Best for agencies, creators, portfolios. Bold asymmetric layout with gradient text
+    * "split" - Best for SaaS, tech, startups. 50/50 split with image on right
+    * "immersive" - Best for luxury, hospitality, events. Full-screen image with centered text overlay
+    * "cinematic" - Best for premium brands, real estate, high-end products. Dramatic full-screen with film-like transitions
+    * "bold" - Best for startups, creative agencies. Extra-large typography with floating gradients
+    * "minimal" - Best for professional services, consulting. Clean, understated, focused
+  - Choose heroArchetype based on: SaaS/tech→split or bold, local business→split, agency→editorial or bold, luxury→immersive or cinematic, professional→minimal
+  - statement: 1-2 sentence powerful value proposition (optional, used in some archetypes)
+  - badge: Short text like "New in 2024" or "Award Winning" (optional)
 - "features": {headline, subheadline, items:[{title, description, icon}]} - Value propositions. Icons: star, shield, zap, heart, target, users, clock, check, award, globe, briefcase, settings, wrench, lightbulb
 - "services": {headline, subheadline, items:[{title, description, icon, price, features:[]}]} - Detailed offerings with benefits
 - "testimonials": {headline, subheadline, items:[{quote, author, role, company}]} - Social proof with compelling stories
@@ -359,6 +369,7 @@ AVAILABLE SECTION TYPES:
 - "faq": {headline, subheadline, items:[{question, answer}]} - Objection handling
 - "cta": {headline, subheadline, buttonText, buttonLink} - Conversion driver
 - "text": {headline, content, alignment} - Story and context
+- "story": {headline, subheadline, paragraphs:[], quote, quoteAuthor, stats:[{value, label}], layout:"editorial"} - Brand narrative, origin story
 - "contact": {headline, subheadline, email, phone, address, showForm:true}
 
 PAGE BLUEPRINTS:
