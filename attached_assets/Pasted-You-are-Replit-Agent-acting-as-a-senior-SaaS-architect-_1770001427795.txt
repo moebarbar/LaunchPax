@@ -1,0 +1,165 @@
+You are Replit Agent acting as a senior SaaS architect + full-stack engineer. Build the MVP for an “AI Business Builder / Growth Engine” platform. The goal: one dashboard that orchestrates multiple external APIs (REST) through a clean connector system, and runs workflows like Naming → Domain availability → Brand kit → Website scaffold → Ready-to-post graphics.
+
+IMPORTANT RULES
+- Do NOT change the core concept: this is an orchestrator platform that plugs into many APIs over time.
+- Build a production-minded MVP: strong project structure, env vars, validation, error handling, logging, and clear extensibility.
+- Keep the UI clean and modern (Tailwind). No heavy design. Focus on functionality.
+- Use TypeScript end-to-end.
+- Prefer incremental deliverables: get auth + projects + connector skeleton working first, then implement one full workflow end-to-end.
+- Provide “seed data” + demo mode so it runs without requiring all external API keys.
+
+STACK
+- Monorepo in one Replit workspace:
+  - Frontend: Next.js (App Router) + TypeScript + Tailwind
+  - Backend: Node.js + Fastify (TypeScript) OR NestJS (TypeScript). Choose Fastify for speed unless you strongly prefer NestJS.
+  - DB: Postgres using Prisma ORM
+  - Jobs/Queue: BullMQ + Redis (or a simple in-memory fallback if Redis not available)
+  - Auth: NextAuth (Credentials) with hashed passwords OR Clerk if you must, but default to NextAuth.
+  - API schema validation: Zod
+  - Logging: pino (or built-in)
+
+CORE PRODUCT FEATURES (MVP)
+1) Auth
+- Sign up, login, logout
+- User profile basics
+
+2) Projects (each project = a business being launched)
+- Create Project: name, industry, location, target audience, tone, budget (optional)
+- Project dashboard with tabs:
+  - Overview
+  - Naming & Domain
+  - Brand Kit
+  - Website
+  - Graphics
+  - Activity Log
+
+3) Connector System (the most important piece)
+Create a /connectors folder in backend. Each connector must implement a standard interface:
+
+interface Connector {
+  key: string;                 // e.g., "domains.spaceship"
+  name: string;                // human name
+  authType: "none" | "apiKey" | "oauth";
+  isConfigured(env: Env): boolean;
+  test(env: Env): Promise<{ ok: boolean; message: string }>;
+  run(task: ConnectorTask, env: Env): Promise<ConnectorResult>;
+}
+
+- Add a registry that lists available connectors and their configuration status.
+- Create endpoints:
+  - GET /api/connectors (list connectors + configured status)
+  - POST /api/connectors/:key/test
+
+4) Workflow Engine
+- Workflows are multi-step sequences that call connectors and store outputs.
+- Implement one workflow end-to-end:
+  WORKFLOW: “Launch Step 1: Naming → Domain Check”
+  Input: business idea fields from the Project
+  Steps:
+    a) Generate 50–150 name candidates (use an LLM connector if API key exists; otherwise use a strong local heuristic generator + curated patterns)
+    b) Convert names into domain candidates (mostly .com, optional .ai)
+    c) Check availability via a domain availability connector
+    d) Save results to DB: nameCandidates, domainCandidates, availableDomains, finalSelection
+  Output: UI shows only available domains + lets user favorite/select one.
+
+- Add endpoints:
+  - POST /api/projects/:id/workflows/naming-domain/run
+  - GET  /api/projects/:id/workflows/naming-domain/status (job polling)
+  - GET  /api/projects/:id/naming-domain/results
+
+5) Domain Availability Connector (must be real)
+- Implement a connector: domains.spaceship
+- It should call a REST endpoint for bulk domain checks (availability + price). Read API key from env.
+- If API key not provided, fall back to a “mock mode” that marks some domains available deterministically (so app works).
+
+6) Brand Kit (MVP)
+- Generate: brand voice, tagline ideas, color palette suggestions, font pairing suggestions, messaging pillars, elevator pitch.
+- If LLM API key exists, call it. Otherwise provide a good deterministic template.
+- Save to DB and display nicely in UI.
+
+7) Website Scaffold (MVP)
+- Do NOT try to deploy sites automatically in MVP.
+- Instead: generate a “Website Plan + Pages” and a scaffolded Next.js template preview inside the app.
+- Pages: Home, About, Contact, Services (or Products)
+- Output: copy blocks and suggested sections
+- Save structured page content JSON to DB.
+(We will add deployment later.)
+
+8) Ready-to-Post Graphics (MVP)
+- Use a template-based approach (not raw image gen). Create placeholders:
+  - “Instagram Post 1080x1080”
+  - “Story 1080x1920”
+  - “Facebook Ad”
+- In MVP, generate “design briefs” + copy for each graphic and store them.
+- If a graphics API key exists (Bannerbear/Placid/Creatomate), integrate later via connector stub now:
+  - connector: graphics.bannerbear (stubbed with mock output)
+- UI should show the “rendered result” if real API is configured; otherwise show the design brief.
+
+DATABASE MODELS (Prisma)
+- User
+- Project
+- ActivityLog (per project)
+- NamingResult (projectId, candidates JSON, domains JSON, available JSON, selectedDomain)
+- BrandKit (projectId, fields JSON)
+- WebsitePlan (projectId, pages JSON)
+- GraphicAsset (projectId, type, status, metadata JSON, imageUrl optional)
+
+UI REQUIREMENTS
+- Landing page: explains the product + CTA to sign up
+- App layout: sidebar (Projects, Connectors, Settings)
+- Project view: clean tabs with progress steps
+- Naming & Domain page:
+  - “Generate names” button
+  - Shows: name list + domain list + availability
+  - Filters: available only, length, contains keyword
+  - Ability to favorite and select final domain
+- Connectors page:
+  - show configured/not configured
+  - show required env vars
+  - “Test connection” button per connector
+
+ENV VARS
+- DATABASE_URL
+- NEXTAUTH_SECRET
+- (optional) REDIS_URL
+- SPACESHIP_API_KEY (or whatever key name you choose, but document it)
+- (optional) OPENAI_API_KEY or other LLM key
+
+DEV EXPERIENCE
+- Provide README.md with:
+  - How to run
+  - How to configure env vars
+  - How to run migrations
+  - How to test connectors
+  - How to run the naming-domain workflow
+
+IMPLEMENTATION STEPS (do in this order)
+1) Scaffold monorepo structure and make it run (frontend + backend)
+2) Set up Prisma + Postgres models + migrations
+3) Implement auth
+4) Implement Projects CRUD + UI
+5) Implement Connector framework + connectors page
+6) Implement naming-domain workflow + job polling
+7) Implement Brand Kit generation + UI
+8) Implement Website Plan generation + UI
+9) Implement Graphics stub + UI
+10) Polish: activity log, error states, loading, toasts
+
+QUALITY
+- Use strict TypeScript
+- Validate all incoming requests with Zod
+- Centralize error handling
+- Add simple rate limiting middleware on backend
+- Add an Activity Log entry for each workflow step
+- Ensure the app runs end-to-end in mock mode with no external keys.
+
+DELIVERABLE
+At the end, I should be able to:
+- Sign up / log in
+- Create a project
+- Run Naming→Domain workflow and see available domains (real if key configured, mock otherwise)
+- Generate a Brand Kit
+- Generate a Website Plan
+- Generate ready-to-post graphic briefs (and optionally real renders if connector configured)
+
+Now start by generating the repository structure and the running baseline app, then proceed step-by-step.
