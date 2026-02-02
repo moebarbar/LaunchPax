@@ -1,0 +1,35 @@
+ARCHITECTURE PRINCIPLE (CRITICAL)
+
+This platform must adopt a Replit-style project architecture for building websites and apps.
+
+Definitions:
+- A "Project" represents one isolated website or app (e.g., a business website).
+- Each Project is built from a code template (e.g., Next.js).
+- Content and configuration are stored as structured JSON, not raw HTML.
+- The system follows a clear pipeline:
+  Generate → Build → Preview → (Later: Deploy)
+
+Implementation requirements:
+- Do NOT generate free-form HTML strings.
+- Use code templates with components that consume structured content.
+- Store generated content (hero, sections, pages) as JSON and inject it into templates.
+- Each Project must be isolated logically (separate build artifacts, configs, and outputs).
+- The builder/orchestrator must be stateless; Projects are stateful artifacts.
+- Website generation must be repeatable and deterministic.
+
+Deployment scope:
+- In MVP, support build + preview only.
+- Deployment and custom domains will be added later via a hosting connector.
+- Abstract the hosting layer so it can later support multiple providers.
+
+This architecture is inspired by how Replit structures projects and environments, but MUST NOT expose or embed Replit in the user-facing product.
+WHITE-LABEL REQUIREMENTS (NON-NEGOTIABLE)
+
+- Replit must be used strictly as internal infrastructure (builder/runtime only).
+- Replit branding, domains, UI elements, or references must NEVER appear in the product.
+- All user-facing interfaces, APIs, previews, and deployments must be served from custom domains owned by this platform.
+- The architecture must be provider-agnostic: Replit is an implementation detail, not a dependency in product design.
+- Hosting, build, and deployment layers must be abstracted behind internal services so they can be replaced later without breaking the product.
+- No "powered by Replit" text, links, or identifiers anywhere in the UI, API responses, logs exposed to users, or documentation.
+
+The end user should never be aware that Replit is used in any part of the system.
