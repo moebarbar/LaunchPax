@@ -336,6 +336,7 @@ export type ConnectorCapability =
   | "domain_register"      // Register domains
   | "brand_generation"     // Generate brand kits
   | "content_generation"   // Generate website content
+  | "stock_photos"         // Search stock photos
   | "image_generation"     // Generate images/graphics
   | "text_generation"      // General text/copy generation
   | "translation"          // Translate content

@@ -217,6 +217,75 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // ============================================================================
+  // STOCK PHOTOS API
+  // ============================================================================
+
+  app.get("/api/stock-photos/search", isAuthenticated, async (req: Request, res: Response) => {
+    const { query, perPage, page, orientation, size } = req.query;
+    
+    if (!query || typeof query !== "string") {
+      return res.status(400).json({ error: "Query parameter is required" });
+    }
+    
+    const result = await connectorRegistry.execute(
+      "stock_photos",
+      "search_photos",
+      {
+        query,
+        perPage: perPage ? parseInt(perPage as string) : 10,
+        page: page ? parseInt(page as string) : 1,
+        orientation: orientation as "landscape" | "portrait" | "square" | undefined,
+        size: size as "small" | "medium" | "large" | undefined,
+      }
+    );
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    res.json(result.data);
+  });
+
+  app.get("/api/stock-photos/curated", isAuthenticated, async (req: Request, res: Response) => {
+    const { perPage, page } = req.query;
+    
+    const result = await connectorRegistry.execute(
+      "stock_photos",
+      "get_curated",
+      {
+        perPage: perPage ? parseInt(perPage as string) : 10,
+        page: page ? parseInt(page as string) : 1,
+      }
+    );
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    res.json(result.data);
+  });
+
+  app.get("/api/stock-photos/industry/:industry", isAuthenticated, async (req: Request, res: Response) => {
+    const { industry } = req.params;
+    const { type } = req.query;
+    
+    const result = await connectorRegistry.execute(
+      "stock_photos",
+      "get_photo_for_industry",
+      {
+        industry,
+        type: type as "hero" | "team" | "product" | "background" | undefined,
+      }
+    );
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    res.json(result.data);
+  });
+
+  // ============================================================================
   // ACTIVITY LOG API
   // ============================================================================
 

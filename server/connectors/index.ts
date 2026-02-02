@@ -14,6 +14,10 @@ import { mockAIConnector } from "./ai/mock";
 // Domain Connectors
 import { mockDomainConnector } from "./domains/mock";
 
+// Stock Photo Connectors
+import { pexelsConnector } from "./stockphotos/pexels";
+import { stockPhotosMockConnector } from "./stockphotos/mock";
+
 // Register all connectors
 export function initializeConnectors(): void {
   console.log("[Connectors] Initializing connector registry...");
@@ -24,6 +28,10 @@ export function initializeConnectors(): void {
   
   // Domain connectors
   connectorRegistry.register(mockDomainConnector);
+  
+  // Stock photo connectors
+  connectorRegistry.register(pexelsConnector);
+  connectorRegistry.register(stockPhotosMockConnector);
   
   // Log status
   const all = connectorRegistry.getAll();
