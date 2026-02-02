@@ -22,6 +22,9 @@ export const projects = pgTable("projects", {
   budget: text("budget"),
   businessIdea: text("business_idea"),
   
+  // Comprehensive business profile (structured data)
+  businessProfile: jsonb("business_profile").$type<BusinessProfile>(),
+  
   // Project template & config
   templateId: text("template_id").default("default"),
   config: jsonb("config").$type<ProjectConfig>(),
@@ -43,6 +46,133 @@ export interface ProjectConfig {
     font?: string;
   };
   template?: string;
+}
+
+// ============================================================================
+// COMPREHENSIVE BUSINESS PROFILE - Rich business information for personalization
+// ============================================================================
+
+export interface ContactInfo {
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+}
+
+export interface BusinessHours {
+  monday?: string;
+  tuesday?: string;
+  wednesday?: string;
+  thursday?: string;
+  friday?: string;
+  saturday?: string;
+  sunday?: string;
+  timezone?: string;
+  note?: string; // e.g., "By appointment only"
+}
+
+export interface SocialLinks {
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  twitter?: string;
+  linkedin?: string;
+  youtube?: string;
+  tiktok?: string;
+  pinterest?: string;
+  yelp?: string;
+  googleBusiness?: string;
+}
+
+export interface ServiceItem {
+  name: string;
+  description?: string;
+  price?: string;
+  duration?: string;
+  featured?: boolean;
+}
+
+export interface TeamMember {
+  name: string;
+  role: string;
+  bio?: string;
+  imageUrl?: string;
+}
+
+export interface WebsiteGoals {
+  primaryPurpose?: "generate_leads" | "sell_products" | "provide_information" | "build_community" | "showcase_work" | "book_appointments";
+  primaryCta?: string; // e.g., "Book a Call", "Get Quote", "Shop Now"
+  secondaryCta?: string;
+  mustHavePages?: string[];
+  desiredSections?: string[];
+}
+
+export interface BrandPreferences {
+  existingLogo?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  preferredFonts?: string[];
+  visualStyle?: "modern" | "classic" | "playful" | "professional" | "luxury" | "minimal" | "bold";
+  inspirationUrls?: string[]; // Competitor/inspiration websites
+}
+
+export interface BusinessProfile {
+  // Core Business Info
+  businessName?: string;
+  tagline?: string;
+  yearsInBusiness?: number;
+  teamSize?: "solo" | "small" | "medium" | "large" | "enterprise";
+  
+  // Services/Products
+  services?: ServiceItem[];
+  productCategories?: string[];
+  specializations?: string[];
+  
+  // Unique Selling Points
+  uniqueSellingPoints?: string[];
+  competitiveAdvantages?: string[];
+  awards?: string[];
+  certifications?: string[];
+  
+  // Target Audience
+  targetAudience?: string;
+  targetDemographics?: {
+    ageRange?: string;
+    gender?: string;
+    income?: string;
+    interests?: string[];
+  };
+  customerPainPoints?: string[];
+  
+  // Communication Preferences
+  preferredContactMethod?: "email" | "phone" | "form" | "chat" | "booking";
+  responseTime?: string; // e.g., "Within 24 hours"
+  
+  // Contact & Social
+  contactInfo?: ContactInfo;
+  businessHours?: BusinessHours;
+  socialLinks?: SocialLinks;
+  
+  // Team
+  teamMembers?: TeamMember[];
+  founderStory?: string;
+  
+  // Website Goals
+  websiteGoals?: WebsiteGoals;
+  
+  // Brand Preferences
+  brandPreferences?: BrandPreferences;
+  
+  // Tone & Voice
+  communicationTone?: "professional" | "friendly" | "casual" | "formal" | "playful" | "authoritative";
+  brandPersonality?: string[];
+  
+  // Additional Context
+  keywordsFocus?: string[];
+  faqItems?: { question: string; answer: string }[];
 }
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
