@@ -18,6 +18,28 @@ function getClient() {
   });
 }
 
+function getIndustryContext(industry: string): string {
+  const contexts: Record<string, string> = {
+    "Technology": `Focus on innovation, efficiency, and cutting-edge solutions. Emphasize scalability, security, and ROI. Use modern tech terminology. Testimonials should mention specific metrics and time savings.`,
+    "Healthcare": `Prioritize trust, safety, and patient outcomes. Use empathetic language. Emphasize certifications, experience, and care quality. Include HIPAA compliance messaging where relevant.`,
+    "Finance": `Convey stability, expertise, and trustworthiness. Use precise language. Emphasize security, returns, and regulatory compliance. Include fiduciary responsibility messaging.`,
+    "Real Estate": `Focus on dreams, investment potential, and local expertise. Use aspirational language. Emphasize market knowledge, negotiation skills, and client success stories.`,
+    "Restaurant": `Appeal to senses and experiences. Use vivid, appetizing descriptions. Emphasize quality ingredients, atmosphere, and memorable dining experiences.`,
+    "Retail": `Focus on product quality, customer service, and convenience. Use engaging, benefit-driven language. Emphasize selection, value, and shopping experience.`,
+    "Education": `Emphasize outcomes, expertise, and transformation. Use inspiring language. Focus on student success, methodology, and credentials.`,
+    "Consulting": `Convey expertise, results, and strategic thinking. Use authoritative language. Emphasize case studies, methodology, and measurable outcomes.`,
+    "Manufacturing": `Focus on quality, precision, and reliability. Use technical but accessible language. Emphasize capabilities, certifications, and production excellence.`,
+    "Entertainment": `Create excitement and emotional connection. Use dynamic, engaging language. Emphasize unique experiences and memorable moments.`,
+    "Legal": `Convey authority, experience, and client advocacy. Use professional language. Emphasize track record, expertise areas, and client confidentiality.`,
+    "Marketing": `Demonstrate creativity and results-orientation. Use bold, confident language. Emphasize ROI, case studies, and innovative strategies.`,
+    "Fitness": `Inspire action and transformation. Use motivational language. Emphasize results, expertise, and community.`,
+    "Beauty": `Appeal to self-improvement and confidence. Use aspirational language. Emphasize expertise, quality products, and transformative results.`,
+    "Travel": `Create wanderlust and excitement. Use vivid, experiential language. Emphasize unique experiences, expertise, and seamless service.`,
+  };
+  
+  return contexts[industry] || `Focus on professionalism, quality, and customer satisfaction. Use clear, benefit-driven language. Emphasize experience, reliability, and results.`;
+}
+
 export const openaiConnector = defineConnector({
   key: "openai",
   name: "OpenAI (via Replit AI)",
@@ -41,7 +63,7 @@ export const openaiConnector = defineConnector({
     try {
       const client = getClient();
       const response = await client.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [{ role: "user", content: "Say 'ok'" }],
         max_completion_tokens: 10,
       });
@@ -87,7 +109,7 @@ Return a JSON object with a "names" array containing the business name strings.
 Example: {"names": ["BrandName1", "BrandName2"]}`;
 
         const response = await client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           max_completion_tokens: 1000,
@@ -138,7 +160,7 @@ Return a JSON object with these fields:
 - elevatorPitch: string (2-3 sentence pitch)`;
 
         const response = await client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           max_completion_tokens: 2000,
@@ -177,61 +199,77 @@ Return a JSON object with these fields:
         const tone = input.tone || "professional";
         const industry = input.industry || "business";
 
-        const prompt = `You are an expert website copywriter creating a COMPLETE professional multi-page website.
+        const industryContext = getIndustryContext(industry);
 
-BUSINESS DETAILS:
+        const prompt = `You are a world-class conversion copywriter and brand strategist. Create a PREMIUM, high-converting website that could win design awards.
+
+BUSINESS PROFILE:
 - Name: ${input.businessName}
-- Description: ${input.businessIdea}
+- Core Offering: ${input.businessIdea}
 - Industry: ${industry}
-- Target Audience: ${input.targetAudience || "general consumers"}
+- Target Audience: ${input.targetAudience || "discerning professionals and businesses"}
 - Location: ${input.location || "United States"}
-- Tone: ${tone}
+- Brand Tone: ${tone}
 ${input.brandVoice ? `- Brand Voice: ${input.brandVoice}` : ""}
 
-CREATE THESE PAGES: ${pageList.join(", ")}
+INDUSTRY-SPECIFIC GUIDANCE:
+${industryContext}
 
-SECTION TYPES TO USE (with their data structures):
-- "hero": {headline, subheadline, ctaText, ctaLink} - Bold opening with compelling headline
-- "features": {headline, subheadline, items:[{title, description, icon}]} - 4-6 feature cards. Icons: star, shield, zap, heart, target, users, clock, check, award, globe
-- "services": {headline, subheadline, items:[{title, description, icon, price}]} - Detailed service offerings
-- "testimonials": {headline, items:[{quote, author, role, company}]} - 3-4 customer testimonials with realistic names/companies
-- "team": {headline, subheadline, members:[{name, role, bio}]} - 3-4 team members
-- "stats": {headline, items:[{value, label, suffix}]} - Impressive statistics like "500+" "99%" "10K+"
-- "pricing": {headline, subheadline, plans:[{name, price, period, features:[], highlighted, ctaText}]} - 2-3 pricing tiers
-- "faq": {headline, items:[{question, answer}]} - 5-6 common questions with detailed answers
-- "cta": {headline, subheadline, buttonText, buttonLink} - Call-to-action banner
-- "text": {headline, content, alignment} - Rich text block for about/story content
+PAGES TO CREATE: ${pageList.join(", ")}
+
+AVAILABLE SECTION TYPES:
+- "hero": {headline, subheadline, ctaText, ctaLink} - Powerful opening that stops visitors in their tracks
+- "features": {headline, subheadline, items:[{title, description, icon}]} - Value propositions. Icons: star, shield, zap, heart, target, users, clock, check, award, globe, briefcase, settings, wrench, lightbulb
+- "services": {headline, subheadline, items:[{title, description, icon, price, features:[]}]} - Detailed offerings with benefits
+- "testimonials": {headline, subheadline, items:[{quote, author, role, company}]} - Social proof with compelling stories
+- "team": {headline, subheadline, members:[{name, role, bio}]} - Humanize the brand
+- "stats": {headline, items:[{value, label, suffix, prefix}]} - Credibility numbers
+- "pricing": {headline, subheadline, plans:[{name, price, period, description, features:[], highlighted, ctaText}]} - Clear value tiers
+- "faq": {headline, subheadline, items:[{question, answer}]} - Objection handling
+- "cta": {headline, subheadline, buttonText, buttonLink} - Conversion driver
+- "text": {headline, content, alignment} - Story and context
 - "contact": {headline, subheadline, email, phone, address, showForm:true}
 
-PAGE STRUCTURE REQUIREMENTS:
-1. HOME: hero + features (6 items) + services (4 items) + stats (4 items) + testimonials (3 items) + cta = 6 sections
-2. ABOUT: hero + text (company story, 3 paragraphs) + team (4 members) + stats (4 items) + cta = 5 sections
-3. SERVICES: hero + services (6 detailed) + pricing (3 tiers) + faq (6 items) + cta = 5 sections
-4. CONTACT: hero + contact + text (additional info) + cta = 4 sections
+PAGE BLUEPRINTS:
+1. HOME (6 sections): hero → features (6 items) → stats (4 credibility numbers) → services (4 highlighted) → testimonials (3 compelling stories) → cta
+2. ABOUT (5 sections): hero → text (origin story, mission, vision - 3 rich paragraphs) → team (4 members with personality) → stats → cta
+3. SERVICES (5 sections): hero → services (6 comprehensive offerings) → pricing (3 tiers: starter/professional/enterprise) → faq (6 objection-handlers) → cta
+4. CONTACT (4 sections): hero → contact (with form) → text (response commitment, office hours) → cta
 
-CONTENT QUALITY REQUIREMENTS:
-- Write compelling, specific headlines (not generic)
-- Subheadlines should be 2-3 sentences explaining value
-- Feature descriptions should be 15-25 words each
-- Testimonial quotes should be 25-40 words each
-- Team bios should be 20-30 words each
-- FAQ answers should be 30-50 words each
-- Use realistic statistics (e.g., "500+ Happy Clients", "10+ Years Experience", "98% Satisfaction Rate")
-- Make CTAs action-oriented and specific to the business
+COPYWRITING EXCELLENCE REQUIREMENTS:
+- Headlines: Use power words, create curiosity, promise transformation. NO generic phrases like "Welcome to" or "About Us"
+- Subheadlines: Expand on the promise with specific benefits. 2-3 sentences that build desire.
+- Features: Each title should be a benefit statement (not a feature name). Descriptions 20-30 words explaining the transformation.
+- Testimonials: Write as real people speak. Include specific results or emotions. 30-50 words per quote. Use diverse realistic names.
+- Team: Give each member a distinct personality. Include a unique achievement or passion. 25-35 words.
+- FAQ: Address real objections and fears. Answers should reassure and build confidence. 40-60 words each.
+- CTAs: Create urgency without being pushy. Personalize to the action ("Get My Free Strategy Call" not "Submit")
+- Stats: Use believable but impressive numbers with context
 
-RETURN THIS EXACT JSON STRUCTURE:
+COLOR PSYCHOLOGY (choose based on ${industry}):
+- Professional services: Deep blues (#1e40af), slate grays, gold accents
+- Healthcare/Wellness: Calming teals (#0d9488), soft greens, warm neutrals
+- Technology: Electric blues (#3b82f6), vibrant purples, modern gradients
+- Creative/Agency: Bold primaries, unexpected combinations
+- Finance: Navy (#1e3a5a), forest green (#166534), gold
+- Food/Restaurant: Warm oranges (#ea580c), rich reds, earthy tones
+- Real Estate: Sophisticated navy (#1e3a8a), gold (#ca8a04), warm grays
+
+JSON STRUCTURE (follow exactly):
 {
   "pages": [
     {
       "slug": "home",
-      "title": "Page Title | ${input.businessName}",
-      "metaDescription": "SEO description 150-160 chars",
-      "sections": [...]
+      "title": "Compelling Page Title | ${input.businessName}",
+      "metaDescription": "SEO-optimized description with keywords, 150-160 chars",
+      "sections": [
+        {"id": "unique-id", "type": "section-type", "data": {...}}
+      ]
     }
   ],
   "globalContent": {
     "siteName": "${input.businessName}",
-    "tagline": "Compelling 5-8 word tagline",
+    "tagline": "Memorable 5-8 word value proposition",
     "navigation": [
       {"label": "Home", "href": "/"},
       {"label": "About", "href": "/about"},
@@ -245,15 +283,17 @@ RETURN THIS EXACT JSON STRUCTURE:
     }
   },
   "siteSettings": {
-    "primaryColor": "#hex appropriate for industry",
-    "secondaryColor": "#hex complementary",
-    "accentColor": "#hex highlight color",
-    "style": "modern"
+    "primaryColor": "#hex",
+    "secondaryColor": "#hex",
+    "accentColor": "#hex",
+    "style": "modern",
+    "fontFamily": "Inter",
+    "headingFont": "Poppins"
   }
 }`;
 
         const response = await client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           max_completion_tokens: 12000,
@@ -293,7 +333,7 @@ Create 2-3 briefs for these types: ${types.join(", ")}
 Return JSON with "graphics" array. Each item has: type, name, dimensions, designBrief (object with prompt, style, colors array, mood), copyText.`;
 
         const response = await client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           max_completion_tokens: 2000,
