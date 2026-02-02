@@ -1,0 +1,71 @@
+VISUAL ASSETS, ANIMATION & TYPOGRAPHY REQUIREMENTS (NON-NEGOTIABLE)
+
+The website generation system must intelligently incorporate premium visuals, animated assets, and world-class typography when appropriate for the brand and website type.
+
+1) ANIMATED VISUALS (WHEN JUSTIFIED)
+- For brands that benefit from motion (SaaS, AI products, creative studios, tech-forward brands):
+  - Generate or integrate high-quality animated visuals:
+    - subtle motion graphics
+    - animated gradient meshes
+    - SVG or canvas-based illustrations
+    - micro-animated UI elements
+    - tasteful Lottie or WebGL effects (lightweight only)
+- Animations must:
+  - feel premium and intentional
+  - enhance storytelling or clarity
+  - never be decorative noise
+- Do NOT animate everything.
+- Motion should be used strategically, like a high-end agency would.
+
+2) STATIC HIGH-END IMAGERY (WHEN MOTION IS NOT APPROPRIATE)
+- For brands where motion is unnecessary (luxury, local services, professional brands):
+  - Use high-quality, premium static imagery:
+    - editorial-style photography
+    - cinematic compositions
+    - strong lighting and contrast
+    - modern visual language
+- Avoid stock-photo clichés.
+- Images must feel curated, not generic.
+- Always use Next.js image optimization.
+
+3) TYPOGRAPHY (EXTREMELY IMPORTANT)
+- Typography must be treated as a primary design element, not an afterthought.
+- Use premium, modern, expressive fonts:
+  - strong headline fonts
+  - readable, elegant body fonts
+  - intentional font pairing
+- Avoid default system fonts unless stylistically justified.
+- Adjust:
+  - letter spacing
+  - line height
+  - font weight rhythm
+- Typography should:
+  - carry emotion
+  - reinforce brand personality
+  - immediately signal “high-end”
+
+4) INTELLIGENT VISUAL DECISION LOGIC
+The system must decide:
+- when to use animation vs static imagery
+- when to go minimal vs expressive
+- when typography should dominate vs visuals
+
+These decisions must be based on:
+- business type
+- brand tone
+- audience
+- message clarity
+
+This is NOT a one-size-fits-all visual approach.
+
+5) SIGNATURE VISUAL MOMENTS
+Each generated website must include at least one “signature moment” such as:
+- a striking animated hero
+- a bold typographic section
+- a unique visual transition
+- a memorable interactive element
+
+This is what makes the website unforgettable.
+
+QUALITY RULE:
+If the visuals, animations, or typography feel average, generic, or “AI-ish”, the result must be refined until it meets premium creative standards.
