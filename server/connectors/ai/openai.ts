@@ -18,26 +18,144 @@ function getClient() {
   });
 }
 
-function getIndustryContext(industry: string): string {
-  const contexts: Record<string, string> = {
-    "Technology": `Focus on innovation, efficiency, and cutting-edge solutions. Emphasize scalability, security, and ROI. Use modern tech terminology. Testimonials should mention specific metrics and time savings.`,
-    "Healthcare": `Prioritize trust, safety, and patient outcomes. Use empathetic language. Emphasize certifications, experience, and care quality. Include HIPAA compliance messaging where relevant.`,
-    "Finance": `Convey stability, expertise, and trustworthiness. Use precise language. Emphasize security, returns, and regulatory compliance. Include fiduciary responsibility messaging.`,
-    "Real Estate": `Focus on dreams, investment potential, and local expertise. Use aspirational language. Emphasize market knowledge, negotiation skills, and client success stories.`,
-    "Restaurant": `Appeal to senses and experiences. Use vivid, appetizing descriptions. Emphasize quality ingredients, atmosphere, and memorable dining experiences.`,
-    "Retail": `Focus on product quality, customer service, and convenience. Use engaging, benefit-driven language. Emphasize selection, value, and shopping experience.`,
-    "Education": `Emphasize outcomes, expertise, and transformation. Use inspiring language. Focus on student success, methodology, and credentials.`,
-    "Consulting": `Convey expertise, results, and strategic thinking. Use authoritative language. Emphasize case studies, methodology, and measurable outcomes.`,
-    "Manufacturing": `Focus on quality, precision, and reliability. Use technical but accessible language. Emphasize capabilities, certifications, and production excellence.`,
-    "Entertainment": `Create excitement and emotional connection. Use dynamic, engaging language. Emphasize unique experiences and memorable moments.`,
-    "Legal": `Convey authority, experience, and client advocacy. Use professional language. Emphasize track record, expertise areas, and client confidentiality.`,
-    "Marketing": `Demonstrate creativity and results-orientation. Use bold, confident language. Emphasize ROI, case studies, and innovative strategies.`,
-    "Fitness": `Inspire action and transformation. Use motivational language. Emphasize results, expertise, and community.`,
-    "Beauty": `Appeal to self-improvement and confidence. Use aspirational language. Emphasize expertise, quality products, and transformative results.`,
-    "Travel": `Create wanderlust and excitement. Use vivid, experiential language. Emphasize unique experiences, expertise, and seamless service.`,
+function getStyleVariant(style: string): { description: string; fonts: { heading: string; body: string }; radiusStyle: string } {
+  const variants: Record<string, { description: string; fonts: { heading: string; body: string }; radiusStyle: string }> = {
+    modern: {
+      description: "Clean lines, generous whitespace, subtle shadows. Focus on clarity and contemporary aesthetics.",
+      fonts: { heading: "Inter", body: "Inter" },
+      radiusStyle: "rounded-xl (12px)"
+    },
+    minimal: {
+      description: "Ultra-clean, lots of negative space, monochromatic with single accent. Typography-focused.",
+      fonts: { heading: "DM Sans", body: "DM Sans" },
+      radiusStyle: "rounded-lg (8px)"
+    },
+    bold: {
+      description: "High contrast, large typography, vibrant colors, dramatic shadows. Makes a strong statement.",
+      fonts: { heading: "Oswald", body: "Open Sans" },
+      radiusStyle: "rounded-md (6px)"
+    },
+    corporate: {
+      description: "Professional, trustworthy, structured layouts. Emphasizes stability and expertise.",
+      fonts: { heading: "Montserrat", body: "Source Sans 3" },
+      radiusStyle: "rounded (4px)"
+    },
+    elegant: {
+      description: "Sophisticated, refined typography, subtle gradients. Luxury feel with attention to detail.",
+      fonts: { heading: "Playfair Display", body: "Lora" },
+      radiusStyle: "rounded-lg (8px)"
+    },
+    creative: {
+      description: "Playful, unexpected layouts, creative use of color. Fun and approachable.",
+      fonts: { heading: "Poppins", body: "Nunito" },
+      radiusStyle: "rounded-2xl (16px)"
+    },
+    tech: {
+      description: "Futuristic, sharp edges optional, gradient accents. Modern technology feel.",
+      fonts: { heading: "Space Grotesk", body: "Work Sans" },
+      radiusStyle: "rounded-lg (8px)"
+    }
   };
   
-  return contexts[industry] || `Focus on professionalism, quality, and customer satisfaction. Use clear, benefit-driven language. Emphasize experience, reliability, and results.`;
+  return variants[style] || variants.modern;
+}
+
+interface IndustryTemplate {
+  context: string;
+  suggestedColors: { primary: string; secondary: string; accent: string };
+  suggestedStyle: string;
+  keyFeatures: string[];
+  testimonialFocus: string;
+}
+
+function getIndustryTemplate(industry: string): IndustryTemplate {
+  const templates: Record<string, IndustryTemplate> = {
+    "Technology": {
+      context: `Focus on innovation, efficiency, and cutting-edge solutions. Emphasize scalability, security, and ROI. Use modern tech terminology. Testimonials should mention specific metrics and time savings.`,
+      suggestedColors: { primary: "#3b82f6", secondary: "#1e40af", accent: "#06b6d4" },
+      suggestedStyle: "tech",
+      keyFeatures: ["API Integration", "99.9% Uptime", "Enterprise Security", "24/7 Support", "Scalable Infrastructure", "Real-time Analytics"],
+      testimonialFocus: "efficiency gains, time saved, ROI improvements"
+    },
+    "SaaS": {
+      context: `Focus on productivity gains, ease of use, and seamless integration. Emphasize free trials, quick onboarding, and customer success stories. Use benefit-driven feature descriptions.`,
+      suggestedColors: { primary: "#6366f1", secondary: "#4f46e5", accent: "#22d3ee" },
+      suggestedStyle: "modern",
+      keyFeatures: ["Free Trial", "No Credit Card Required", "Cancel Anytime", "API Access", "Team Collaboration", "Custom Integrations"],
+      testimonialFocus: "productivity improvements, ease of use, customer support quality"
+    },
+    "Healthcare": {
+      context: `Prioritize trust, safety, and patient outcomes. Use empathetic language. Emphasize certifications, experience, and care quality. Include HIPAA compliance messaging where relevant.`,
+      suggestedColors: { primary: "#0d9488", secondary: "#047857", accent: "#14b8a6" },
+      suggestedStyle: "corporate",
+      keyFeatures: ["Board Certified", "HIPAA Compliant", "Patient-Centered Care", "Evidence-Based Treatment", "Compassionate Staff", "Modern Facilities"],
+      testimonialFocus: "care quality, staff compassion, treatment outcomes"
+    },
+    "Restaurant": {
+      context: `Appeal to senses and experiences. Use vivid, appetizing descriptions. Emphasize quality ingredients, atmosphere, and memorable dining experiences. Include menu highlights.`,
+      suggestedColors: { primary: "#ea580c", secondary: "#c2410c", accent: "#f59e0b" },
+      suggestedStyle: "elegant",
+      keyFeatures: ["Fresh Ingredients", "Award-Winning Chef", "Cozy Atmosphere", "Private Dining", "Seasonal Menu", "Local Sourcing"],
+      testimonialFocus: "food quality, atmosphere, memorable experiences"
+    },
+    "E-commerce": {
+      context: `Focus on product quality, fast shipping, and customer satisfaction. Emphasize secure checkout, easy returns, and product variety. Use trust signals prominently.`,
+      suggestedColors: { primary: "#8b5cf6", secondary: "#7c3aed", accent: "#f472b6" },
+      suggestedStyle: "modern",
+      keyFeatures: ["Free Shipping", "Easy Returns", "Secure Checkout", "24/7 Support", "Quality Guarantee", "Fast Delivery"],
+      testimonialFocus: "product quality, shipping speed, customer service"
+    },
+    "Consulting": {
+      context: `Convey expertise, results, and strategic thinking. Use authoritative language. Emphasize case studies, methodology, and measurable outcomes.`,
+      suggestedColors: { primary: "#1e3a8a", secondary: "#1e40af", accent: "#ca8a04" },
+      suggestedStyle: "corporate",
+      keyFeatures: ["Proven Methodology", "Fortune 500 Clients", "Measurable Results", "Industry Expertise", "Custom Solutions", "Executive Team"],
+      testimonialFocus: "ROI delivered, strategic insights, business transformation"
+    },
+    "Finance": {
+      context: `Convey stability, expertise, and trustworthiness. Use precise language. Emphasize security, returns, and regulatory compliance. Include fiduciary responsibility messaging.`,
+      suggestedColors: { primary: "#166534", secondary: "#14532d", accent: "#ca8a04" },
+      suggestedStyle: "corporate",
+      keyFeatures: ["Fiduciary Duty", "SEC Registered", "Transparent Fees", "Personalized Plans", "Market Expertise", "Secure Transactions"],
+      testimonialFocus: "trust, performance, personalized service"
+    },
+    "Real Estate": {
+      context: `Focus on dreams, investment potential, and local expertise. Use aspirational language. Emphasize market knowledge, negotiation skills, and client success stories.`,
+      suggestedColors: { primary: "#1e3a8a", secondary: "#1e40af", accent: "#ca8a04" },
+      suggestedStyle: "elegant",
+      keyFeatures: ["Local Market Expert", "Top Producer", "Virtual Tours", "Negotiation Skills", "Client-First Approach", "Investment Guidance"],
+      testimonialFocus: "smooth transactions, market knowledge, finding dream homes"
+    },
+    "Fitness": {
+      context: `Inspire action and transformation. Use motivational language. Emphasize results, expertise, and community. Include transformation stories.`,
+      suggestedColors: { primary: "#dc2626", secondary: "#b91c1c", accent: "#f59e0b" },
+      suggestedStyle: "bold",
+      keyFeatures: ["Personal Training", "Group Classes", "Nutrition Coaching", "Results Guaranteed", "Flexible Hours", "Community Support"],
+      testimonialFocus: "transformation results, trainer expertise, community atmosphere"
+    },
+    "Legal": {
+      context: `Convey authority, experience, and client advocacy. Use professional language. Emphasize track record, expertise areas, and client confidentiality.`,
+      suggestedColors: { primary: "#1e3a5a", secondary: "#0f172a", accent: "#b45309" },
+      suggestedStyle: "corporate",
+      keyFeatures: ["Free Consultation", "Experienced Attorneys", "Track Record", "Confidentiality", "Client Advocacy", "Results-Oriented"],
+      testimonialFocus: "case outcomes, attorney expertise, client communication"
+    }
+  };
+  
+  return templates[industry] || {
+    context: `Focus on professionalism, quality, and customer satisfaction. Use clear, benefit-driven language. Emphasize experience, reliability, and results.`,
+    suggestedColors: { primary: "#3b82f6", secondary: "#1e40af", accent: "#10b981" },
+    suggestedStyle: "modern",
+    keyFeatures: ["Quality Service", "Expert Team", "Customer First", "Proven Results", "Reliable Support", "Best Value"],
+    testimonialFocus: "quality, reliability, customer satisfaction"
+  };
+}
+
+function getIndustryContext(industry: string): string {
+  const template = getIndustryTemplate(industry);
+  return `${template.context}
+- Suggested feature themes: ${template.keyFeatures.join(", ")}
+- Testimonial focus: ${template.testimonialFocus}`;
 }
 
 export const openaiConnector = defineConnector({
@@ -198,8 +316,10 @@ Return a JSON object with these fields:
         const pageList = input.pages || ["home", "about", "services", "contact"];
         const tone = input.tone || "professional";
         const industry = input.industry || "business";
+        const designStyle = (input as { designStyle?: string }).designStyle || "modern";
 
         const industryContext = getIndustryContext(industry);
+        const styleVariant = getStyleVariant(designStyle);
 
         const prompt = `You are a world-class conversion copywriter and brand strategist. Create a PREMIUM, high-converting website that could win design awards.
 
@@ -211,6 +331,10 @@ BUSINESS PROFILE:
 - Location: ${input.location || "United States"}
 - Brand Tone: ${tone}
 ${input.brandVoice ? `- Brand Voice: ${input.brandVoice}` : ""}
+
+DESIGN STYLE: ${designStyle.toUpperCase()}
+${styleVariant.description}
+- Use ${styleVariant.fonts.heading} for headings and ${styleVariant.fonts.body} for body text
 
 INDUSTRY-SPECIFIC GUIDANCE:
 ${industryContext}
@@ -286,9 +410,9 @@ JSON STRUCTURE (follow exactly):
     "primaryColor": "#hex",
     "secondaryColor": "#hex",
     "accentColor": "#hex",
-    "style": "modern",
-    "fontFamily": "Inter",
-    "headingFont": "Poppins"
+    "style": "${designStyle}",
+    "fontFamily": "${styleVariant.fonts.body}",
+    "headingFont": "${styleVariant.fonts.heading}"
   }
 }`;
 

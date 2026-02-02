@@ -22,15 +22,15 @@ export default function SectionGallery({ section }: { section: SectionContent })
       <div className="max-w-6xl mx-auto">
         {data.headline && (
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{data.headline}</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-gallery-headline">{data.headline}</h2>
             {data.subheadline && (
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{data.subheadline}</p>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto" data-testid="text-gallery-subheadline">{data.subheadline}</p>
             )}
           </div>
         )}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {images.map((image, index) => (
-            <div key={index} className="group relative aspect-square rounded-lg overflow-hidden bg-card border">
+            <div key={index} className="group relative aspect-square rounded-lg overflow-hidden bg-card border" data-testid={`img-gallery-item-${index}`}>
               {image.src ? (
                 <img 
                   src={image.src} 

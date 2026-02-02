@@ -12,7 +12,51 @@ import SectionStats from "./section-stats";
 import SectionServices from "./section-services";
 import SectionGallery from "./section-gallery";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const popularFontPairings: Record<string, { heading: string; body: string }> = {
+  modern: { heading: "Inter", body: "Inter" },
+  classic: { heading: "Playfair Display", body: "Lora" },
+  elegant: { heading: "Cormorant Garamond", body: "Proza Libre" },
+  tech: { heading: "Space Grotesk", body: "Work Sans" },
+  bold: { heading: "Oswald", body: "Open Sans" },
+  minimal: { heading: "DM Sans", body: "DM Sans" },
+  creative: { heading: "Poppins", body: "Nunito" },
+  professional: { heading: "Montserrat", body: "Source Sans 3" },
+};
+
+function useGoogleFonts(headingFont?: string, bodyFont?: string) {
+  useEffect(() => {
+    const fonts: string[] = [];
+    
+    if (headingFont) {
+      fonts.push(`family=${headingFont.replace(/ /g, "+")}:wght@400;500;600;700;800`);
+    }
+    if (bodyFont && bodyFont !== headingFont) {
+      fonts.push(`family=${bodyFont.replace(/ /g, "+")}:wght@300;400;500;600`);
+    }
+    
+    if (fonts.length === 0) return;
+    
+    const existingLink = document.querySelector('link[data-google-fonts]');
+    if (existingLink) {
+      existingLink.remove();
+    }
+    
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?${fonts.join("&")}&display=swap`;
+    link.setAttribute("data-google-fonts", "true");
+    document.head.appendChild(link);
+    
+    return () => {
+      const linkToRemove = document.querySelector('link[data-google-fonts]');
+      if (linkToRemove) {
+        linkToRemove.remove();
+      }
+    };
+  }, [headingFont, bodyFont]);
+}
 
 interface WebsiteRendererProps {
   content: WebsiteContent;
@@ -75,7 +119,7 @@ function SectionRenderer({ section, globalContent }: { section: SectionContent; 
   }
 }
 
-function WebsiteHeader({ globalContent, onNavigate }: { globalContent?: GlobalContent; onNavigate?: (pageSlug: string) => void }) {
+function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalContent?: GlobalContent; onNavigate?: (pageSlug: string) => void; siteSettings?: WebsiteContent["siteSettings"] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigation = globalContent?.navigation || [];
   
@@ -88,6 +132,8 @@ function WebsiteHeader({ globalContent, onNavigate }: { globalContent?: GlobalCo
     }
   };
   
+  const logoStyle = siteSettings?.primaryColor ? { color: siteSettings.primaryColor } : {};
+  
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <nav className="max-w-6xl mx-auto px-6 py-4">
@@ -96,6 +142,7 @@ function WebsiteHeader({ globalContent, onNavigate }: { globalContent?: GlobalCo
             href="/" 
             className="font-bold text-xl"
             onClick={(e) => handleNavClick(e, "/")}
+            style={logoStyle}
           >
             {globalContent?.siteName || "Website"}
           </a>
@@ -177,14 +224,89 @@ function WebsiteFooter({ globalContent }: { globalContent?: GlobalContent }) {
   );
 }
 
+function hexToHSL(hex: string): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return "0 0% 0%";
+  
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): React.CSSProperties {
+  if (!siteSettings) return {};
+  
+  const { primaryColor, secondaryColor, accentColor, fontFamily, headingFont, style } = siteSettings;
+  
+  const styles: Record<string, string> = {};
+  
+  if (primaryColor) {
+    styles["--brand-primary"] = primaryColor;
+    styles["--brand-primary-hsl"] = hexToHSL(primaryColor);
+  }
+  if (secondaryColor) {
+    styles["--brand-secondary"] = secondaryColor;
+    styles["--brand-secondary-hsl"] = hexToHSL(secondaryColor);
+  }
+  if (accentColor) {
+    styles["--brand-accent"] = accentColor;
+    styles["--brand-accent-hsl"] = hexToHSL(accentColor);
+  }
+  
+  const pairing = style && popularFontPairings[style];
+  const resolvedHeadingFont = headingFont || pairing?.heading || "Inter";
+  const resolvedBodyFont = fontFamily || pairing?.body || "Inter";
+  
+  styles["--font-heading"] = `"${resolvedHeadingFont}", sans-serif`;
+  styles["--font-body"] = `"${resolvedBodyFont}", sans-serif`;
+  
+  return styles as React.CSSProperties;
+}
+
+function getFontsFromSettings(siteSettings?: WebsiteContent["siteSettings"]): { heading: string; body: string } {
+  if (!siteSettings) return { heading: "Inter", body: "Inter" };
+  
+  const { fontFamily, headingFont, style } = siteSettings;
+  const pairing = style && popularFontPairings[style];
+  
+  return {
+    heading: headingFont || pairing?.heading || "Inter",
+    body: fontFamily || pairing?.body || "Inter"
+  };
+}
+
 export default function WebsiteRenderer({ content, pageSlug = "home", isPreview = false, onNavigate }: WebsiteRendererProps) {
   const pages = content.pages || [];
   const currentPage = pages.find(p => p.slug === pageSlug) || pages[0];
   const globalContent = content.globalContent;
+  const siteSettings = content.siteSettings;
+  
+  const fonts = getFontsFromSettings(siteSettings);
+  useGoogleFonts(fonts.heading, fonts.body);
+  
+  const brandStyles = generateBrandStyles(siteSettings);
   
   if (!currentPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background" style={brandStyles}>
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">404 Page Not Found</h1>
           <p className="text-muted-foreground">The page "{pageSlug}" doesn't exist.</p>
@@ -193,9 +315,19 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
     );
   }
   
+  const combinedStyles: React.CSSProperties = {
+    ...brandStyles,
+    fontFamily: `var(--font-body, "Inter", sans-serif)`,
+  };
+
   return (
-    <div className={`min-h-screen bg-background ${isPreview ? "preview-mode" : ""}`}>
-      <WebsiteHeader globalContent={globalContent} onNavigate={onNavigate} />
+    <div className={`min-h-screen bg-background ${isPreview ? "preview-mode" : ""}`} style={combinedStyles}>
+      <style>{`
+        .preview-mode h1, .preview-mode h2, .preview-mode h3, .preview-mode h4, .preview-mode h5, .preview-mode h6 {
+          font-family: var(--font-heading, "Inter", sans-serif);
+        }
+      `}</style>
+      <WebsiteHeader globalContent={globalContent} onNavigate={onNavigate} siteSettings={siteSettings} />
       
       <main>
         {currentPage.sections.map((section) => (

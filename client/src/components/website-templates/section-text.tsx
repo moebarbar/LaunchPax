@@ -12,20 +12,31 @@ export default function SectionText({ section }: { section: SectionContent }) {
   
   const alignmentClasses = {
     left: "text-left",
-    center: "text-center",
-    right: "text-right",
+    center: "text-center mx-auto",
+    right: "text-right ml-auto",
   };
   
   return (
-    <section className="py-12 px-6">
-      <div className={`max-w-4xl mx-auto ${alignmentClasses[alignment]}`}>
+    <section className="py-20 px-6 bg-background">
+      <div className={`max-w-4xl mx-auto`}>
         {data.headline && (
-          <h2 className="text-3xl font-bold mb-6">{data.headline}</h2>
+          <h2 
+            className={`text-3xl md:text-4xl font-bold mb-8 ${alignment === "center" ? "text-center" : ""}`}
+            data-testid="text-section-headline"
+          >
+            {data.headline}
+          </h2>
         )}
         {data.content && (
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            {data.content.split("\n").map((paragraph, index) => (
-              <p key={index} className="text-muted-foreground mb-4">{paragraph}</p>
+          <div className={`prose prose-lg dark:prose-invert max-w-none ${alignmentClasses[alignment]}`}>
+            {data.content.split("\n\n").map((paragraph, index) => (
+              <p 
+                key={index} 
+                className="text-muted-foreground mb-6 leading-relaxed text-lg"
+                data-testid={`text-paragraph-${index}`}
+              >
+                {paragraph}
+              </p>
             ))}
           </div>
         )}

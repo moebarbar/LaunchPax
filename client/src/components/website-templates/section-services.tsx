@@ -41,9 +41,9 @@ export default function SectionServices({ section }: { section: SectionContent }
       <div className="max-w-6xl mx-auto">
         {data.headline && (
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{data.headline}</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4" data-testid="text-services-headline">{data.headline}</h2>
             {data.subheadline && (
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{data.subheadline}</p>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed" data-testid="text-services-subheadline">{data.subheadline}</p>
             )}
           </div>
         )}
@@ -51,20 +51,36 @@ export default function SectionServices({ section }: { section: SectionContent }
           {items.map((item, index) => {
             const IconComponent = iconMap[item.icon?.toLowerCase() || "star"] || Briefcase;
             return (
-              <div key={index} className="bg-card p-8 rounded-xl border hover-elevate transition-all group">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-                  <IconComponent className="w-7 h-7 text-primary" />
+              <div key={index} className="bg-card p-8 rounded-xl border shadow-sm hover:shadow-md transition-all duration-200 group" data-testid={`card-service-${index}`}>
+                <div 
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 transition-all duration-200"
+                  style={{ 
+                    backgroundColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)"
+                  }}
+                >
+                  <IconComponent 
+                    className="w-7 h-7" 
+                    style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
+                  />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
                 <p className="text-muted-foreground mb-4 leading-relaxed">{item.description}</p>
                 {item.price && (
-                  <p className="text-2xl font-bold text-primary mb-4">{item.price}</p>
+                  <p 
+                    className="text-2xl font-bold mb-4"
+                    style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
+                  >
+                    {item.price}
+                  </p>
                 )}
                 {item.features && item.features.length > 0 && (
                   <ul className="space-y-2">
                     {item.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                        <Check 
+                          className="w-4 h-4 flex-shrink-0" 
+                          style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
+                        />
                         {feature}
                       </li>
                     ))}
