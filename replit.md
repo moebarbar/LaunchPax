@@ -89,6 +89,13 @@ Following Replit-style isolation:
 
 ## Recent Changes
 
+### 2026-02-02: Website Publishing System Complete
+- **Publishing to Live URLs**: Complete publish flow with /site/:projectId public route
+- **Public Route Architecture**: /preview/:token (secure preview) vs /site/:projectId (published, isPublished required)
+- **Frontend Routing Fix**: Public routes now outside auth gate for anonymous access
+- **End-to-End Testing**: Full workflow verified (auth → project → names → brand → website → publish → live site)
+- **All 15 Enhancement Tasks Complete**: Platform ready for production use
+
 ### 2026-02-02: Enhanced Website Template System
 - **12 Section Types**: Comprehensive section components for professional websites:
   - hero, features, services, testimonials, team, stats, pricing, faq, cta, contact, text, gallery
