@@ -63,18 +63,24 @@ export const openaiConnector = defineConnector({
           businessIdea: string;
           industry?: string;
           tone?: string;
+          baseName?: string;
           count?: number;
         };
         
-        const prompt = `Generate ${input.count || 20} creative, memorable business names for:
+        const baseNameContext = input.baseName 
+          ? `The user has named their business "${input.baseName}". Generate creative variations and similar-sounding alternatives.`
+          : "";
+        
+        const prompt = `Generate ${input.count || 15} creative, memorable business names for:
 Business idea: ${input.businessIdea}
 ${input.industry ? `Industry: ${input.industry}` : ""}
 ${input.tone ? `Brand tone: ${input.tone}` : ""}
+${baseNameContext}
 
 Requirements:
 - Names should be unique, brandable, and easy to spell
-- Mix of invented words, compound words, and creative spellings
-- Suitable for domain registration
+- Include variations of the base name if provided
+- Suitable for domain registration (short, no special characters)
 - Modern and professional
 
 Return a JSON object with a "names" array containing the business name strings.

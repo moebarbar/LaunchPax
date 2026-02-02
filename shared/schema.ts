@@ -85,6 +85,8 @@ export const namingResults = pgTable("naming_results", {
   domainCandidates: jsonb("domain_candidates").$type<{ name: string; domain: string; tld: string }[]>().default([]),
   availableDomains: jsonb("available_domains").$type<DomainCheckResult[]>().default([]),
   selectedDomain: text("selected_domain"),
+  customDomain: text("custom_domain"), // User's own domain (BYOD)
+  isCustomDomain: boolean("is_custom_domain").default(false), // Whether using own domain
   favorites: jsonb("favorites").$type<string[]>().default([]),
   providerUsed: text("provider_used"), // Track which connector was used
   status: text("status").default("pending").notNull(),
@@ -160,6 +162,9 @@ export type InsertBrandKit = z.infer<typeof insertBrandKitSchema>;
 export const websiteContents = pgTable("website_contents", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  
+  // Preview token for secure public access
+  previewToken: text("preview_token").notNull().default(sql`gen_random_uuid()`),
   
   // Structured content - JSON, NOT HTML
   pages: jsonb("pages").$type<PageContent[]>().default([]),

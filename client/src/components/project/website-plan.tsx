@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,15 +20,24 @@ import {
   Mail,
   DollarSign,
   BarChart3,
+  Eye,
+  ExternalLink,
+  Monitor,
+  Smartphone,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
 
 interface WebsitePlanProps {
   projectId: number;
 }
 
+type ViewMode = "desktop" | "mobile";
+
 export default function WebsitePlan({ projectId }: WebsitePlanProps) {
   const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<ViewMode>("desktop");
+  const [activeTab, setActiveTab] = useState("structure");
 
   const { data: websiteContent, isLoading, refetch: refetchWebsiteContent } = useQuery<WebsiteContent>({
     queryKey: ["/api/projects", projectId, "website-plan"],
@@ -198,23 +207,90 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-lg font-semibold">Website Structure</h2>
           <p className="text-muted-foreground text-sm">
             {websiteContent.pages?.length || 0} pages generated
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => generateWebsitePlan.mutate()}
-          disabled={isRunning}
-          data-testid="button-regenerate-website"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Regenerate
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => window.open(`/preview/${websiteContent.previewToken}`, '_blank')}
+            data-testid="button-preview-website"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Open Preview
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => generateWebsitePlan.mutate()}
+            disabled={isRunning}
+            data-testid="button-regenerate-website"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Regenerate
+          </Button>
+        </div>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsTrigger value="structure" data-testid="tab-website-structure">
+            <Layout className="w-4 h-4 mr-2" />
+            Structure
+          </TabsTrigger>
+          <TabsTrigger value="preview" data-testid="tab-website-preview">
+            <Eye className="w-4 h-4 mr-2" />
+            Preview
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="preview" className="mt-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
+              <CardTitle className="text-lg">Live Preview</CardTitle>
+              <div className="flex items-center gap-1 border rounded-md p-1">
+                <Button
+                  variant={viewMode === "desktop" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("desktop")}
+                  data-testid="button-view-desktop"
+                  className="h-7 px-2"
+                >
+                  <Monitor className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "mobile" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("mobile")}
+                  data-testid="button-view-mobile"
+                  className="h-7 px-2"
+                >
+                  <Smartphone className="w-4 h-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div 
+                className={`mx-auto border rounded-lg overflow-hidden bg-background transition-all ${
+                  viewMode === "mobile" ? "max-w-[375px]" : "w-full"
+                }`}
+                style={{ height: "600px" }}
+              >
+                <iframe
+                  src={`/preview/${websiteContent.previewToken}`}
+                  className="w-full h-full border-0"
+                  title="Website Preview"
+                  data-testid="iframe-website-preview"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="structure" className="mt-4 space-y-6">
 
       {websiteContent.siteSettings && (
         <Card>
@@ -313,6 +389,8 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
           </AccordionItem>
         ))}
       </Accordion>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -89,6 +89,15 @@ Following Replit-style isolation:
 
 ## Recent Changes
 
+### 2026-02-02: Website Template System & Secure Preview
+- **Section Components**: Created modular website template components (hero, features, cta, contact, text) in `client/src/components/website-templates/`
+- **Website Renderer**: Central component that assembles sections with header/footer navigation
+- **Secure Preview System**: Added `previewToken` field to websiteContents table (UUID-based) for secure public access
+- **Public Preview Route**: `/preview/:token` accessible without authentication for iframe embedding
+- **Preview Tab in Website Plan**: Added live preview iframe with desktop/mobile toggle and "Open Preview" button
+- **Href Sanitization**: `sanitizeHref()` function blocks javascript:/data:/vbscript: URLs in navigation links
+- **UI Guidelines**: All template components use hover-elevate utilities instead of custom hover states
+
 ### 2026-02-02: Workflow Execution Fixes
 - **OpenAI Connector Hardening**: Changed to gpt-4o-mini model for all AI operations with simplified prompts and robust JSON parsing (try-catch around all JSON.parse calls)
 - **Frontend Polling Fix**: Workflow status polling now only occurs when status === "running" (not for "pending" or "not_started")
@@ -100,3 +109,5 @@ Following Replit-style isolation:
 - Frontend components track previous workflow status to detect completion transitions
 - OpenAI responses are wrapped in try-catch with error logging for debugging
 - All AI operations use response_format: { type: "json_object" } for structured output
+- Website preview uses token-based access (websiteContents.previewToken) to prevent IDOR attacks
+- Preview accessible at `/preview/:token` or embedded in Website tab iframe

@@ -50,6 +50,7 @@ export interface IStorage {
 
   // Website Content
   getWebsiteContent(projectId: number): Promise<WebsiteContent | undefined>;
+  getWebsiteContentByToken(token: string): Promise<WebsiteContent | undefined>;
   upsertWebsiteContent(data: InsertWebsiteContent & { projectId: number }): Promise<WebsiteContent>;
 
   // Graphic Assets
@@ -166,6 +167,11 @@ class DatabaseStorage implements IStorage {
     return content;
   }
 
+  async getWebsiteContentByToken(token: string): Promise<WebsiteContent | undefined> {
+    const [content] = await db.select().from(websiteContents).where(eq(websiteContents.previewToken, token));
+    return content;
+  }
+
   async upsertWebsiteContent(data: InsertWebsiteContent & { projectId: number }): Promise<WebsiteContent> {
     const existing = await this.getWebsiteContent(data.projectId);
     if (existing) {
@@ -176,7 +182,9 @@ class DatabaseStorage implements IStorage {
         .returning();
       return updated;
     }
-    const [created] = await db.insert(websiteContents).values(data).returning();
+    // Generate a unique preview token for new content
+    const previewToken = crypto.randomUUID();
+    const [created] = await db.insert(websiteContents).values({ ...data, previewToken }).returning();
     return created;
   }
 

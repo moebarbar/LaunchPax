@@ -96,6 +96,32 @@ export async function runNamingDomainWorkflow(ctx: WorkflowContext): Promise<voi
     {
       name: "Generating business names",
       execute: async (ctx) => {
+        // Start with the project name as the primary suggestion
+        const projectName = ctx.project.name;
+        const cleanProjectName = projectName.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+        
+        // Generate name variations based on project name
+        const baseNames: string[] = [cleanProjectName];
+        
+        // Add common variations
+        const words = cleanProjectName.split(/\s+/);
+        if (words.length > 1) {
+          // Combined version (no spaces)
+          baseNames.push(words.join(""));
+          // First word + "HQ", "App", "Hub"
+          baseNames.push(`${words[0]}HQ`);
+          baseNames.push(`${words[0]}App`);
+          baseNames.push(`Get${words.join("")}`);
+          baseNames.push(`Try${words.join("")}`);
+        } else {
+          baseNames.push(`${cleanProjectName}HQ`);
+          baseNames.push(`${cleanProjectName}App`);
+          baseNames.push(`Get${cleanProjectName}`);
+          baseNames.push(`Try${cleanProjectName}`);
+          baseNames.push(`${cleanProjectName}io`);
+        }
+        
+        // Also get AI-generated creative alternatives
         const result = await connectorRegistry.execute<any, string[]>(
           "name_generation",
           "generate_names",
@@ -103,15 +129,21 @@ export async function runNamingDomainWorkflow(ctx: WorkflowContext): Promise<voi
             businessIdea: ctx.project.businessIdea || "A new business",
             industry: ctx.project.industry,
             tone: ctx.project.tone,
-            count: 25,
+            baseName: cleanProjectName,
+            count: 15,
           }
         );
         
-        if (!result.success) {
-          throw new Error(result.error || "Failed to generate names");
+        // Combine project-based names with AI suggestions
+        let allNames = [...baseNames];
+        if (result.success && Array.isArray(result.data)) {
+          allNames = [...baseNames, ...result.data];
         }
         
-        return result.data;
+        // Remove duplicates
+        const uniqueNames = [...new Set(allNames.map(n => n.toLowerCase()))];
+        
+        return uniqueNames.slice(0, 25);
       },
     },
     {
@@ -122,7 +154,7 @@ export async function runNamingDomainWorkflow(ctx: WorkflowContext): Promise<voi
           "generate_domain_suggestions",
           {
             names: names as string[],
-            tlds: [".com", ".io", ".co", ".ai"],
+            tlds: [".com", ".io", ".co", ".ai", ".app"],
           }
         );
         

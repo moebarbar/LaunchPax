@@ -17,7 +17,9 @@ import {
   Check,
   Filter,
   Search,
+  ExternalLink,
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Project, NamingResult, WorkflowJob } from "@shared/schema";
 
 interface NamingDomainProps {
@@ -29,6 +31,8 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
   const { toast } = useToast();
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [searchFilter, setSearchFilter] = useState("");
+  const [customDomainInput, setCustomDomainInput] = useState("");
+  const [domainTab, setDomainTab] = useState<string>("generate");
 
   const { data: namingResult, isLoading, refetch: refetchResults } = useQuery<NamingResult>({
     queryKey: ["/api/projects", projectId, "naming-domain", "results"],
@@ -104,6 +108,25 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
     },
   });
 
+  const setCustomDomain = useMutation({
+    mutationFn: async (domain: string) => {
+      const response = await apiRequest("POST", `/api/projects/${projectId}/naming-domain/custom`, { domain });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Custom domain saved!", description: "Your domain has been configured." });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "naming-domain", "results"] });
+      setCustomDomainInput("");
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Invalid domain", 
+        description: error?.message || "Please enter a valid domain name (e.g., mybusiness.com)",
+        variant: "destructive" 
+      });
+    },
+  });
+
   // Only consider "running" as actively in progress (not "pending" fallback or "not_started")
   const isRunning = workflowJob?.status === "running";
 
@@ -138,32 +161,82 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
         </CardHeader>
         <CardContent className="space-y-4">
           {!namingResult || namingResult.status === "pending" ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">Ready to Generate Names</h3>
-              <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-                We'll generate creative business names based on your project details and check domain availability.
-              </p>
-              <Button
-                onClick={() => runWorkflow.mutate()}
-                disabled={runWorkflow.isPending || isRunning}
-                data-testid="button-generate-names"
-              >
-                {runWorkflow.isPending || isRunning ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Generate Names
-                  </>
-                )}
-              </Button>
-            </div>
+            <Tabs value={domainTab} onValueChange={setDomainTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="generate" data-testid="tab-generate-names">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Names
+                </TabsTrigger>
+                <TabsTrigger value="custom" data-testid="tab-own-domain">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  I Have My Own Domain
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="generate" className="mt-6">
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <Globe className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Generate Domain Suggestions</h3>
+                  <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+                    We'll generate domain names based on "{project.name}" and check availability.
+                  </p>
+                  <Button
+                    onClick={() => runWorkflow.mutate()}
+                    disabled={runWorkflow.isPending || isRunning}
+                    data-testid="button-generate-names"
+                  >
+                    {runWorkflow.isPending || isRunning ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate Names
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="custom" className="mt-6">
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <ExternalLink className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="font-semibold mb-2">Use Your Own Domain</h3>
+                  <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+                    Already have a domain? Enter it below and we'll configure your website to use it.
+                  </p>
+                  <div className="flex gap-2 max-w-md mx-auto">
+                    <Input
+                      placeholder="yourdomain.com"
+                      value={customDomainInput}
+                      onChange={(e) => setCustomDomainInput(e.target.value)}
+                      data-testid="input-custom-domain"
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={() => setCustomDomain.mutate(customDomainInput)}
+                      disabled={!customDomainInput || setCustomDomain.isPending}
+                      data-testid="button-save-custom-domain"
+                    >
+                      {setCustomDomain.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Save Domain"
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    You'll need to configure DNS settings after your website is built
+                  </p>
+                </div>
+              </TabsContent>
+            </Tabs>
           ) : isRunning ? (
             <div className="text-center py-8">
               <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
@@ -178,10 +251,14 @@ export default function NamingDomain({ projectId, project }: NamingDomainProps) 
                 <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-green-700 dark:text-green-400">Selected Domain</p>
+                      <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                        {namingResult.isCustomDomain ? "Your Domain" : "Selected Domain"}
+                      </p>
                       <p className="text-lg font-mono font-bold">{namingResult.selectedDomain}</p>
                     </div>
-                    <Badge className="bg-green-500">Selected</Badge>
+                    <Badge className="bg-green-500">
+                      {namingResult.isCustomDomain ? "Custom" : "Selected"}
+                    </Badge>
                   </div>
                 </div>
               )}

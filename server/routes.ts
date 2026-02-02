@@ -129,7 +129,11 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const projectId = parseInt(req.params.id);
     const { domain } = req.body;
     
-    await storage.updateNamingResult(projectId, { selectedDomain: domain });
+    await storage.updateNamingResult(projectId, { 
+      selectedDomain: domain,
+      isCustomDomain: false,
+      customDomain: null,
+    });
     
     await storage.createActivityLog({
       projectId,
@@ -139,6 +143,37 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     });
 
     res.json({ success: true });
+  });
+
+  // Set custom domain (Bring Your Own Domain)
+  app.post("/api/projects/:id/naming-domain/custom", isAuthenticated, async (req: Request, res: Response) => {
+    const projectId = parseInt(req.params.id);
+    const { domain } = req.body;
+    
+    if (!domain || typeof domain !== "string") {
+      return res.status(400).json({ message: "Domain is required" });
+    }
+
+    // Basic domain validation
+    const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.[a-zA-Z]{2,}$/;
+    if (!domainRegex.test(domain)) {
+      return res.status(400).json({ message: "Invalid domain format" });
+    }
+    
+    await storage.updateNamingResult(projectId, { 
+      customDomain: domain.toLowerCase(),
+      isCustomDomain: true,
+      selectedDomain: domain.toLowerCase(),
+    });
+    
+    await storage.createActivityLog({
+      projectId,
+      action: "Custom domain set",
+      details: `User added their own domain: ${domain}`,
+      status: "completed",
+    });
+
+    res.json({ success: true, domain: domain.toLowerCase() });
   });
 
   // ============================================================================
@@ -159,6 +194,16 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     const projectId = parseInt(req.params.id);
     const content = await storage.getWebsiteContent(projectId);
     res.json(content || { status: "pending" });
+  });
+
+  // Public preview endpoint (for iframe embedding) - uses secure preview token
+  app.get("/api/preview/:token", async (req: Request, res: Response) => {
+    const token = req.params.token;
+    const content = await storage.getWebsiteContentByToken(token);
+    if (!content) {
+      return res.status(404).json({ error: "Preview not found" });
+    }
+    res.json(content);
   });
 
   // ============================================================================
