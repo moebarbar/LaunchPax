@@ -173,6 +173,9 @@ export const websiteContents = pgTable("website_contents", {
   // Site configuration
   siteSettings: jsonb("site_settings").$type<SiteSettings>(),
   
+  // SEO metadata
+  seo: jsonb("seo").$type<SeoMeta>(),
+  
   // Build metadata
   templateId: text("template_id").default("default"),
   version: integer("version").default(1),
@@ -214,6 +217,17 @@ export interface SiteSettings {
   fontFamily?: string;
   headingFont?: string;
   style?: string; // "modern" | "minimal" | "bold" | "classic"
+}
+
+export interface SeoMeta {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  ogImage?: string;
+  ogType?: string;
+  ogUrl?: string;
+  twitterCard?: string;
+  canonicalUrl?: string;
 }
 
 export const insertWebsiteContentSchema = createInsertSchema(websiteContents).omit({

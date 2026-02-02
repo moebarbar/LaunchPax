@@ -161,9 +161,9 @@ function getIndustryContext(industry: string): string {
 export const openaiConnector = defineConnector({
   key: "openai",
   name: "OpenAI (via Replit AI)",
-  description: "AI text and content generation powered by GPT models",
+  description: "AI text, content, and image generation powered by GPT models",
   category: "ai",
-  capabilities: ["name_generation", "brand_generation", "content_generation", "text_generation"],
+  capabilities: ["name_generation", "brand_generation", "content_generation", "text_generation", "image_generation"],
   authType: "bearer",
   requiredEnvVars: ["AI_INTEGRATIONS_OPENAI_API_KEY", "AI_INTEGRATIONS_OPENAI_BASE_URL"],
 
@@ -413,6 +413,12 @@ JSON STRUCTURE (follow exactly):
     "style": "${designStyle}",
     "fontFamily": "${styleVariant.fonts.body}",
     "headingFont": "${styleVariant.fonts.heading}"
+  },
+  "seo": {
+    "title": "SEO-optimized title for search engines (50-60 chars)",
+    "description": "Compelling meta description with primary keywords (150-160 chars)",
+    "keywords": ["keyword1", "keyword2", "keyword3", "industry-term", "location-term"],
+    "ogType": "website"
   }
 }`;
 
@@ -478,6 +484,185 @@ Return JSON with "graphics" array. Each item has: type, name, dimensions, design
           data: graphics as O,
           provider: "openai",
         };
+      }
+
+      case "generate_image": {
+        const input = task.input as {
+          prompt: string;
+          size?: "1024x1024" | "1792x1024" | "1024x1792";
+          style?: "vivid" | "natural";
+          quality?: "standard" | "hd";
+        };
+
+        console.log("[OpenAI] Generating image with prompt:", input.prompt.substring(0, 100) + "...");
+
+        try {
+          const imageResponse = await client.images.generate({
+            model: "gpt-image-1",
+            prompt: input.prompt,
+            n: 1,
+            size: input.size || "1024x1024",
+          });
+
+          const imageData = imageResponse.data[0];
+          
+          if (!imageData) {
+            return {
+              success: false,
+              error: "No image data returned from API",
+              provider: "openai",
+            };
+          }
+
+          return {
+            success: true,
+            data: {
+              b64_json: imageData.b64_json,
+              url: imageData.url,
+              revised_prompt: imageData.revised_prompt,
+            } as O,
+            provider: "openai",
+          };
+        } catch (error) {
+          console.error("[OpenAI] Image generation failed:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Image generation failed",
+            provider: "openai",
+          };
+        }
+      }
+
+      case "generate_hero_image": {
+        const input = task.input as {
+          businessName: string;
+          businessIdea: string;
+          industry?: string;
+          brandColors?: { primary: string; secondary?: string };
+          style?: string;
+        };
+
+        const styleGuidance = input.style 
+          ? getStyleVariant(input.style).description 
+          : "modern, professional aesthetic";
+
+        const heroPrompt = `Create a stunning hero background image for a ${input.industry || "business"} website.
+
+Business: ${input.businessName}
+Concept: ${input.businessIdea}
+Design style: ${styleGuidance}
+
+Requirements:
+- Professional, high-quality imagery suitable for a hero section
+- Abstract or conceptual design that evokes the business essence
+- Should work as a background with text overlay
+- Colors should complement: ${input.brandColors?.primary || "blue tones"}
+- No text, logos, or faces
+- Clean, modern aesthetic
+- Subtle gradients or abstract patterns preferred
+- Should convey trust, professionalism, and innovation`;
+
+        console.log("[OpenAI] Generating hero image for:", input.businessName);
+
+        try {
+          const imageResponse = await client.images.generate({
+            model: "gpt-image-1",
+            prompt: heroPrompt,
+            n: 1,
+            size: "1792x1024",
+          });
+
+          const imageData = imageResponse.data[0];
+          
+          if (!imageData) {
+            return {
+              success: false,
+              error: "No hero image data returned from API",
+              provider: "openai",
+            };
+          }
+
+          return {
+            success: true,
+            data: {
+              b64_json: imageData.b64_json,
+              url: imageData.url,
+              revised_prompt: imageData.revised_prompt,
+              type: "hero",
+            } as O,
+            provider: "openai",
+          };
+        } catch (error) {
+          console.error("[OpenAI] Hero image generation failed:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Hero image generation failed",
+            provider: "openai",
+          };
+        }
+      }
+
+      case "generate_logo": {
+        const input = task.input as {
+          businessName: string;
+          industry?: string;
+          style?: string;
+          brandColors?: { primary: string; secondary?: string; accent?: string };
+        };
+
+        const logoPrompt = `Create a minimalist, professional logo icon for "${input.businessName}".
+
+Industry: ${input.industry || "general business"}
+Style: ${input.style || "modern, clean, minimal"}
+
+Requirements:
+- Simple, iconic design that works at any size
+- Single color or limited palette using: ${input.brandColors?.primary || "#3b82f6"}
+- No text - icon/symbol only
+- Geometric or abstract shapes
+- Professional and memorable
+- Suitable for favicon, app icon, and social media
+- Clean white or transparent-looking background
+- Should evoke trust and professionalism`;
+
+        console.log("[OpenAI] Generating logo for:", input.businessName);
+
+        try {
+          const imageResponse = await client.images.generate({
+            model: "gpt-image-1",
+            prompt: logoPrompt,
+            n: 1,
+            size: "1024x1024",
+          });
+
+          const imageData = imageResponse.data[0];
+          
+          if (!imageData) {
+            return {
+              success: false,
+              error: "No logo data returned from API",
+              provider: "openai",
+            };
+          }
+
+          return {
+            success: true,
+            data: {
+              b64_json: imageData.b64_json,
+              url: imageData.url,
+              revised_prompt: imageData.revised_prompt,
+              type: "logo",
+            } as O,
+            provider: "openai",
+          };
+        } catch (error) {
+          console.error("[OpenAI] Logo generation failed:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "Logo generation failed",
+            provider: "openai",
+          };
+        }
       }
 
       default:

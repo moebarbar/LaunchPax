@@ -1,4 +1,4 @@
-import type { WebsiteContent, PageContent, SectionContent, GlobalContent } from "@shared/schema";
+import type { WebsiteContent, PageContent, SectionContent, GlobalContent, SeoMeta } from "@shared/schema";
 import SectionHero from "./section-hero";
 import SectionFeatures from "./section-features";
 import SectionCta from "./section-cta";
@@ -13,6 +13,118 @@ import SectionServices from "./section-services";
 import SectionGallery from "./section-gallery";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+
+function useSeoMeta(
+  siteName?: string, 
+  pageTitle?: string, 
+  seo?: SeoMeta,
+  siteSettings?: WebsiteContent["siteSettings"]
+) {
+  useEffect(() => {
+    const fullTitle = pageTitle 
+      ? `${pageTitle} | ${siteName || "Website"}` 
+      : (siteName || "Website");
+    
+    document.title = seo?.title || fullTitle;
+    
+    const updateMeta = (name: string, content: string) => {
+      let meta = document.querySelector(`meta[name="${name}"]`) as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("name", name);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", content);
+    };
+    
+    const updateProperty = (property: string, content: string) => {
+      let meta = document.querySelector(`meta[property="${property}"]`) as HTMLMetaElement | null;
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("property", property);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", content);
+    };
+    
+    const updateLink = (rel: string, href: string) => {
+      let link = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement("link");
+        link.setAttribute("rel", rel);
+        document.head.appendChild(link);
+      }
+      link.setAttribute("href", href);
+    };
+    
+    if (seo?.description) {
+      updateMeta("description", seo.description);
+      updateProperty("og:description", seo.description);
+      updateMeta("twitter:description", seo.description);
+    }
+    
+    if (seo?.keywords?.length) {
+      updateMeta("keywords", seo.keywords.join(", "));
+    }
+    
+    updateProperty("og:title", seo?.title || fullTitle);
+    updateProperty("og:type", seo?.ogType || "website");
+    
+    if (siteName) {
+      updateProperty("og:site_name", siteName);
+    }
+    
+    if (seo?.ogUrl) {
+      updateProperty("og:url", seo.ogUrl);
+    }
+    
+    if (seo?.canonicalUrl) {
+      updateLink("canonical", seo.canonicalUrl);
+    }
+    
+    if (seo?.ogImage) {
+      updateProperty("og:image", seo.ogImage);
+      updateMeta("twitter:image", seo.ogImage);
+    }
+    
+    updateMeta("twitter:card", seo?.twitterCard || "summary_large_image");
+    updateMeta("twitter:title", seo?.title || fullTitle);
+    
+    if (siteSettings?.primaryColor) {
+      updateMeta("theme-color", siteSettings.primaryColor);
+    }
+    
+    updateMeta("robots", "index, follow");
+    updateMeta("viewport", "width=device-width, initial-scale=1");
+    
+    const existingJsonLd = document.querySelector('script[data-structured-data]');
+    if (existingJsonLd) {
+      existingJsonLd.remove();
+    }
+    
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": siteName || "Website",
+      "description": seo?.description || "",
+      "url": seo?.ogUrl || window.location.origin,
+      ...(seo?.ogImage && { "logo": seo.ogImage }),
+    };
+    
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.setAttribute("data-structured-data", "true");
+    script.textContent = JSON.stringify(jsonLd);
+    document.head.appendChild(script);
+    
+    return () => {
+      const scriptToRemove = document.querySelector('script[data-structured-data]');
+      if (scriptToRemove) {
+        scriptToRemove.remove();
+      }
+    };
+  }, [siteName, pageTitle, seo, siteSettings]);
+}
 
 const popularFontPairings: Record<string, { heading: string; body: string }> = {
   modern: { heading: "Inter", body: "Inter" },
@@ -140,10 +252,23 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
         <div className="flex items-center justify-between">
           <a 
             href="/" 
-            className="font-bold text-xl"
+            className="font-bold text-xl flex items-center gap-2"
             onClick={(e) => handleNavClick(e, "/")}
             style={logoStyle}
           >
+            {(globalContent as any)?.logoB64 ? (
+              <img 
+                src={`data:image/png;base64,${(globalContent as any).logoB64}`}
+                alt={`${globalContent?.siteName || "Website"} logo`}
+                className="h-8 w-8 object-contain"
+              />
+            ) : globalContent?.logo ? (
+              <img 
+                src={globalContent.logo}
+                alt={`${globalContent?.siteName || "Website"} logo`}
+                className="h-8 w-8 object-contain"
+              />
+            ) : null}
             {globalContent?.siteName || "Website"}
           </a>
           
@@ -301,6 +426,23 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   
   const fonts = getFontsFromSettings(siteSettings);
   useGoogleFonts(fonts.heading, fonts.body);
+  
+  const baseSeo: SeoMeta = content.seo || {
+    title: globalContent?.siteName,
+    description: `Welcome to ${globalContent?.siteName || "our website"}`,
+  };
+  
+  const pageSeo: SeoMeta = {
+    ...baseSeo,
+    description: (currentPage as any)?.metaDescription || baseSeo.description,
+  };
+  
+  useSeoMeta(
+    globalContent?.siteName,
+    currentPage?.title,
+    pageSeo,
+    siteSettings
+  );
   
   const brandStyles = generateBrandStyles(siteSettings);
   

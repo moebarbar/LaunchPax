@@ -292,6 +292,140 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // ============================================================================
+  // IMAGE GENERATION API
+  // ============================================================================
+
+  // Generate image
+  app.post("/api/images/generate", isAuthenticated, async (req: Request, res: Response) => {
+    try {
+      const { prompt, size, type } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+
+      const result = await connectorRegistry.execute<{ prompt: string; size?: string }, { b64_json?: string; url?: string }>(
+        "image_generation",
+        "generate_image",
+        { prompt, size: size || "1024x1024" }
+      );
+
+      if (!result.success) {
+        return res.status(500).json({ message: result.error || "Image generation failed" });
+      }
+
+      res.json(result.data);
+    } catch (error) {
+      console.error("[Images] Generation failed:", error);
+      res.status(500).json({ message: "Image generation failed" });
+    }
+  });
+
+  // Generate hero image for a project
+  app.post("/api/projects/:id/images/hero", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    try {
+      const brandKit = await storage.getBrandKit(projectId);
+      
+      const result = await connectorRegistry.execute<{
+        businessName: string;
+        businessIdea: string;
+        industry?: string;
+        brandColors?: { primary: string; secondary?: string };
+        style?: string;
+      }, { b64_json?: string; url?: string; type?: string }>(
+        "image_generation",
+        "generate_hero_image",
+        {
+          businessName: project.name,
+          businessIdea: project.businessIdea || "",
+          industry: project.industry,
+          brandColors: brandKit ? { 
+            primary: brandKit.colors?.primary || "#3b82f6",
+            secondary: brandKit.colors?.secondary 
+          } : undefined,
+          style: brandKit?.designStyle,
+        }
+      );
+
+      if (!result.success) {
+        return res.status(500).json({ message: result.error || "Hero image generation failed" });
+      }
+
+      // Store the generated image reference in the project's generated assets
+      const existingAssets = await storage.getGeneratedAssets(projectId);
+      await storage.createGeneratedAsset({
+        projectId,
+        type: "hero_image",
+        name: "Hero Background",
+        data: { b64_json: result.data?.b64_json?.substring(0, 100) + "..." }, // Store reference only
+        status: "completed",
+      });
+
+      res.json(result.data);
+    } catch (error) {
+      console.error("[Images] Hero generation failed:", error);
+      res.status(500).json({ message: "Hero image generation failed" });
+    }
+  });
+
+  // Generate logo for a project
+  app.post("/api/projects/:id/images/logo", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    try {
+      const brandKit = await storage.getBrandKit(projectId);
+      
+      const result = await connectorRegistry.execute<{
+        businessName: string;
+        industry?: string;
+        style?: string;
+        brandColors?: { primary: string; secondary?: string; accent?: string };
+      }, { b64_json?: string; url?: string; type?: string }>(
+        "image_generation",
+        "generate_logo",
+        {
+          businessName: project.name,
+          industry: project.industry,
+          style: brandKit?.designStyle,
+          brandColors: brandKit?.colors,
+        }
+      );
+
+      if (!result.success) {
+        return res.status(500).json({ message: result.error || "Logo generation failed" });
+      }
+
+      // Store the generated logo
+      await storage.createGeneratedAsset({
+        projectId,
+        type: "logo",
+        name: "Brand Logo",
+        data: { b64_json: result.data?.b64_json?.substring(0, 100) + "..." },
+        status: "completed",
+      });
+
+      res.json(result.data);
+    } catch (error) {
+      console.error("[Images] Logo generation failed:", error);
+      res.status(500).json({ message: "Logo generation failed" });
+    }
+  });
+
+  // ============================================================================
   // CONNECTORS API
   // ============================================================================
 

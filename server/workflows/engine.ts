@@ -292,17 +292,101 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           headingFont: brandKit?.fontPairings?.[0]?.heading,
         };
         
-        // Save results
+        // Save results including SEO data
         await storage.upsertWebsiteContent({
           projectId: ctx.projectId,
           pages: result.data.pages,
           globalContent: result.data.globalContent,
           siteSettings,
+          seo: result.data.seo,
           providerUsed: result.provider,
           status: "completed",
         });
         
         return result.data;
+      },
+    },
+    {
+      name: "Generating hero image and logo",
+      execute: async (ctx) => {
+        const namingResult = await storage.getNamingResult(ctx.projectId);
+        const brandKit = await storage.getBrandKit(ctx.projectId);
+        const websiteContent = await storage.getWebsiteContent(ctx.projectId);
+        
+        const businessName = namingResult?.selectedDomain?.replace(/\.[^.]+$/, "") || ctx.project.name;
+        const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
+        const primaryColor = brandColors[0] || websiteContent?.siteSettings?.primaryColor || "#4F46E5";
+        
+        // Generate hero image
+        const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
+          "image_generation",
+          "generate_hero_image",
+          {
+            businessName,
+            businessIdea: ctx.project.businessIdea || "A new business",
+            industry: ctx.project.industry || "technology",
+            style: "modern professional",
+            brandColors: { primary: primaryColor },
+          }
+        );
+        
+        // Generate logo
+        const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
+          "image_generation",
+          "generate_logo",
+          {
+            businessName,
+            industry: ctx.project.industry || "technology",
+            style: "minimal",
+            brandColors: { primary: primaryColor },
+          }
+        );
+        
+        // Update website content with generated images
+        const heroImageB64 = heroResult.success ? heroResult.data?.b64_json : undefined;
+        const logoImageB64 = logoResult.success ? logoResult.data?.b64_json : undefined;
+        
+        if (websiteContent && (heroImageB64 || logoImageB64)) {
+          const updatedPages = websiteContent.pages?.map((page: any) => {
+            if (page.slug === "home") {
+              return {
+                ...page,
+                sections: page.sections?.map((section: any) => {
+                  if (section.type === "hero" && heroImageB64) {
+                    return {
+                      ...section,
+                      data: {
+                        ...section.data,
+                        backgroundImageB64: heroImageB64,
+                      },
+                    };
+                  }
+                  return section;
+                }),
+              };
+            }
+            return page;
+          });
+          
+          const updatedGlobalContent = {
+            ...websiteContent.globalContent,
+            ...(logoImageB64 && {
+              logoB64: logoImageB64,
+            }),
+          };
+          
+          await storage.upsertWebsiteContent({
+            projectId: ctx.projectId,
+            pages: updatedPages,
+            globalContent: updatedGlobalContent,
+            siteSettings: websiteContent.siteSettings,
+            seo: websiteContent.seo,
+            providerUsed: heroResult.provider || logoResult.provider,
+            status: "completed",
+          });
+        }
+        
+        return { heroGenerated: heroResult.success, logoGenerated: logoResult.success };
       },
     },
   ];
@@ -311,10 +395,93 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
 }
 
 /**
- * Graphics Generation Workflow
+ * Graphics Generation Workflow - includes hero image and logo generation
  */
 export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
   const steps: WorkflowStep[] = [
+    {
+      name: "Generating hero image and logo",
+      execute: async (ctx) => {
+        const namingResult = await storage.getNamingResult(ctx.projectId);
+        const brandKit = await storage.getBrandKit(ctx.projectId);
+        const websiteContent = await storage.getWebsiteContent(ctx.projectId);
+        
+        const businessName = namingResult?.selectedDomain?.replace(/\.[^.]+$/, "") || ctx.project.name;
+        const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
+        const primaryColor = brandColors[0] || "#4F46E5";
+        
+        // Generate hero image
+        const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
+          "image_generation",
+          "generate_hero_image",
+          {
+            businessName,
+            businessIdea: ctx.project.businessIdea || "A new business",
+            industry: ctx.project.industry || "technology",
+            style: "modern professional",
+            brandColors: { primary: primaryColor },
+          }
+        );
+        
+        // Generate logo
+        const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
+          "image_generation",
+          "generate_logo",
+          {
+            businessName,
+            industry: ctx.project.industry || "technology",
+            style: "minimal",
+            brandColors: { primary: primaryColor },
+          }
+        );
+        
+        // Update website content with generated images
+        const heroImageB64 = heroResult.success ? heroResult.data?.b64_json : undefined;
+        const logoImageB64 = logoResult.success ? logoResult.data?.b64_json : undefined;
+        
+        if (websiteContent && (heroImageB64 || logoImageB64)) {
+          const updatedPages = websiteContent.pages?.map((page: any) => {
+            if (page.slug === "home") {
+              return {
+                ...page,
+                sections: page.sections?.map((section: any) => {
+                  if (section.type === "hero" && heroImageB64) {
+                    return {
+                      ...section,
+                      data: {
+                        ...section.data,
+                        backgroundImageB64: heroImageB64,
+                      },
+                    };
+                  }
+                  return section;
+                }),
+              };
+            }
+            return page;
+          });
+          
+          const updatedGlobalContent = {
+            ...websiteContent.globalContent,
+            ...(logoImageB64 && {
+              logoB64: logoImageB64,
+            }),
+          };
+          
+          await storage.upsertWebsiteContent({
+            projectId: ctx.projectId,
+            pages: updatedPages,
+            globalContent: updatedGlobalContent,
+            siteSettings: websiteContent.siteSettings,
+            seo: websiteContent.seo,
+            providerUsed: heroResult.provider || logoResult.provider,
+            status: "completed",
+          });
+        }
+        
+        return { heroGenerated: heroResult.success, logoGenerated: logoResult.success };
+      },
+    },
     {
       name: "Generating marketing graphics",
       execute: async (ctx) => {
