@@ -203,7 +203,23 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!content) {
       return res.status(404).json({ error: "Preview not found" });
     }
-    res.json(content);
+
+    // Visual completeness check for preview - warn but allow (user needs to see to fix)
+    const { checkVisualCompleteness } = await import("./services/image-manager");
+    const completeness = checkVisualCompleteness(content);
+    
+    // Include completeness warning in response
+    res.json({
+      ...content,
+      _visualCompleteness: {
+        isComplete: completeness.isComplete,
+        score: completeness.completenessScore,
+        missingImages: completeness.missingImages,
+        warning: !completeness.isComplete 
+          ? "This preview has missing images. Add images to all sections before publishing."
+          : null,
+      },
+    });
   });
 
   // Public published site endpoint - serves only published websites
@@ -235,6 +251,10 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!content?.previewToken) {
       return res.status(404).json({ error: "Website content not generated yet" });
     }
+
+    // Check visual completeness and include warning if incomplete
+    const { checkVisualCompleteness } = await import("./services/image-manager");
+    const completeness = checkVisualCompleteness(content);
     
     const baseUrl = req.headers.host?.includes("localhost") 
       ? `http://${req.headers.host}`
@@ -249,6 +269,11 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       isPublished: content.isPublished,
       publishedUrl: content.publishedUrl,
       publishedAt: content.publishedAt,
+      visualCompleteness: {
+        isComplete: completeness.isComplete,
+        score: completeness.completenessScore,
+        missingCount: completeness.missingImages.length,
+      },
     });
   });
 
@@ -256,15 +281,47 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   app.post("/api/projects/:id/publish", isAuthenticated, async (req: Request, res: Response) => {
     const userId = req.user?.claims?.sub;
     const projectId = parseInt(req.params.id);
+    const { autoFill = true } = req.body;
     
     const project = await storage.getProject(projectId);
     if (!project || project.userId !== userId) {
       return res.status(404).json({ error: "Project not found" });
     }
     
-    const content = await storage.getWebsiteContent(projectId);
+    let content = await storage.getWebsiteContent(projectId);
     if (!content || content.status !== "completed") {
       return res.status(400).json({ error: "Website content not ready for publishing" });
+    }
+
+    // Visual completeness check - NEVER publish without images
+    const { checkVisualCompleteness, autoFillMissingImages } = await import("./services/image-manager");
+    let completeness = checkVisualCompleteness(content);
+    
+    if (!completeness.isComplete) {
+      if (autoFill) {
+        // Auto-fill missing images before publishing
+        const fillResult = await autoFillMissingImages(content, {
+          businessName: project.name,
+          industry: project.industry || "business",
+          businessIdea: project.businessIdea || undefined,
+        });
+        
+        if (fillResult.filledCount > 0) {
+          await storage.updateWebsiteContent(projectId, fillResult.updatedContent);
+          content = await storage.getWebsiteContent(projectId);
+          completeness = checkVisualCompleteness(content!);
+        }
+      }
+      
+      // If still incomplete after auto-fill, block publishing
+      if (!completeness.isComplete) {
+        return res.status(400).json({ 
+          error: "Website cannot be published without complete visuals",
+          missingImages: completeness.missingImages,
+          completenessScore: completeness.completenessScore,
+          message: "Please add images to all required sections before publishing.",
+        });
+      }
     }
     
     const baseUrl = req.headers.host?.includes("localhost") 
@@ -284,6 +341,7 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       projectId,
       isPublished: true,
       publishedAt: updated?.publishedAt,
+      visualCompleteness: completeness.completenessScore,
       message: "Your website is now live!",
     });
   });
@@ -831,5 +889,170 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     });
 
     res.json(result);
+  });
+
+  // ============================================================================
+  // IMAGE MANAGEMENT API
+  // ============================================================================
+
+  // Upload image to section
+  app.post("/api/projects/:id/sections/:sectionId/image", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const sectionId = req.params.sectionId;
+    const { imageBase64, pageSlug, generateAlt } = req.body;
+
+    if (!imageBase64) {
+      return res.status(400).json({ error: "Image data is required" });
+    }
+
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Get current website content
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    // Find and update the section with image
+    const pages = websiteContent.pages || [];
+    let updated = false;
+    let sectionType = "";
+    let sectionHeadline = "";
+
+    for (let pi = 0; pi < pages.length; pi++) {
+      const page = pages[pi];
+      if (pageSlug && page.slug !== pageSlug) continue;
+      
+      for (let si = 0; si < page.sections.length; si++) {
+        if (page.sections[si].id === sectionId) {
+          sectionType = page.sections[si].type;
+          sectionHeadline = page.sections[si].data?.headline || "";
+          pages[pi].sections[si].data = {
+            ...pages[pi].sections[si].data,
+            imageB64: imageBase64,
+          };
+
+          // Generate SEO alt text if requested
+          if (generateAlt) {
+            try {
+              const { generateImageMetadata } = await import("./services/image-manager");
+              const metadata = await generateImageMetadata({
+                sectionType,
+                businessName: project.name,
+                industry: project.industry || "business",
+                pageSlug: page.slug,
+                sectionHeadline,
+              });
+              pages[pi].sections[si].data.imageAlt = metadata.alt;
+            } catch (e) {
+              console.error("[ImageUpload] Alt text generation failed:", e);
+            }
+          }
+
+          updated = true;
+          break;
+        }
+      }
+      if (updated) break;
+    }
+
+    if (!updated) {
+      return res.status(404).json({ error: "Section not found" });
+    }
+
+    // Save updated content
+    await storage.updateWebsiteContent(projectId, { pages });
+
+    res.json({ success: true, message: "Image uploaded successfully" });
+  });
+
+  // Check visual completeness
+  app.get("/api/projects/:id/visual-completeness", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const strictMode = req.query.strict === "true";
+
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    const { checkVisualCompleteness } = await import("./services/image-manager");
+    const result = checkVisualCompleteness(websiteContent, strictMode);
+
+    res.json(result);
+  });
+
+  // Auto-fill missing images
+  app.post("/api/projects/:id/auto-fill-images", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    const { autoFillMissingImages } = await import("./services/image-manager");
+    const result = await autoFillMissingImages(websiteContent, {
+      businessName: project.name,
+      industry: project.industry || "business",
+      businessIdea: project.businessIdea || undefined,
+    });
+
+    if (result.filledCount > 0) {
+      await storage.updateWebsiteContent(projectId, result.updatedContent);
+    }
+
+    res.json({
+      success: true,
+      filledCount: result.filledCount,
+      errors: result.errors,
+    });
+  });
+
+  // Search stock photos
+  app.get("/api/stock-photos/search", isAuthenticated, async (req: Request, res: Response) => {
+    const query = req.query.q as string;
+    const orientation = req.query.orientation as "landscape" | "portrait" | "square" | undefined;
+    const perPage = parseInt(req.query.perPage as string) || 10;
+
+    if (!query) {
+      return res.status(400).json({ error: "Search query is required" });
+    }
+
+    const pexelsConnector = connectorRegistry.get("pexels");
+    if (!pexelsConnector?.isConfigured()) {
+      return res.status(503).json({ error: "Stock photo service not available" });
+    }
+
+    const result = await pexelsConnector.execute({
+      action: "search_photos",
+      input: { query, perPage, orientation },
+      metadata: { purpose: "user_search" },
+    });
+
+    if (result.success) {
+      res.json(result.data);
+    } else {
+      res.status(500).json({ error: result.error });
+    }
   });
 }

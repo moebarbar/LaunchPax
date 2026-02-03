@@ -42,6 +42,20 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Systems
 - **Connector System**: A registry pattern abstracts external API integrations. Connectors implement a standard interface and are registered in `server/connectors/index.ts`. They provide capability-based lookup (e.g., "name_generation") with **automatic fallback to mock connectors** when primary AI services fail (quota exceeded, network errors, etc.).
+- **Image Management System**: Located in `server/services/image-manager.ts`, provides:
+    - User image upload for any section at any time
+    - Auto-generation of SEO-optimized alt text, captions, and metadata
+    - Stock photo search and integration via Pexels API
+    - **Visual Completeness Enforcement**:
+        - HARD BLOCK on publish: Cannot publish without complete images
+        - Auto-fill missing images from Pexels stock photos before publishing
+        - SOFT WARNING on preview: Shows completeness status for users to fix issues
+        - Returns detailed missing images list for remediation
+    - Image optimization with responsive sizes and lazy loading
+- **Section Transitions**: Smooth visual flow between sections using:
+    - Gradient-fade, overlap, soft-merge, and blur-blend transition types
+    - Overlapping sections to eliminate harsh visual breaks
+    - Premium design standard with cohesive visual flow
 - **Workflow Engine**: Located in `server/workflows/engine.ts`, it orchestrates multi-step generation workflows (naming, brand, website, graphics) using connectors based on capabilities. It tracks progress and logs activity.
 - **Quality Engine**: Located in `server/workflows/quality-engine.ts`, it provides AI-powered quality evaluation and multi-pass refinement:
     - Evaluates website quality across 8 dimensions (overall, layout, typography, creativity, heroImpact, contentQuality, visualDepth, layoutSophistication)

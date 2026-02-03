@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, X, Wand2, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Sparkles, X, Wand2, ChevronDown, ChevronUp, Image } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ImageUploader } from "./image-uploader";
 import type { SectionContent } from "@shared/schema";
 
 interface SectionEditorProps {
@@ -203,6 +204,34 @@ export function SectionEditor({ projectId, section, pageSlug, onClose, onUpdate 
           )}
         </div>
         
+        <div className="space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <label className="text-sm font-medium flex items-center gap-2">
+              <Image className="w-4 h-4" />
+              Section Image
+            </label>
+            <ImageUploader
+              projectId={projectId}
+              sectionId={section.id}
+              pageSlug={pageSlug}
+              currentImage={(section.data as any)?.image}
+              currentImageB64={(section.data as any)?.imageB64}
+              onImageUpdate={onUpdate}
+            />
+          </div>
+          {((section.data as any)?.image || (section.data as any)?.imageB64) && (
+            <div className="rounded-lg overflow-hidden border">
+              <img 
+                src={(section.data as any)?.imageB64 
+                  ? `data:image/png;base64,${(section.data as any)?.imageB64}` 
+                  : (section.data as any)?.image}
+                alt="Section preview"
+                className="w-full h-24 object-cover"
+              />
+            </div>
+          )}
+        </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Custom Instruction</label>
           <Textarea

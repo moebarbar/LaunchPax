@@ -277,6 +277,159 @@ export function SectionDivider({
   );
 }
 
+export type TransitionType = "gradient-fade" | "overlap" | "soft-merge" | "blur-blend" | "none";
+
+interface SectionTransitionProps {
+  type?: TransitionType;
+  fromColor?: string;
+  toColor?: string;
+  height?: number;
+  overlap?: boolean;
+}
+
+export function SectionTransition({
+  type = "gradient-fade",
+  fromColor = "transparent",
+  toColor = "transparent",
+  height = 80,
+  overlap = true,
+}: SectionTransitionProps) {
+  if (type === "none") return null;
+
+  const baseStyle: React.CSSProperties = {
+    height: `${height}px`,
+    marginTop: overlap ? `-${height / 2}px` : 0,
+    marginBottom: overlap ? `-${height / 2}px` : 0,
+    position: "relative",
+    zIndex: 5,
+    pointerEvents: "none",
+  };
+
+  switch (type) {
+    case "gradient-fade":
+      return (
+        <div 
+          style={{
+            ...baseStyle,
+            background: `linear-gradient(180deg, ${fromColor} 0%, ${toColor} 100%)`,
+          }}
+        />
+      );
+
+    case "overlap":
+      return (
+        <div style={baseStyle} className="overflow-hidden">
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(ellipse at 50% 0%, ${fromColor} 0%, transparent 70%)`,
+              opacity: 0.3,
+            }}
+          />
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(ellipse at 50% 100%, ${toColor} 0%, transparent 70%)`,
+              opacity: 0.3,
+            }}
+          />
+        </div>
+      );
+
+    case "soft-merge":
+      return (
+        <div style={baseStyle} className="overflow-hidden">
+          <svg 
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="none"
+            className="absolute inset-0 w-full h-full"
+          >
+            <defs>
+              <linearGradient id="softMergeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor={fromColor} stopOpacity="0.8" />
+                <stop offset="50%" stopColor="white" stopOpacity="0.02" />
+                <stop offset="100%" stopColor={toColor} stopOpacity="0.8" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0,0 L100,0 L100,30 Q50,60 0,30 Z"
+              fill={fromColor}
+              opacity="0.15"
+            />
+            <path
+              d="M0,70 Q50,40 100,70 L100,100 L0,100 Z"
+              fill={toColor}
+              opacity="0.15"
+            />
+          </svg>
+        </div>
+      );
+
+    case "blur-blend":
+      return (
+        <div style={baseStyle} className="overflow-hidden">
+          <div 
+            className="absolute inset-0 backdrop-blur-sm"
+            style={{
+              background: `linear-gradient(180deg, 
+                ${fromColor}20 0%, 
+                transparent 30%,
+                transparent 70%,
+                ${toColor}20 100%)`,
+            }}
+          />
+        </div>
+      );
+
+    default:
+      return null;
+  }
+}
+
+export function GradientOverlay({
+  direction = "bottom",
+  color = "var(--brand-background, hsl(var(--background)))",
+  intensity = 0.8,
+  height = "30%",
+}: {
+  direction?: "top" | "bottom" | "left" | "right";
+  color?: string;
+  intensity?: number;
+  height?: string;
+}) {
+  const gradientDirection = {
+    top: "to bottom",
+    bottom: "to top",
+    left: "to right",
+    right: "to left",
+  }[direction];
+
+  const positionStyles: React.CSSProperties = {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height,
+    pointerEvents: "none",
+    zIndex: 2,
+    ...(direction === "top" ? { top: 0 } : {}),
+    ...(direction === "bottom" ? { bottom: 0 } : {}),
+    ...(direction === "left" ? { left: 0, width: height, height: "100%" } : {}),
+    ...(direction === "right" ? { right: 0, width: height, height: "100%" } : {}),
+  };
+
+  return (
+    <div
+      style={{
+        ...positionStyles,
+        background: `linear-gradient(${gradientDirection}, 
+          ${color} 0%, 
+          transparent 100%)`,
+        opacity: intensity,
+      }}
+    />
+  );
+}
+
 export function FloatingShape({
   shape = "circle",
   size = 100,

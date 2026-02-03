@@ -1,0 +1,97 @@
+IMAGE, GRAPHICS, AND VISUAL COMPLETENESS REQUIREMENT (CRITICAL)
+
+Implement a system that allows users to upload their own images at ANY stage of the website-building process.
+
+Requirements:
+- Users must be able to upload images at any time:
+  - for hero sections
+  - for offers
+  - for new products
+  - for services
+  - for promotions
+  - for any section of the website
+- Uploaded images must immediately integrate into the design system without breaking layout, spacing, or visual quality.
+
+If users do NOT provide images:
+- The system MUST automatically generate high-quality images OR select premium stock imagery.
+- Image selection must match:
+  - brand tone
+  - industry
+  - section purpose
+  - emotional intent
+
+UNDER NO CIRCUMSTANCES may a website be published, previewed, or shown to the user without being fully populated with images, graphics, and visual assets.
+
+Empty, placeholder, or image-less websites are NOT allowed.
+
+────────────────────────
+IMAGE INTELLIGENCE & SEO READINESS (MANDATORY)
+────────────────────────
+For every image used (uploaded, generated, or stock), the system must:
+
+- Scan and analyze the image content
+- Automatically generate:
+  - descriptive, SEO-friendly alt text
+  - image captions when appropriate
+  - file naming optimized for SEO
+  - meta descriptions if images are used for offers, products, or key sections
+- Optimize images for performance:
+  - responsive sizes
+  - proper formats
+  - lazy loading where appropriate
+
+Images must be production-ready and SEO-ready by default.
+
+────────────────────────
+NEVER PUBLISH INCOMPLETE VISUALS (HARD RULE)
+────────────────────────
+The platform must NEVER:
+- publish
+- preview
+- or expose to users
+
+any website that is missing images, graphics, or visual content.
+
+If required images are missing:
+- automatically generate or source them
+- refine until the website is visually complete
+
+Even if AI image generation is imperfect, the website must always ship visually complete.
+
+────────────────────────
+SECTION TRANSITIONS & VISUAL FLOW (CRITICAL)
+────────────────────────
+Transitions between sections must be:
+- smooth
+- visually cohesive
+- elegant
+- intentional
+
+Hard visual breaks such as:
+- visible section borders
+- harsh dividing lines
+- abrupt color jumps
+
+are NOT allowed.
+
+Use:
+- gradients
+- overlapping sections
+- soft spacing
+- background transitions
+- motion-based reveals
+
+to create a continuous, premium visual flow.
+
+────────────────────────
+DESIGN STANDARD (NON-NEGOTIABLE)
+────────────────────────
+- Use and adapt the same visual system principles Replit uses internally.
+- Adopt and follow world-class design practices.
+- Every website must feel:
+  - polished
+  - modern
+  - intentional
+  - agency-grade
+
+If a website does not feel visually complete, cohesive, and premium, it must be refined before being shown to the user.
