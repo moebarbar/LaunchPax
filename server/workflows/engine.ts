@@ -681,23 +681,52 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
         );
         
         // Update website content with generated images
-        const heroImageB64 = heroResult.success ? heroResult.data?.b64_json : undefined;
+        let heroImageB64 = heroResult.success ? heroResult.data?.b64_json : undefined;
+        let heroImageUrl: string | undefined = undefined;
         const logoImageB64 = logoResult.success ? logoResult.data?.b64_json : undefined;
         
-        if (websiteContent && (heroImageB64 || logoImageB64)) {
+        // Fallback to stock photos if AI hero generation failed
+        if (!heroImageB64) {
+          console.log(`[Workflow] AI hero image failed in graphics workflow, falling back to stock photos`);
+          const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+            "stock_photos",
+            "get_photo_for_industry",
+            {
+              industry: ctx.project.industry || "business",
+              type: "hero",
+            }
+          );
+          
+          if (stockResult.success && stockResult.data?.photos?.length > 0) {
+            heroImageUrl = stockResult.data.photos[0].url;
+            console.log(`[Workflow] Using stock photo for hero: ${heroImageUrl}`);
+          }
+        }
+        
+        if (websiteContent && (heroImageB64 || heroImageUrl || logoImageB64)) {
           const updatedPages = websiteContent.pages?.map((page: any) => {
             if (page.slug === "home") {
               return {
                 ...page,
                 sections: page.sections?.map((section: any) => {
-                  if (section.type === "hero" && heroImageB64) {
-                    return {
-                      ...section,
-                      data: {
-                        ...section.data,
-                        backgroundImageB64: heroImageB64,
-                      },
-                    };
+                  if (section.type === "hero") {
+                    if (heroImageB64) {
+                      return {
+                        ...section,
+                        data: {
+                          ...section.data,
+                          backgroundImageB64: heroImageB64,
+                        },
+                      };
+                    } else if (heroImageUrl) {
+                      return {
+                        ...section,
+                        data: {
+                          ...section.data,
+                          backgroundImage: heroImageUrl,
+                        },
+                      };
+                    }
                   }
                   return section;
                 }),
@@ -719,12 +748,12 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
             globalContent: updatedGlobalContent,
             siteSettings: websiteContent.siteSettings,
             seo: websiteContent.seo,
-            providerUsed: heroResult.provider || logoResult.provider,
+            providerUsed: heroResult.provider || logoResult.provider || "stock",
             status: "completed",
           });
         }
         
-        return { heroGenerated: heroResult.success, logoGenerated: logoResult.success };
+        return { heroGenerated: heroResult.success, heroStockPhoto: !!heroImageUrl, logoGenerated: logoResult.success };
       },
     },
     {

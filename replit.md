@@ -41,7 +41,7 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: Replit Auth (OpenID Connect) with PostgreSQL session storage
 
 ### Core Systems
-- **Connector System**: A registry pattern abstracts external API integrations. Connectors implement a standard interface and are registered in `server/connectors/index.ts`. They provide capability-based lookup (e.g., "name_generation") and support mock connectors for fallback.
+- **Connector System**: A registry pattern abstracts external API integrations. Connectors implement a standard interface and are registered in `server/connectors/index.ts`. They provide capability-based lookup (e.g., "name_generation") with **automatic fallback to mock connectors** when primary AI services fail (quota exceeded, network errors, etc.).
 - **Workflow Engine**: Located in `server/workflows/engine.ts`, it orchestrates multi-step generation workflows (naming, brand, website, graphics) using connectors based on capabilities. It tracks progress and logs activity.
 - **Quality Engine**: Located in `server/workflows/quality-engine.ts`, it provides AI-powered quality evaluation and multi-pass refinement:
     - Evaluates website quality across 7 dimensions (overall, layout, typography, creativity, heroImpact, contentQuality, visualDepth)

@@ -156,6 +156,11 @@ class ConnectorRegistry {
     }
 
     if (!connector.isConfigured()) {
+      // If main connector is not configured, try mock fallback
+      if (mockConnector && mockConnector.isConfigured() && connector.key !== mockConnector.key) {
+        console.log(`[ConnectorRegistry] ${connector.key} is not configured, falling back to mock`);
+        return await tryExecute(mockConnector);
+      }
       return {
         success: false,
         error: `Connector ${connector.key} is not configured`,

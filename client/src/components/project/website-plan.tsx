@@ -112,18 +112,36 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
   // Track previous workflow status to detect completion
   const prevStatusRef = useRef<string | undefined>(undefined);
   
-  // Refetch results when workflow completes
+  // Refetch results when workflow completes or fails
   useEffect(() => {
     const currentStatus = workflowJob?.status;
     const prevStatus = prevStatusRef.current;
     
-    if (prevStatus === "running" && currentStatus === "completed") {
+    // Refetch on any status change from running
+    if (prevStatus === "running" && (currentStatus === "completed" || currentStatus === "failed")) {
       refetchWebsiteContent();
       refetchQualityReport();
     }
     
     prevStatusRef.current = currentStatus;
   }, [workflowJob?.status, refetchWebsiteContent, refetchQualityReport]);
+  
+  // Also refetch when progress reaches 100 (in case status update is delayed)
+  const prevProgressRef = useRef<number | null | undefined>(undefined);
+  useEffect(() => {
+    const currentProgress = workflowJob?.progress;
+    const prevProgress = prevProgressRef.current;
+    
+    if (prevProgress !== 100 && currentProgress === 100) {
+      // Wait a moment for the backend to fully update, then refetch
+      setTimeout(() => {
+        refetchWebsiteContent();
+        refetchQualityReport();
+      }, 1000);
+    }
+    
+    prevProgressRef.current = currentProgress;
+  }, [workflowJob?.progress, refetchWebsiteContent, refetchQualityReport]);
 
   const generateWebsitePlan = useMutation({
     mutationFn: async () => {
