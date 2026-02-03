@@ -17,7 +17,7 @@ export default function SectionText({ section }: { section: SectionContent }) {
   };
   
   return (
-    <section className="py-20 px-6 bg-background">
+    <section className="py-20 px-6" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
       <div className={`max-w-4xl mx-auto`}>
         {data.headline && (
           <h2 

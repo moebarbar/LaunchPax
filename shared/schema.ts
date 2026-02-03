@@ -351,9 +351,15 @@ export interface SiteSettings {
   primaryColor?: string;
   secondaryColor?: string;
   accentColor?: string;
+  backgroundColor?: string;
+  surfaceColor?: string;
+  textColor?: string;
+  mutedTextColor?: string;
+  borderColor?: string;
   fontFamily?: string;
   headingFont?: string;
   style?: string; // "modern" | "minimal" | "bold" | "classic"
+  colorScheme?: "light" | "dark" | "auto";
 }
 
 export interface SeoMeta {

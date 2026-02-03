@@ -261,7 +261,7 @@ export const colorPalettes: Record<string, Partial<ColorPalette>> = {
   },
 };
 
-export type HeroArchetype = "editorial" | "split" | "immersive" | "cinematic" | "minimal" | "bold";
+export type HeroArchetype = "editorial" | "split" | "immersive" | "cinematic" | "minimal" | "bold" | "centered";
 
 export interface HeroConfig {
   archetype: HeroArchetype;
@@ -345,6 +345,18 @@ export const heroArchetypes: Record<HeroArchetype, HeroConfig> = {
     textAlignment: "left",
     headlineSize: "text-6xl sm:text-7xl md:text-8xl lg:text-[10rem]",
     hasFloatingElements: true,
+    hasGradientBackground: true,
+    hasMediaBackground: false,
+    layoutDirection: "normal",
+  },
+  centered: {
+    archetype: "centered",
+    height: "min-h-[80vh]",
+    hasOverlay: false,
+    overlayOpacity: 0,
+    textAlignment: "center",
+    headlineSize: "text-5xl sm:text-6xl md:text-7xl",
+    hasFloatingElements: false,
     hasGradientBackground: true,
     hasMediaBackground: false,
     layoutDirection: "normal",

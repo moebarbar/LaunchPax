@@ -445,6 +445,40 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json({ success: true });
   });
 
+  // Update website settings (colors, fonts, style)
+  app.patch("/api/projects/:id/website-settings", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const { siteSettings } = req.body;
+
+    if (!siteSettings) {
+      return res.status(400).json({ error: "Site settings are required" });
+    }
+
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Get current website content
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    // Merge with existing settings
+    const updatedSettings = {
+      ...websiteContent.siteSettings,
+      ...siteSettings,
+    };
+
+    // Save updated settings
+    await storage.updateWebsiteContent(projectId, { siteSettings: updatedSettings });
+
+    res.json({ success: true, siteSettings: updatedSettings });
+  });
+
   // ============================================================================
   // GRAPHICS API
   // ============================================================================

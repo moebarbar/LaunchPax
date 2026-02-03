@@ -76,8 +76,8 @@ export default function SectionFeatures({ section }: { section: SectionContent }
   };
   
   return (
-    <section className="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-muted/30" />
+    <section className="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden" style={{ backgroundColor: "var(--brand-surface, hsl(var(--muted)))" }}>
+      <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, var(--brand-surface, hsl(var(--muted))) 0%, var(--brand-background, hsl(var(--background))) 50%, var(--brand-surface, hsl(var(--muted))) 100%)` }} />
       
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[150px] opacity-20" 

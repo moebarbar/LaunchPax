@@ -621,7 +621,7 @@ Return JSON with "graphics" array. Each item has: type, name, dimensions, design
             size: input.size || "1024x1024",
           });
 
-          const imageData = imageResponse.data[0];
+          const imageData = imageResponse.data?.[0];
           
           if (!imageData) {
             return {
@@ -689,7 +689,7 @@ Requirements:
             size: "1536x1024",
           });
 
-          const imageData = imageResponse.data[0];
+          const imageData = imageResponse.data?.[0];
           
           if (!imageData) {
             return {
@@ -752,7 +752,7 @@ Requirements:
             size: "1024x1024",
           });
 
-          const imageData = imageResponse.data[0];
+          const imageData = imageResponse.data?.[0];
           
           if (!imageData) {
             return {

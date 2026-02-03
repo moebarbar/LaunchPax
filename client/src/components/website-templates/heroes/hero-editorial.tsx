@@ -21,8 +21,8 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
   const data = (section.data || {}) as HeroData;
 
   return (
-    <section className="relative min-h-[90vh] flex items-end overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/30" />
+    <section className="relative min-h-[90vh] flex items-end overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
+      <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom right, var(--brand-background, hsl(var(--background))), var(--brand-surface, hsl(var(--muted))) 70%)` }} />
       
       <motion.div 
         className="absolute top-20 right-0 w-[60%] h-[80%] opacity-10"

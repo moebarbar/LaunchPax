@@ -22,8 +22,8 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
   const features = data.features || [];
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
-      <div className="absolute inset-0 bg-background" />
+    <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
+      <div className="absolute inset-0" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }} />
       
       <div className="relative z-10 w-full">
         <div className="grid lg:grid-cols-2 min-h-screen">

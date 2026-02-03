@@ -285,10 +285,48 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           throw new Error(result.error || "Failed to generate website content");
         }
         
-        // Apply brand kit colors if available
+        // Apply brand kit colors if available - map by usage role
+        const palette = brandKit?.colorPalette || [];
+        
+        // Intelligently map colors based on their usage descriptions
+        const findColorByUsage = (keywords: string[]): string | undefined => {
+          for (const color of palette) {
+            const usage = (color.usage || "").toLowerCase();
+            if (keywords.some(k => usage.includes(k))) {
+              return color.hex;
+            }
+          }
+          return undefined;
+        };
+        
+        // Map colors based on their intended usage
+        const backgroundColor = findColorByUsage(["background", "subtle"]) || palette[0]?.hex;
+        const primaryColor = findColorByUsage(["primary", "text color", "main"]) || palette[2]?.hex;
+        const secondaryColor = findColorByUsage(["secondary", "highlight", "icon"]) || palette[1]?.hex;
+        const accentColor = findColorByUsage(["accent", "attention", "cta", "button"]) || palette[3]?.hex;
+        const surfaceColor = findColorByUsage(["surface", "card", "border"]) || palette[4]?.hex || palette[0]?.hex;
+        
+        // Determine if this is a light or dark color scheme based on background luminance
+        const hexToLuminance = (hex: string): number => {
+          const rgb = parseInt(hex.replace("#", ""), 16);
+          const r = (rgb >> 16) & 255;
+          const g = (rgb >> 8) & 255;
+          const b = rgb & 255;
+          return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        };
+        
+        const bgLuminance = backgroundColor ? hexToLuminance(backgroundColor) : 0.5;
+        const colorScheme = bgLuminance > 0.5 ? "light" : "dark";
+        
         const siteSettings = {
           ...result.data.siteSettings,
-          primaryColor: brandKit?.colorPalette?.[0]?.hex || result.data.siteSettings?.primaryColor,
+          backgroundColor,
+          primaryColor,
+          secondaryColor,
+          accentColor,
+          surfaceColor,
+          textColor: colorScheme === "light" ? primaryColor : "#FFFFFF",
+          colorScheme,
           fontFamily: brandKit?.fontPairings?.[0]?.body,
           headingFont: brandKit?.fontPairings?.[0]?.heading,
         };

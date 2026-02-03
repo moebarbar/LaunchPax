@@ -35,7 +35,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionEditor } from "./section-editor";
 import { CTAEditor } from "./cta-editor";
+import { GlobalStyleEditor } from "./global-style-editor";
+import { EditableSectionsPanel } from "./editable-sections-panel";
 import TechyBuildProgress from "@/components/techy-build-progress";
+import { Paintbrush } from "lucide-react";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
 
 interface WebsitePlanProps {
@@ -334,7 +337,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
+        <TabsList className="grid w-full grid-cols-5 max-w-[750px]">
           <TabsTrigger value="structure" data-testid="tab-website-structure">
             <Layout className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Structure</span>
@@ -350,6 +353,10 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
           <TabsTrigger value="preview" data-testid="tab-website-preview">
             <Eye className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Preview</span>
+          </TabsTrigger>
+          <TabsTrigger value="styles" data-testid="tab-website-styles">
+            <Paintbrush className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Styles</span>
           </TabsTrigger>
         </TabsList>
 
@@ -406,6 +413,14 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
 
         <TabsContent value="buttons" className="mt-4">
           <CTAEditor 
+            projectId={projectId}
+            websiteContent={websiteContent}
+            onUpdate={() => refetchWebsiteContent()}
+          />
+        </TabsContent>
+
+        <TabsContent value="styles" className="mt-4">
+          <GlobalStyleEditor 
             projectId={projectId}
             websiteContent={websiteContent}
             onUpdate={() => refetchWebsiteContent()}
@@ -517,154 +532,3 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
   );
 }
 
-interface EditableSectionsPanelProps {
-  projectId: number;
-  websiteContent: WebsiteContent;
-  onUpdate: () => void;
-}
-
-function EditableSectionsPanel({ projectId, websiteContent, onUpdate }: EditableSectionsPanelProps) {
-  const [selectedSection, setSelectedSection] = useState<{ section: SectionContent; pageSlug: string } | null>(null);
-
-  const getSectionIcon = (type: string) => {
-    const icons: Record<string, typeof Layout> = {
-      hero: Globe,
-      features: List,
-      services: Sparkles,
-      testimonials: Users,
-      cta: Rocket,
-      contact: Mail,
-      pricing: DollarSign,
-      stats: BarChart3,
-      team: Users,
-      faq: FileText,
-      gallery: Image,
-      text: Type,
-      process: List,
-      case_studies: FileText,
-      trust_signals: CheckCircle,
-      benefits: Sparkles,
-      comparison: BarChart3,
-      brand_story: Type,
-      story: Type,
-    };
-    return icons[type] || Layout;
-  };
-
-  const getSectionTypeName = (type: string): string => {
-    const names: Record<string, string> = {
-      hero: "Hero Section",
-      features: "Features",
-      testimonials: "Testimonials",
-      pricing: "Pricing",
-      cta: "Call to Action",
-      services: "Services",
-      team: "Team",
-      faq: "FAQ",
-      stats: "Statistics",
-      gallery: "Gallery",
-      contact: "Contact",
-      process: "Process Steps",
-      case_studies: "Case Studies",
-      trust_signals: "Trust Signals",
-      benefits: "Benefits",
-      comparison: "Comparison",
-      brand_story: "Brand Story",
-      story: "Story",
-      text: "Text",
-    };
-    return names[type] || type;
-  };
-
-  const getPreviewText = (section: SectionContent): string => {
-    const data = section.data || {};
-    if ((data as { headline?: string }).headline) return (data as { headline?: string }).headline as string;
-    if ((data as { title?: string }).title) return (data as { title?: string }).title as string;
-    if ((data as { sectionTitle?: string }).sectionTitle) return (data as { sectionTitle?: string }).sectionTitle as string;
-    return `${getSectionTypeName(section.type)} content`;
-  };
-
-  return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Wand2 className="w-5 h-5" />
-            Edit Website Sections
-          </CardTitle>
-          <CardDescription>
-            Click on any section to refine it with AI-powered suggestions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {websiteContent.pages?.map((page) => (
-            <div key={page.slug} className="space-y-3">
-              <h3 className="font-semibold text-base capitalize">{page.title || page.slug}</h3>
-              <div className="grid gap-3">
-                {page.sections.map((section) => {
-                  const Icon = getSectionIcon(section.type);
-                  const isSelected = selectedSection?.section.id === section.id;
-                  
-                  return (
-                    <Card 
-                      key={section.id}
-                      className={`cursor-pointer transition-all hover-elevate ${
-                        isSelected ? "ring-2 ring-primary" : ""
-                      }`}
-                      onClick={() => setSelectedSection({ section, pageSlug: page.slug })}
-                      data-testid={`card-section-${section.id}`}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-muted">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="capitalize">
-                                {getSectionTypeName(section.type)}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1 truncate">
-                              {getPreviewText(section)}
-                            </p>
-                          </div>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedSection({ section, pageSlug: page.slug });
-                            }}
-                            data-testid={`button-edit-${section.id}`}
-                          >
-                            <Wand2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {selectedSection && (
-        <div className="sticky bottom-4 z-50">
-          <SectionEditor
-            projectId={projectId}
-            section={selectedSection.section}
-            pageSlug={selectedSection.pageSlug}
-            onClose={() => setSelectedSection(null)}
-            onUpdate={() => {
-              setSelectedSection(null);
-              onUpdate();
-            }}
-          />
-        </div>
-      )}
-    </div>
-  );
-}

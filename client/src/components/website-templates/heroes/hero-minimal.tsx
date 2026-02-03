@@ -18,8 +18,8 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
   const data = (section.data || {}) as HeroData;
 
   return (
-    <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 bg-background" />
+    <section className="relative min-h-[75vh] flex items-center justify-center overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
+      <div className="absolute inset-0" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }} />
       
       <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto py-20">
         {data.badge && (

@@ -538,10 +538,24 @@ function hexToHSL(hex: string): string {
 function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): React.CSSProperties {
   if (!siteSettings) return {};
   
-  const { primaryColor, secondaryColor, accentColor, fontFamily, headingFont, style } = siteSettings;
+  const { 
+    primaryColor, 
+    secondaryColor, 
+    accentColor, 
+    backgroundColor,
+    surfaceColor,
+    textColor,
+    mutedTextColor,
+    borderColor,
+    fontFamily, 
+    headingFont, 
+    style,
+    colorScheme 
+  } = siteSettings;
   
   const styles: Record<string, string> = {};
   
+  // Core brand colors
   if (primaryColor) {
     styles["--brand-primary"] = primaryColor;
     styles["--brand-primary-hsl"] = hexToHSL(primaryColor);
@@ -555,6 +569,41 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
     styles["--brand-accent-hsl"] = hexToHSL(accentColor);
   }
   
+  // Background and surface colors - these are critical for the overall look
+  if (backgroundColor) {
+    styles["--brand-background"] = backgroundColor;
+    styles["--brand-background-hsl"] = hexToHSL(backgroundColor);
+    // Override Tailwind background
+    styles["backgroundColor"] = backgroundColor;
+  }
+  if (surfaceColor) {
+    styles["--brand-surface"] = surfaceColor;
+    styles["--brand-surface-hsl"] = hexToHSL(surfaceColor);
+  }
+  
+  // Text colors
+  if (textColor) {
+    styles["--brand-text"] = textColor;
+    styles["--brand-text-hsl"] = hexToHSL(textColor);
+    styles["color"] = textColor;
+  }
+  if (mutedTextColor) {
+    styles["--brand-muted"] = mutedTextColor;
+    styles["--brand-muted-hsl"] = hexToHSL(mutedTextColor);
+  }
+  
+  // Border color
+  if (borderColor) {
+    styles["--brand-border"] = borderColor;
+    styles["--brand-border-hsl"] = hexToHSL(borderColor);
+  }
+  
+  // Color scheme indicator
+  if (colorScheme) {
+    styles["--color-scheme"] = colorScheme;
+  }
+  
+  // Font settings
   const pairing = style ? popularFontPairings[style] : undefined;
   const resolvedHeadingFont = headingFont || (pairing && typeof pairing === "object" ? pairing.heading : null) || "Inter";
   const resolvedBodyFont = fontFamily || (pairing && typeof pairing === "object" ? pairing.body : null) || "Inter";
@@ -622,8 +671,17 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   };
 
   return (
-    <div className={`min-h-screen bg-background ${isPreview ? "preview-mode" : ""}`} style={combinedStyles}>
+    <div className={`min-h-screen ${isPreview ? "preview-mode" : ""}`} style={combinedStyles}>
       <style>{`
+        .preview-mode {
+          --background: var(--brand-background-hsl, var(--background));
+          --foreground: var(--brand-text-hsl, var(--foreground));
+          --card: var(--brand-surface-hsl, var(--card));
+          --primary: var(--brand-accent-hsl, var(--primary));
+          --secondary: var(--brand-secondary-hsl, var(--secondary));
+          --muted-foreground: var(--brand-muted-hsl, var(--muted-foreground));
+          --border: var(--brand-border-hsl, var(--border));
+        }
         .preview-mode h1, .preview-mode h2, .preview-mode h3, .preview-mode h4, .preview-mode h5, .preview-mode h6 {
           font-family: var(--font-heading, "Inter", sans-serif);
         }
