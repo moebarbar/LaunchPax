@@ -425,7 +425,7 @@ function WebsiteFooter({ globalContent, siteSettings }: { globalContent?: Global
               </span>
             </div>
             <p className="text-muted-foreground max-w-sm leading-relaxed mb-6">
-              {(globalContent as any)?.tagline || "Building the future, one step at a time."}
+              {globalContent?.tagline || "Building the future, one step at a time."}
             </p>
             {footer?.socialLinks && footer.socialLinks.length > 0 && (
               <div className="flex flex-wrap gap-3">

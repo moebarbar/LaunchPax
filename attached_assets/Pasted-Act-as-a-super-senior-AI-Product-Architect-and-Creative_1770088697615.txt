@@ -1,0 +1,113 @@
+Act as a super-senior AI Product Architect and Creative Director.
+
+This is a critical clarification:
+
+I am NOT asking for a simple website generator, template builder, or AI page creator.
+
+I am asking you to IMPLEMENT THE SAME CONCEPTUAL ENGINE AND SYSTEM COMPONENTS that Replit itself uses internally to build, scaffold, iterate, and refine projects — and apply that engine specifically to building extraordinary, highly creative websites for users.
+
+The goal is to recreate Replit-level project generation quality, depth, and flexibility — but focused on websites and digital presence.
+
+────────────────────────
+CORE REQUIREMENT (NON-NEGOTIABLE)
+────────────────────────
+You must replicate the SAME SYSTEM ARCHITECTURE principles Replit uses internally for project creation, including:
+
+- Project-based architecture (each website is an isolated project)
+- Scaffold-first generation (templates + generators, not raw HTML)
+- Structured configuration and content models
+- Deterministic build pipelines
+- Multi-pass refinement and iteration
+- Ability to regenerate, refactor, and improve without breaking projects
+- Strong separation of:
+  - content
+  - layout
+  - styling
+  - motion
+  - assets
+
+This is NOT about copying Replit’s UI.
+This is about implementing the SAME ENGINE LOGIC and SYSTEM COMPONENTS that enable Replit to generate high-quality projects.
+
+────────────────────────
+WEBSITE GENERATION GOAL
+────────────────────────
+Use this Replit-equivalent engine to generate:
+
+- Extremely creative
+- Visually premium
+- Market-disrupting
+- Agency-grade ($50k–$100k quality)
+
+websites for ANY type of digital presence:
+- businesses
+- startups
+- creators
+- products
+- services
+- experimental brands
+
+If a generated website looks generic, short, template-based, or average, the system has FAILED.
+
+────────────────────────
+ENGINE BEHAVIOR (MANDATORY)
+────────────────────────
+- NEVER generate raw HTML blobs.
+- ALWAYS generate structured projects from templates + config.
+- ALWAYS perform multiple refinement passes.
+- ALWAYS evaluate quality before showing output.
+- ALWAYS improve weak sections (especially the top/hero/header).
+
+The engine must think like:
+A Replit project generator + a world-class creative studio.
+
+────────────────────────
+QUALITY CONTROL SYSTEM (CRITICAL)
+────────────────────────
+Implement an internal intelligence layer that:
+- evaluates layout quality
+- evaluates logo and header composition
+- evaluates typography hierarchy
+- evaluates visual depth and creativity
+- detects generic patterns
+- fixes issues automatically before user sees the site
+
+Low-quality output must never be surfaced.
+
+────────────────────────
+FULL CAPABILITY EXPECTATION
+────────────────────────
+You are expected to use the FULL DEPTH of Replit’s internal generation capabilities:
+- scaffolding
+- templating
+- iteration
+- regeneration
+- refinement
+- component systems
+- project isolation
+
+Do NOT simplify.
+Do NOT shortcut.
+Do NOT treat this as a basic website builder.
+
+────────────────────────
+WHITE-LABEL REQUIREMENT
+────────────────────────
+- No Replit branding
+- No Replit domains
+- No references to Replit in output
+- The engine must be provider-agnostic and internal only
+
+────────────────────────
+FINAL INSTRUCTION
+────────────────────────
+If you are unsure whether a design choice is “good enough,” assume it is NOT and refine it further.
+
+Your success is measured by one thing:
+Would a creative director believe this website was built by a top-tier agency using Replit-level tooling?
+
+If not, keep improving.
+
+Do NOT ask clarifying questions.
+Make strong decisions.
+Implement the same engine principles Replit uses — applied to extraordinary website creation.

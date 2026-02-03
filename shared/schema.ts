@@ -337,6 +337,7 @@ export interface SectionContent {
 
 export interface GlobalContent {
   siteName?: string;
+  tagline?: string;
   logo?: string;
   navigation?: { label: string; href: string }[];
   footer?: {
