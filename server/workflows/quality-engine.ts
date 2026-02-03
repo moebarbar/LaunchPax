@@ -30,7 +30,7 @@ export interface QualityScore {
   heroImpact: number;       // 0-100 - First impression, above-fold power
   contentQuality: number;   // 0-100 - Copy effectiveness, clarity
   visualDepth: number;      // 0-100 - Layers, shadows, dimensionality
-  layoutSophistication?: number; // 0-100 - Section variety, visual depth, premium feel
+  layoutSophistication: number; // 0-100 - Section variety, visual depth, premium feel
 }
 
 export interface SectionAnalysis {
@@ -464,6 +464,7 @@ function calculateAggregateScores(
       heroImpact: 50,
       contentQuality: 50,
       visualDepth: 50,
+      layoutSophistication: 50,
     };
   }
   
@@ -511,6 +512,7 @@ function calculateAggregateScores(
     heroImpact: Math.round(heroImpact),
     contentQuality: Math.round(contentQuality),
     visualDepth: Math.round(visualDepth),
+    layoutSophistication: Math.round(layout), // Will be overwritten by layout analysis
   };
 }
 
