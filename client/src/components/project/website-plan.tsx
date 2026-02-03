@@ -37,12 +37,34 @@ import { SectionEditor } from "./section-editor";
 import { CTAEditor } from "./cta-editor";
 import { GlobalStyleEditor } from "./global-style-editor";
 import { EditableSectionsPanel } from "./editable-sections-panel";
+import { QualityDashboard } from "./quality-dashboard";
 import TechyBuildProgress from "@/components/techy-build-progress";
 import { Paintbrush } from "lucide-react";
 import type { WebsiteContent, WorkflowJob, SectionContent } from "@shared/schema";
 
 interface WebsitePlanProps {
   projectId: number;
+}
+
+interface QualityReportData {
+  hasReport: boolean;
+  scores?: {
+    overall: number;
+    layout: number;
+    typography: number;
+    creativity: number;
+    heroImpact: number;
+    contentQuality: number;
+    visualDepth: number;
+  };
+  verdict?: 'excellent' | 'good' | 'needs_improvement' | 'poor';
+  passesGate?: boolean;
+  passCount?: number;
+  weakSectionsCount?: number;
+  genericPatterns?: string[];
+  message?: string;
+  skipped?: boolean;
+  error?: string;
 }
 
 type ViewMode = "desktop" | "mobile";
@@ -81,6 +103,12 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
     },
   });
 
+  // Quality report query
+  const { data: qualityReport, refetch: refetchQualityReport } = useQuery<QualityReportData>({
+    queryKey: ["/api/projects", projectId, "quality-report"],
+    enabled: !!websiteContent,
+  });
+
   // Track previous workflow status to detect completion
   const prevStatusRef = useRef<string | undefined>(undefined);
   
@@ -91,10 +119,11 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
     
     if (prevStatus === "running" && currentStatus === "completed") {
       refetchWebsiteContent();
+      refetchQualityReport();
     }
     
     prevStatusRef.current = currentStatus;
-  }, [workflowJob?.status, refetchWebsiteContent]);
+  }, [workflowJob?.status, refetchWebsiteContent, refetchQualityReport]);
 
   const generateWebsitePlan = useMutation({
     mutationFn: async () => {
@@ -428,6 +457,18 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
         </TabsContent>
 
         <TabsContent value="structure" className="mt-4 space-y-6">
+          
+          <QualityDashboard
+            scores={qualityReport?.hasReport ? qualityReport.scores : undefined}
+            verdict={qualityReport?.hasReport ? qualityReport.verdict : undefined}
+            passesGate={qualityReport?.hasReport ? qualityReport.passesGate : undefined}
+            passCount={qualityReport?.hasReport ? qualityReport.passCount : undefined}
+            sectionsImproved={qualityReport?.hasReport ? qualityReport.weakSectionsCount : undefined}
+            genericPatterns={qualityReport?.hasReport ? qualityReport.genericPatterns : undefined}
+            isLoading={isRunning}
+            skipped={qualityReport?.skipped}
+            error={qualityReport?.error}
+          />
 
       {websiteContent.siteSettings && (
         <Card>

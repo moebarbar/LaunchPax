@@ -569,6 +569,47 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // ============================================================================
+  // QUALITY REPORT API
+  // ============================================================================
+
+  app.get("/api/projects/:id/quality-report", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    // Verify project ownership
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+    
+    // Get the latest quality evaluation from activity logs (sorted by most recent)
+    const logs = await storage.getActivityLogs(projectId);
+    const qualityLogs = logs
+      .filter(log => log.action === "Quality evaluation completed")
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    const latestQualityLog = qualityLogs[0];
+    
+    if (!latestQualityLog || !latestQualityLog.details) {
+      return res.json({ 
+        hasReport: false,
+        message: "No quality report available. Generate or regenerate the website to see quality scores."
+      });
+    }
+    
+    try {
+      const report = JSON.parse(latestQualityLog.details);
+      res.json({
+        hasReport: true,
+        ...report,
+        evaluatedAt: latestQualityLog.createdAt,
+      });
+    } catch {
+      res.json({ hasReport: false, message: "Failed to parse quality report" });
+    }
+  });
+
+  // ============================================================================
   // WORKFLOW API
   // ============================================================================
 

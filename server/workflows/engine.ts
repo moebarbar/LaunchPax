@@ -8,6 +8,7 @@
 import { connectorRegistry } from "../connectors/registry";
 import { storage } from "../storage";
 import type { Project, ConnectorResult } from "@shared/schema";
+import { evaluateWebsiteQuality, runMultiPassRefinement, type QualityReport } from "./quality-engine";
 
 export interface WorkflowContext {
   projectId: number;
@@ -459,6 +460,96 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           heroStockPhoto: !!heroImageUrl, 
           logoGenerated: logoResult.success 
         };
+      },
+    },
+    {
+      name: "Quality evaluation & refinement",
+      execute: async (ctx) => {
+        const websiteContent = await storage.getWebsiteContent(ctx.projectId);
+        if (!websiteContent) {
+          console.log("[Quality Engine] No website content to evaluate");
+          return { skipped: true };
+        }
+        
+        const businessContext = {
+          name: ctx.project.name,
+          industry: ctx.project.industry || "general",
+          description: ctx.project.businessIdea || ctx.project.name,
+        };
+        
+        try {
+          // Run multi-pass refinement (up to 3 passes)
+          console.log("[Quality Engine] Starting quality evaluation and refinement...");
+          const { content: improvedContent, report, passCount } = await runMultiPassRefinement(
+            websiteContent,
+            businessContext,
+            3 // Max 3 refinement passes
+          );
+          
+          console.log(`[Quality Engine] Completed in ${passCount} passes. Overall score: ${report.scores.overall}`);
+          console.log(`[Quality Engine] Verdict: ${report.overallVerdict}. Passes gate: ${report.passesQualityGate}`);
+          
+          // Save the improved content
+          if (improvedContent.pages && improvedContent.pages !== websiteContent.pages) {
+            await storage.upsertWebsiteContent({
+              projectId: ctx.projectId,
+              pages: improvedContent.pages,
+              globalContent: improvedContent.globalContent,
+              siteSettings: improvedContent.siteSettings,
+              seo: improvedContent.seo,
+              providerUsed: websiteContent.providerUsed,
+              status: "completed",
+            });
+            console.log("[Quality Engine] Saved improved website content");
+          }
+          
+          // Store quality report in activity log for transparency
+          await storage.createActivityLog({
+            projectId: ctx.projectId,
+            action: "Quality evaluation completed",
+            details: JSON.stringify({
+              scores: report.scores,
+              verdict: report.overallVerdict,
+              passesGate: report.passesQualityGate,
+              passCount,
+              weakSectionsCount: report.weakSections.length,
+              genericPatterns: report.genericPatterns,
+            }),
+            status: "completed",
+          });
+          
+          return {
+            scores: report.scores,
+            verdict: report.overallVerdict,
+            passesGate: report.passesQualityGate,
+            passCount,
+            sectionsImproved: report.improvementPlan.length,
+          };
+        } catch (error) {
+          // Log error but don't fail the entire workflow - original content is still valid
+          console.error("[Quality Engine] Error during quality evaluation:", error);
+          
+          await storage.createActivityLog({
+            projectId: ctx.projectId,
+            action: "Quality evaluation completed",
+            details: JSON.stringify({
+              scores: { overall: 0, layout: 0, typography: 0, creativity: 0, heroImpact: 0, contentQuality: 0, visualDepth: 0 },
+              verdict: "needs_improvement",
+              passesGate: false,
+              passCount: 0,
+              weakSectionsCount: 0,
+              genericPatterns: [],
+              skipped: true,
+              error: error instanceof Error ? error.message : "Unknown error",
+            }),
+            status: "completed",
+          });
+          
+          return {
+            skipped: true,
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
+        }
       },
     },
   ];

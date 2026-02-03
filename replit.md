@@ -43,6 +43,13 @@ Preferred communication style: Simple, everyday language.
 ### Core Systems
 - **Connector System**: A registry pattern abstracts external API integrations. Connectors implement a standard interface and are registered in `server/connectors/index.ts`. They provide capability-based lookup (e.g., "name_generation") and support mock connectors for fallback.
 - **Workflow Engine**: Located in `server/workflows/engine.ts`, it orchestrates multi-step generation workflows (naming, brand, website, graphics) using connectors based on capabilities. It tracks progress and logs activity.
+- **Quality Engine**: Located in `server/workflows/quality-engine.ts`, it provides AI-powered quality evaluation and multi-pass refinement:
+    - Evaluates website quality across 7 dimensions (overall, layout, typography, creativity, heroImpact, contentQuality, visualDepth)
+    - Runs up to 3 refinement passes to auto-improve weak sections
+    - Enforces quality gates (minimum 70 overall score, 85 for hero sections)
+    - Detects generic patterns and template-looking content
+    - Provides comprehensive error handling with skipped/error flags for graceful degradation
+    - Stores quality reports in activity logs for transparency
 - **Project Architecture**: Each project is an independent business configuration with an isolated content structure (structured JSON) and build states (draft, building, ready, error).
 - **Website Publishing System**: Supports publishing to live URLs (`/site/:projectId`) and secure previews (`/preview/:token`).
 - **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts, with section-type-aware guidance and dedicated API routes for refinement and direct data updates.
