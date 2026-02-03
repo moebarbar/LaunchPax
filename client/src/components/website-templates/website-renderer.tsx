@@ -425,7 +425,7 @@ function WebsiteFooter({ globalContent, siteSettings }: { globalContent?: Global
               </span>
             </div>
             <p className="text-muted-foreground max-w-sm leading-relaxed mb-6">
-              {globalContent?.tagline || "Building the future, one step at a time."}
+              {(globalContent as any)?.tagline || "Building the future, one step at a time."}
             </p>
             {footer?.socialLinks && footer.socialLinks.length > 0 && (
               <div className="flex flex-wrap gap-3">
@@ -555,9 +555,9 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
     styles["--brand-accent-hsl"] = hexToHSL(accentColor);
   }
   
-  const pairing = style && popularFontPairings[style];
-  const resolvedHeadingFont = headingFont || pairing?.heading || "Inter";
-  const resolvedBodyFont = fontFamily || pairing?.body || "Inter";
+  const pairing = style ? popularFontPairings[style] : undefined;
+  const resolvedHeadingFont = headingFont || (pairing && typeof pairing === "object" ? pairing.heading : null) || "Inter";
+  const resolvedBodyFont = fontFamily || (pairing && typeof pairing === "object" ? pairing.body : null) || "Inter";
   
   styles["--font-heading"] = `"${resolvedHeadingFont}", sans-serif`;
   styles["--font-body"] = `"${resolvedBodyFont}", sans-serif`;
@@ -569,11 +569,11 @@ function getFontsFromSettings(siteSettings?: WebsiteContent["siteSettings"]): { 
   if (!siteSettings) return { heading: "Inter", body: "Inter" };
   
   const { fontFamily, headingFont, style } = siteSettings;
-  const pairing = style && popularFontPairings[style];
+  const pairing = style ? popularFontPairings[style] : undefined;
   
   return {
-    heading: headingFont || pairing?.heading || "Inter",
-    body: fontFamily || pairing?.body || "Inter"
+    heading: headingFont || (pairing && typeof pairing === "object" ? pairing.heading : null) || "Inter",
+    body: fontFamily || (pairing && typeof pairing === "object" ? pairing.body : null) || "Inter"
   };
 }
 
@@ -628,15 +628,15 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
           font-family: var(--font-heading, "Inter", sans-serif);
         }
       `}</style>
-      <WebsiteHeader globalContent={globalContent} onNavigate={onNavigate} siteSettings={siteSettings} />
+      <WebsiteHeader globalContent={globalContent || undefined} onNavigate={onNavigate} siteSettings={siteSettings} />
       
       <main>
         {currentPage.sections.map((section) => (
-          <SectionRenderer key={section.id} section={section} globalContent={globalContent} />
+          <SectionRenderer key={section.id} section={section} globalContent={globalContent || undefined} />
         ))}
       </main>
       
-      <WebsiteFooter globalContent={globalContent} siteSettings={siteSettings} />
+      <WebsiteFooter globalContent={globalContent || undefined} siteSettings={siteSettings} />
     </div>
   );
 }
