@@ -9,6 +9,7 @@ Key capabilities include:
 - AI-powered generation of business names, domains, brand assets, and website content
 - Connector-based architecture for flexible integration with external services
 - Comprehensive workflow engine for multi-step generation processes
+- Payment processing, email, SMS, and analytics integrations
 
 The business vision is to provide a comprehensive, white-labeled solution that simplifies the business launch process, abstracting complex technical and design tasks into an intuitive AI-driven workflow.
 
@@ -45,13 +46,13 @@ Preferred communication style: Simple, everyday language.
 - **Image Management System**: Located in `server/services/image-manager.ts`, provides:
     - User image upload for any section at any time
     - Auto-generation of SEO-optimized alt text, captions, and metadata
-    - Stock photo search and integration via Pexels API
+    - Stock photo search and integration via Pexels API and Unsplash API
     - **Visual Completeness Enforcement**:
         - HARD BLOCK on publish: Cannot publish without complete images
         - Auto-fill missing images from Pexels stock photos before publishing
         - SOFT WARNING on preview: Shows completeness status for users to fix issues
         - Returns detailed missing images list for remediation
-    - Image optimization with responsive sizes and lazy loading
+    - Image optimization with responsive sizes and lazy loading via Cloudinary
 - **Section Transitions**: Smooth visual flow between sections using:
     - Gradient-fade, overlap, soft-merge, and blur-blend transition types
     - Overlapping sections to eliminate harsh visual breaks
@@ -80,6 +81,33 @@ Preferred communication style: Simple, everyday language.
 - No Replit branding is exposed to end-users.
 - Hosting/build layers are designed for future provider flexibility.
 
+## Connector Architecture (21 Registered Connectors)
+
+### Connector Categories
+- **AI (8 connectors)**: openai, claude, nanobanana, launchpax, ai_mock, dalle, stability, leonardo
+- **Images (3 connectors)**: pexels, stockphotos_mock, unsplash
+- **Domains (2 connectors)**: domain_mock, namecheap
+- **CDN (2 connectors)**: cloudinary, cloudflare
+- **Payments (1 connector)**: stripe
+- **Email (1 connector)**: sendgrid
+- **SMS (1 connector)**: twilio
+- **Maps (1 connector)**: google-maps
+- **Animations (1 connector)**: lottie
+- **Analytics (1 connector)**: google-analytics
+
+### Connector Capabilities
+All connectors implement a standard interface with:
+- `key`: Unique identifier
+- `name`: Display name
+- `description`: Human-readable description
+- `category`: Service category
+- `capabilities`: Array of capability types
+- `authType`: Authentication method (apiKey, oauth, bearer, none)
+- `requiredEnvVars`: Required environment variables
+- `isConfigured()`: Check if connector is ready
+- `test()`: Validate connection
+- `execute()`: Execute connector tasks
+
 ## External Dependencies
 
 ### Database
@@ -91,15 +119,88 @@ The LaunchPax Engine combines multiple premium AI models for best-in-class resul
 - **LaunchPax Engine (DeepSeek)**: Cost-effective AI for long-form content, articles, and detailed copy. The preferred choice for content generation. Requires `DEEPSEEK_API_KEY`.
 - **GPT-4o (OpenAI)**: Premium AI generation for names, brands, and website content. Requires `OPENAI_API_KEY`.
 - **Claude 3.5 Sonnet (Anthropic)**: Alternative for long-form content generation. Requires `ANTHROPIC_API_KEY`.
+- **DALL-E 3 (OpenAI)**: AI image generation for hero images, logos, and custom graphics. Uses `OPENAI_API_KEY`.
+- **Stability AI**: High-quality AI image generation with Stable Diffusion. Requires `STABILITY_API_KEY`.
+- **Leonardo AI**: Stylized AI graphics and illustrations. Requires `LEONARDO_API_KEY`.
 - **Google Studio (Google Gemini)**: Advanced graphics generation for logos, hero images, marketing assets. Requires `GOOGLE_API_KEY`.
 - **Mock AI Connector**: Fallback for AI services when API keys are not configured.
 
-### Other Services
-- **Pexels**: Stock photography for website imagery. Requires `PEXELS_API_KEY`.
+### Stock Photography
+- **Pexels**: High-quality free stock photos. Requires `PEXELS_API_KEY`.
+- **Unsplash**: Premium stock photography. Requires `UNSPLASH_ACCESS_KEY`.
+
+### Payment Processing
+- **Stripe**: Payment processing for e-commerce websites. Requires `STRIPE_SECRET_KEY`.
+    - Checkout session creation
+    - Payment intent management
+    - Product and subscription handling
+
+### Email Services
+- **SendGrid**: Email delivery for contact forms and notifications. Requires `SENDGRID_API_KEY`.
+    - Contact form email handling
+    - Transactional email delivery
+    - Business notification emails
+
+### SMS Services
+- **Twilio**: SMS notifications and business alerts. Requires `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`.
+    - New lead alerts
+    - Order notifications
+    - Appointment reminders
+
+### Analytics
+- **Google Analytics**: Website visitor tracking. Requires `GOOGLE_ANALYTICS_MEASUREMENT_ID`.
+    - Page view tracking
+    - Event tracking
+    - E-commerce tracking
+    - Conversion tracking
+
+### Domain Services
+- **Namecheap**: Domain availability checking and registration. Requires `NAMECHEAP_API_USER`, `NAMECHEAP_API_KEY`.
+    - Domain availability checks
+    - Domain suggestions
+    - Multi-TLD search
+
+### Maps & Location
+- **Google Maps**: Location embedding for business websites. Requires `GOOGLE_MAPS_API_KEY`.
+    - Address geocoding
+    - Place details
+    - Map embed generation
+
+### Animations
+- **Lottie**: Animated icons and graphics. Optional `LOTTIEFILES_API_KEY`.
+    - Icon animations
+    - Loading animations
+    - UI micro-interactions
+
+### CDN & Image Optimization
+- **Cloudinary**: Image optimization and CDN. Requires `CLOUDINARY_CLOUD_NAME`, optional `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+    - Image upload and transformation
+    - Responsive image generation
+    - Format optimization (WebP, AVIF)
+- **Cloudflare**: CDN, DNS, and edge deployment. Requires `CLOUDFLARE_API_TOKEN`.
+    - Cache purging
+    - DNS management
+    - Edge deployment
 
 ### Authentication
 - **Replit Auth**: OpenID Connect-based authentication.
 
-### Planned Integrations (via Connector System)
-- **Domain Registrars**: For domain availability checks and purchases (e.g., GoDaddy, Namecheap).
-- **Hosting Providers**: For website deployment.
+## Recent Updates (February 2026)
+
+### New Integrations Added
+1. **Stripe** - Payment processing with checkout, subscriptions
+2. **SendGrid** - Contact form emails and notifications
+3. **Twilio** - SMS alerts for leads, orders, appointments
+4. **Unsplash** - Additional stock photo source
+5. **DALL-E 3** - AI image generation for hero images, logos
+6. **Stability AI** - Stable Diffusion image generation
+7. **Leonardo AI** - Stylized AI graphics
+8. **Namecheap** - Domain availability checking
+9. **Google Maps** - Business location embedding
+10. **Lottie** - Animated graphics and icons
+11. **Cloudinary** - Image optimization and CDN
+12. **Cloudflare** - CDN and edge deployment
+13. **Google Analytics** - Visitor tracking
+
+### Schema Updates
+- Added 11 new ConnectorCapability types: sms, alerts, notifications, checkout, subscriptions, contact_form, ai_graphics, stylized_art, maps, animations, cdn, image_optimization

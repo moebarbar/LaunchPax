@@ -489,7 +489,19 @@ export type ConnectorCapability =
   | "analytics"            // Analytics integration
   | "email"                // Email services
   | "payments"             // Payment processing
-  | "social_media";        // Social media APIs
+  | "social_media"         // Social media APIs
+  | "sms"                  // SMS messaging
+  | "alerts"               // Business alerts
+  | "notifications"        // Push/alert notifications
+  | "checkout"             // E-commerce checkout
+  | "subscriptions"        // Subscription management
+  | "contact_form"         // Contact form handling
+  | "ai_graphics"          // AI-generated graphics
+  | "stylized_art"         // Stylized AI art
+  | "maps"                 // Location/maps services
+  | "animations"           // Animated graphics/icons
+  | "cdn"                  // Content delivery network
+  | "image_optimization";  // Image optimization/processing
 
 // Task types that connectors can execute
 export interface ConnectorTask<T = unknown> {
