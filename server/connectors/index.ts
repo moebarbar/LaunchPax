@@ -11,6 +11,7 @@ import { connectorRegistry } from "./registry";
 import { openaiConnector } from "./ai/openai";
 import { claudeConnector } from "./ai/claude";
 import { googleStudioConnector } from "./ai/nanobanana";
+import { launchpaxConnector } from "./ai/launchpax";
 import { mockAIConnector } from "./ai/mock";
 
 // Domain Connectors
@@ -28,6 +29,7 @@ export function initializeConnectors(): void {
   connectorRegistry.register(openaiConnector);
   connectorRegistry.register(claudeConnector);
   connectorRegistry.register(googleStudioConnector);
+  connectorRegistry.register(launchpaxConnector);
   connectorRegistry.register(mockAIConnector);
   
   // Domain connectors

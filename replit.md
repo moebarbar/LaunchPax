@@ -67,8 +67,9 @@ Preferred communication style: Simple, everyday language.
 
 ### LaunchPax Engine (Multi-Model AI Orchestration)
 The LaunchPax Engine combines multiple premium AI models for best-in-class results:
+- **LaunchPax Engine (DeepSeek)**: Cost-effective AI for long-form content, articles, and detailed copy. The preferred choice for content generation. Requires `DEEPSEEK_API_KEY`.
 - **GPT-4o (OpenAI)**: Premium AI generation for names, brands, and website content. Requires `OPENAI_API_KEY`.
-- **Claude 3.5 Sonnet (Anthropic)**: Long-form content generation, blog posts, detailed copy. Requires `ANTHROPIC_API_KEY`.
+- **Claude 3.5 Sonnet (Anthropic)**: Alternative for long-form content generation. Requires `ANTHROPIC_API_KEY`.
 - **Google Studio (Google Gemini)**: Advanced graphics generation for logos, hero images, marketing assets. Requires `GOOGLE_API_KEY`.
 - **Mock AI Connector**: Fallback for AI services when API keys are not configured.
 

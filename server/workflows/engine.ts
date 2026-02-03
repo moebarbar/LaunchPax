@@ -479,8 +479,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const industry = ctx.project.industry || "business";
         const businessIdea = ctx.project.businessIdea || "";
         
-        // Try to use Claude for enhanced About page storytelling
-        console.log("[Multi-AI] Using Claude for rich About page storytelling");
+        // Try to use LaunchPax Engine for cost-effective About page storytelling
+        console.log("[Multi-AI] Using LaunchPax Engine for rich About page storytelling");
         const claudeResult = await connectorRegistry.execute<any, { content: string; title: string; summary: string }>(
           "long_form_content",
           "generate_long_form_content",
@@ -492,11 +492,11 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             wordCount: 400,
             tone: ctx.project.tone || "professional and engaging",
           },
-          { preferredConnector: "claude" }
+          { preferredConnector: "launchpax" }
         );
         
         if (claudeResult.success && claudeResult.data) {
-          console.log("[Multi-AI] Claude generated enhanced About page content");
+          console.log("[Multi-AI] LaunchPax Engine generated enhanced About page content");
           
           // Find and enhance the About page text section
           const updatedPages = websiteContent.pages?.map((page: any) => {
