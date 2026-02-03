@@ -157,4 +157,19 @@ export const googleStudioConnector = defineConnector({
   requiredEnvVars: ["GOOGLE_API_KEY"],
   isConfigured: () => !!process.env.GOOGLE_API_KEY,
   execute: executeTask,
+  async test() {
+    if (!process.env.GOOGLE_API_KEY) {
+      return { ok: false, message: "GOOGLE_API_KEY is not configured" };
+    }
+    try {
+      const client = getClient();
+      const response = await client.models.generateContent({
+        model: "gemini-2.0-flash-exp",
+        contents: "Say hello",
+      });
+      return { ok: true, message: "Google Studio API connection successful" };
+    } catch (error) {
+      return { ok: false, message: error instanceof Error ? error.message : "Connection failed" };
+    }
+  },
 });

@@ -161,4 +161,20 @@ export const claudeConnector = defineConnector({
   requiredEnvVars: ["ANTHROPIC_API_KEY"],
   isConfigured: () => !!process.env.ANTHROPIC_API_KEY,
   execute: executeTask,
+  async test() {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return { ok: false, message: "ANTHROPIC_API_KEY is not configured" };
+    }
+    try {
+      const client = getClient();
+      const response = await client.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 10,
+        messages: [{ role: "user", content: "Say hello" }],
+      });
+      return { ok: true, message: "Claude API connection successful" };
+    } catch (error) {
+      return { ok: false, message: error instanceof Error ? error.message : "Connection failed" };
+    }
+  },
 });
