@@ -15,10 +15,11 @@ import OpenAI from "openai";
 import type { WebsiteContent, SectionContent, PageContent } from "@shared/schema";
 
 function getClient() {
-  return new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "",
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is required for quality evaluation");
+  }
+  return new OpenAI({ apiKey });
 }
 
 export interface QualityScore {
@@ -165,7 +166,7 @@ async function analyzeSectionQuality(
   
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -430,7 +431,7 @@ export async function enforceHeroQuality(
     
     console.log(`[Hero Enforcement] Hero score ${beforeScore} < 85, running specialized improvement...`);
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -529,7 +530,7 @@ async function analyzeSectionQualityStatic(
   
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -574,7 +575,7 @@ export async function autoImproveSection(
   
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",

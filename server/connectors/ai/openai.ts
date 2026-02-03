@@ -351,6 +351,35 @@ Return a JSON object with these fields:
 
         const prompt = `You are an elite conversion copywriter who has written for Apple, Stripe, Airbnb, and Linear. Create an EXCEPTIONAL, award-winning website that would impress Awwwards judges.
 
+CRITICAL QUALITY REQUIREMENTS - READ CAREFULLY:
+Your output will be scored by an AI quality evaluator. To score 85+, you MUST:
+
+1. NEVER use these generic phrases (automatic failure):
+   - "Welcome to our website" / "Welcome to [company]"
+   - "Your trusted partner" / "Your one-stop solution"
+   - "Best in class" / "Industry-leading" / "World-class"
+   - "We are passionate about..." / "We pride ourselves on..."
+   - "Quality service guaranteed" / "Excellence is our priority"
+   - "Lorem ipsum" or any placeholder text
+   - "Contact us today" (use specific, benefit-driven CTAs instead)
+   
+2. ALWAYS include specificity:
+   - Use real numbers: "Save 12 hours per week" not "Save time"
+   - Include timeframes: "Results in 48 hours" not "Fast results"
+   - Name outcomes: "Increase conversions by 34%" not "Improve performance"
+   - Be concrete: "Works with Salesforce, HubSpot, and 50+ tools" not "Integrates with your tools"
+
+3. Testimonials must feel REAL:
+   - Include specific details only a real customer would know
+   - Mention exact outcomes: "$47,000 saved in Q3" not "saved money"
+   - Use natural speech patterns, not marketing-speak
+   - Reference specific features or experiences
+
+4. Headlines must be UNIQUE to this business:
+   - Reference the specific industry, service, or outcome
+   - Never use generic phrases that could apply to any business
+   - Create curiosity or make a bold promise
+
 Your copy must be:
 - Magnetic: Headlines that stop scrolling and create instant desire
 - Concise: Every word earns its place. No fluff, no clichés, no "leverage synergies"
