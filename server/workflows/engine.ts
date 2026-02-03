@@ -357,7 +357,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
         const primaryColor = brandColors[0] || websiteContent?.siteSettings?.primaryColor || "#4F46E5";
         
-        // Generate hero image
+        // Generate hero image - prefer Nano Banana Pro for stunning AI graphics
+        console.log("[Multi-AI] Using Nano Banana Pro for hero image generation");
         const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_hero_image",
@@ -365,21 +366,24 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             businessName,
             businessIdea: ctx.project.businessIdea || "A new business",
             industry: ctx.project.industry || "technology",
-            style: "modern professional",
+            style: "cinematic professional",
             brandColors: { primary: primaryColor },
-          }
+          },
+          { preferredConnector: "nanobanana" }
         );
         
-        // Generate logo
+        // Generate logo - prefer Nano Banana Pro for excellent text rendering
+        console.log("[Multi-AI] Using Nano Banana Pro for logo generation");
         const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_logo",
           {
             businessName,
             industry: ctx.project.industry || "technology",
-            style: "minimal",
+            style: "minimal modern",
             brandColors: { primary: primaryColor },
-          }
+          },
+          { preferredConnector: "nanobanana" }
         );
         
         // Update website content with generated images
@@ -460,6 +464,80 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           heroStockPhoto: !!heroImageUrl, 
           logoGenerated: logoResult.success 
         };
+      },
+    },
+    {
+      name: "Enhancing content with Claude storytelling",
+      execute: async (ctx) => {
+        const websiteContent = await storage.getWebsiteContent(ctx.projectId);
+        if (!websiteContent) {
+          console.log("[Multi-AI] No website content to enhance");
+          return { skipped: true };
+        }
+        
+        const businessName = ctx.project.name;
+        const industry = ctx.project.industry || "business";
+        const businessIdea = ctx.project.businessIdea || "";
+        
+        // Try to use Claude for enhanced About page storytelling
+        console.log("[Multi-AI] Using Claude for rich About page storytelling");
+        const claudeResult = await connectorRegistry.execute<any, { content: string; title: string; summary: string }>(
+          "long_form_content",
+          "generate_long_form_content",
+          {
+            topic: `The story of ${businessName}: ${businessIdea}`,
+            businessName,
+            industry,
+            contentType: "about_page",
+            wordCount: 400,
+            tone: ctx.project.tone || "professional and engaging",
+          },
+          { preferredConnector: "claude" }
+        );
+        
+        if (claudeResult.success && claudeResult.data) {
+          console.log("[Multi-AI] Claude generated enhanced About page content");
+          
+          // Find and enhance the About page text section
+          const updatedPages = websiteContent.pages?.map((page: any) => {
+            if (page.slug === "about") {
+              return {
+                ...page,
+                sections: page.sections?.map((section: any) => {
+                  if (section.type === "text" || section.type === "story") {
+                    return {
+                      ...section,
+                      data: {
+                        ...section.data,
+                        headline: claudeResult.data.title || section.data.headline,
+                        content: claudeResult.data.content || section.data.content,
+                        paragraphs: claudeResult.data.content?.split('\n\n').filter((p: string) => p.trim()) || section.data.paragraphs,
+                      },
+                    };
+                  }
+                  return section;
+                }),
+              };
+            }
+            return page;
+          });
+          
+          // Save enhanced content
+          await storage.upsertWebsiteContent({
+            projectId: ctx.projectId,
+            pages: updatedPages,
+            globalContent: websiteContent.globalContent,
+            siteSettings: websiteContent.siteSettings,
+            seo: websiteContent.seo,
+            providerUsed: "claude+openai",
+            status: "completed",
+          });
+          
+          return { enhanced: true, provider: "claude" };
+        }
+        
+        console.log("[Multi-AI] Claude enhancement skipped, using GPT-4o content");
+        return { enhanced: false, reason: claudeResult.error || "Claude not available" };
       },
     },
     {
@@ -573,7 +651,8 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
         const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
         const primaryColor = brandColors[0] || "#4F46E5";
         
-        // Generate hero image
+        // Generate hero image - prefer Nano Banana Pro for stunning AI graphics
+        console.log("[Multi-AI Quick] Using Nano Banana Pro for hero image");
         const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_hero_image",
@@ -581,21 +660,24 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
             businessName,
             businessIdea: ctx.project.businessIdea || "A new business",
             industry: ctx.project.industry || "technology",
-            style: "modern professional",
+            style: "cinematic professional",
             brandColors: { primary: primaryColor },
-          }
+          },
+          { preferredConnector: "nanobanana" }
         );
         
-        // Generate logo
+        // Generate logo - prefer Nano Banana Pro for excellent text rendering
+        console.log("[Multi-AI Quick] Using Nano Banana Pro for logo");
         const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_logo",
           {
             businessName,
             industry: ctx.project.industry || "technology",
-            style: "minimal",
+            style: "minimal modern",
             brandColors: { primary: primaryColor },
-          }
+          },
+          { preferredConnector: "nanobanana" }
         );
         
         // Update website content with generated images
