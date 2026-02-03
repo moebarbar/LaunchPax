@@ -3,7 +3,7 @@ import { defineConnector } from "../registry";
 import type { ConnectorTask, ConnectorResult } from "@shared/schema";
 
 /**
- * Nano Banana Pro (Google Gemini) Connector
+ * Google Studio Connector
  * 
  * Provides: image_generation, graphics_generation
  * 
@@ -14,7 +14,7 @@ import type { ConnectorTask, ConnectorResult } from "@shared/schema";
 function getClient() {
   const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw new Error("GOOGLE_API_KEY is required for Nano Banana connector");
+    throw new Error("GOOGLE_API_KEY is required for Google Studio connector");
   }
   return new GoogleGenAI({ apiKey });
 }
@@ -147,10 +147,10 @@ async function executeTask<I, O>(task: ConnectorTask<I>): Promise<ConnectorResul
   }
 }
 
-export const nanoBananaConnector = defineConnector({
+export const googleStudioConnector = defineConnector({
   key: "nanobanana",
-  name: "Nano Banana Pro (Google)",
-  description: "Next-level AI graphics with superior text rendering for logos, heroes, and marketing assets",
+  name: "Google Studio",
+  description: "AI graphics powered by Google Gemini with superior text rendering for logos, heroes, and marketing assets",
   category: "ai",
   capabilities: ["image_generation", "graphics_generation"],
   authType: "apiKey",

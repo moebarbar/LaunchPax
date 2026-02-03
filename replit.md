@@ -69,7 +69,7 @@ Preferred communication style: Simple, everyday language.
 The LaunchPax Engine combines multiple premium AI models for best-in-class results:
 - **GPT-4o (OpenAI)**: Premium AI generation for names, brands, and website content. Requires `OPENAI_API_KEY`.
 - **Claude 3.5 Sonnet (Anthropic)**: Long-form content generation, blog posts, detailed copy. Requires `ANTHROPIC_API_KEY`.
-- **Nano Banana Pro (Google Gemini)**: Advanced graphics generation for logos, hero images, marketing assets. Requires `GOOGLE_AI_API_KEY`.
+- **Google Studio (Google Gemini)**: Advanced graphics generation for logos, hero images, marketing assets. Requires `GOOGLE_API_KEY`.
 - **Mock AI Connector**: Fallback for AI services when API keys are not configured.
 
 ### Other Services

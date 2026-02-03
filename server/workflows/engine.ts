@@ -357,8 +357,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
         const primaryColor = brandColors[0] || websiteContent?.siteSettings?.primaryColor || "#4F46E5";
         
-        // Generate hero image - prefer Nano Banana Pro for stunning AI graphics
-        console.log("[Multi-AI] Using Nano Banana Pro for hero image generation");
+        // Generate hero image - prefer Google Studio for stunning AI graphics
+        console.log("[Multi-AI] Using Google Studio for hero image generation");
         const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_hero_image",
@@ -372,8 +372,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           { preferredConnector: "nanobanana" }
         );
         
-        // Generate logo - prefer Nano Banana Pro for excellent text rendering
-        console.log("[Multi-AI] Using Nano Banana Pro for logo generation");
+        // Generate logo - prefer Google Studio for excellent text rendering
+        console.log("[Multi-AI] Using Google Studio for logo generation");
         const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_logo",
@@ -651,8 +651,8 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
         const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
         const primaryColor = brandColors[0] || "#4F46E5";
         
-        // Generate hero image - prefer Nano Banana Pro for stunning AI graphics
-        console.log("[Multi-AI Quick] Using Nano Banana Pro for hero image");
+        // Generate hero image - prefer Google Studio for stunning AI graphics
+        console.log("[Multi-AI Quick] Using Google Studio for hero image");
         const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_hero_image",
@@ -666,8 +666,8 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
           { preferredConnector: "nanobanana" }
         );
         
-        // Generate logo - prefer Nano Banana Pro for excellent text rendering
-        console.log("[Multi-AI Quick] Using Nano Banana Pro for logo");
+        // Generate logo - prefer Google Studio for excellent text rendering
+        console.log("[Multi-AI Quick] Using Google Studio for logo");
         const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_logo",
