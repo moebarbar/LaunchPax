@@ -46,8 +46,9 @@ Preferred communication style: Simple, everyday language.
 - **Quality Engine**: Located in `server/workflows/quality-engine.ts`, it provides AI-powered quality evaluation and multi-pass refinement:
     - Evaluates website quality across 7 dimensions (overall, layout, typography, creativity, heroImpact, contentQuality, visualDepth)
     - Runs up to 3 refinement passes to auto-improve weak sections
-    - Enforces quality gates (minimum 70 overall score, 85 for hero sections)
-    - Detects generic patterns and template-looking content
+    - **Premium Quality Thresholds**: Minimum 85 overall score, 90 for hero sections, 95 for excellent
+    - Detects 100+ generic patterns and template-looking content (banned phrases like "Welcome to", "Your trusted partner", etc.)
+    - **Smart Hero Archetype Selection**: Industry-aware mapping (luxury→cinematic, events→immersive, startups→bold, SaaS→split, professional→minimal)
     - Provides comprehensive error handling with skipped/error flags for graceful degradation
     - Stores quality reports in activity logs for transparency
 - **Project Architecture**: Each project is an independent business configuration with an isolated content structure (structured JSON) and build states (draft, building, ready, error).
