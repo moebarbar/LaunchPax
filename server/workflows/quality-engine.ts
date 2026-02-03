@@ -38,7 +38,7 @@ export interface SectionAnalysis {
   score: number;
   issues: string[];
   improvements: string[];
-  isWeak: boolean;        // Score < 70 = weak
+  isWeak: boolean;        // Score < 85 = weak (raised for premium output)
   isGeneric: boolean;     // Detected as template-looking
   priority: 'critical' | 'high' | 'medium' | 'low';
 }
@@ -65,23 +65,120 @@ export interface ImprovementAction {
 }
 
 const QUALITY_THRESHOLDS = {
-  minimum: 70,      // Minimum overall score to pass quality gate
-  heroMinimum: 75,  // Hero sections need higher standards
-  excellent: 90,    // Excellent quality threshold
-  good: 80,         // Good quality threshold
+  minimum: 85,      // Minimum overall score to pass quality gate - RAISED for premium output
+  heroMinimum: 90,  // Hero sections need highest standards - RAISED for jaw-dropping impact
+  excellent: 95,    // Excellent quality threshold
+  good: 88,         // Good quality threshold
 };
 
+// Comprehensive list of generic patterns that indicate template-like content
 const GENERIC_PATTERNS = [
+  // Welcome/intro patterns
   "Welcome to our website",
+  "Welcome to our company",
+  "Welcome to",
   "Lorem ipsum",
   "Click here to learn more",
+  "Learn more about us",
+  
+  // Generic value props
   "We are a leading provider",
+  "We are passionate about",
+  "We pride ourselves on",
   "Your trusted partner",
-  "Contact us today",
+  "Your one-stop solution",
+  "Your success is our priority",
   "Quality service guaranteed",
   "Best in class",
-  "One-stop solution",
-  "Your success is our priority",
+  "Industry-leading",
+  "World-class",
+  "State-of-the-art",
+  "Cutting-edge solutions",
+  "End-to-end solutions",
+  "Tailored solutions",
+  "Comprehensive solutions",
+  "Holistic approach",
+  
+  // Generic CTAs
+  "Contact us today",
+  "Get in touch today",
+  "Schedule a consultation",
+  "Book a call",
+  "Request a quote",
+  "Get started today",
+  "Start your journey",
+  
+  // Generic testimonials
+  "Highly recommended",
+  "Exceeded our expectations",
+  "Amazing service",
+  "Great team to work with",
+  "Professional and reliable",
+  "Would recommend to anyone",
+  "Five stars",
+  "10/10 would recommend",
+  
+  // Generic features/benefits
+  "Fast and reliable",
+  "Easy to use",
+  "User-friendly",
+  "Save time and money",
+  "Increase efficiency",
+  "Improve productivity",
+  "Streamline your",
+  "Optimize your",
+  "Transform your business",
+  "Take your business to the next level",
+  "Unlock your potential",
+  "Achieve your goals",
+  "Drive growth",
+  "Drive results",
+  "Deliver results",
+  "Outstanding results",
+  
+  // Generic about content
+  "We believe in",
+  "Our mission is to",
+  "Our vision is to",
+  "Founded with a vision",
+  "Started with a dream",
+  "We strive to",
+  "We are committed to",
+  "We are dedicated to",
+  "Customer satisfaction",
+  "Client-focused",
+  "Client-centric",
+  
+  // Generic stats
+  "Years of experience",
+  "Happy clients",
+  "Projects completed",
+  "Team members",
+  "Countries served",
+  
+  // Placeholder indicators
+  "[placeholder]",
+  "[your",
+  "[insert",
+  "TBD",
+  "Coming soon",
+  "Under construction",
+  
+  // Marketing fluff
+  "Leverage",
+  "Synergy",
+  "Synergies",
+  "Paradigm",
+  "Disruptive",
+  "Game-changing",
+  "Revolutionary",
+  "Innovative solutions",
+  "Next-generation",
+  "Forward-thinking",
+  "Proactive approach",
+  "Seamless integration",
+  "Robust platform",
+  "Scalable solutions",
 ];
 
 /**
@@ -209,12 +306,12 @@ Respond with JSON:
     const result = JSON.parse(response.choices[0]?.message?.content || "{}");
     
     const score = Math.min(100, Math.max(0, result.score || 50));
-    const isWeak = score < 70;
+    const isWeak = score < QUALITY_THRESHOLDS.minimum; // 85 for premium output
     const isGeneric = result.isGeneric || hasGenericPatterns;
     
     // Determine priority based on section type and score
     let priority: 'critical' | 'high' | 'medium' | 'low' = 'low';
-    if (section.type === 'hero' && score < 75) priority = 'critical';
+    if (section.type === 'hero' && score < QUALITY_THRESHOLDS.heroMinimum) priority = 'critical'; // Hero must hit 90
     else if (isWeak && ['hero', 'cta', 'features'].includes(section.type)) priority = 'high';
     else if (isWeak) priority = 'medium';
     else if (isGeneric) priority = 'medium';
@@ -424,12 +521,12 @@ export async function enforceHeroQuality(
     const analysis = await analyzeSectionQualityStatic(section, businessContext, client);
     const beforeScore = analysis.score;
     
-    // If hero is already excellent (>85), skip improvement
-    if (beforeScore >= 85) {
+    // If hero is already excellent (>= heroMinimum threshold of 90), skip improvement
+    if (beforeScore >= QUALITY_THRESHOLDS.heroMinimum) {
       return { section, improved: false, beforeScore, afterScore: beforeScore };
     }
     
-    console.log(`[Hero Enforcement] Hero score ${beforeScore} < 85, running specialized improvement...`);
+    console.log(`[Hero Enforcement] Hero score ${beforeScore} < ${QUALITY_THRESHOLDS.heroMinimum}, running specialized improvement...`);
     const response = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -579,34 +676,60 @@ export async function autoImproveSection(
       messages: [
         {
           role: "system",
-          content: `You are an elite copywriter at a $50k-$100k agency. Your job is to transform generic, weak content into exceptional, conversion-focused copy.
+          content: `You are an elite creative director who has led campaigns for Apple, Stripe, and Notion. Your job is to COMPLETELY TRANSFORM generic, template-like content into PREMIUM, award-winning copy that would win Awwwards.
 
 Business: ${businessContext.name} (${businessContext.industry})
 Description: ${businessContext.description}
 
-CRITICAL RULES:
-1. Never use generic phrases like "Welcome to", "Your trusted partner", "Best in class"
-2. Be specific, concrete, and benefit-focused
-3. Use power words that create urgency and emotion
-4. Headlines should be bold, unexpected, and memorable
-5. Every word must earn its place
+MANDATORY RULES - VIOLATION IS FAILURE:
+1. BANNED PHRASES (if any appear, you fail):
+   - "Welcome to" anything
+   - "Your trusted partner" / "trusted solution"
+   - "Best in class" / "Industry-leading" / "World-class"
+   - "We are passionate about" / "We pride ourselves"
+   - "Quality service guaranteed" / "Excellence is our priority"
+   - "Transform your business" / "Take it to the next level"
+   - "Your success is our priority"
+   - "We believe in" / "Our mission is to"
+   - "Years of experience" / "Happy clients" (as generic stats)
+   - "Seamless integration" / "Cutting-edge" / "Innovative solutions"
 
-The output must be DRAMATICALLY better than the input. If someone compared before/after, they should say "Wow, that's completely different."
+2. MANDATORY SPECIFICITY:
+   - Replace vague claims with SPECIFIC numbers: "Save 12 hours weekly" not "Save time"
+   - Use EXACT timeframes: "Results in 72 hours" not "Fast results"  
+   - Include CONCRETE outcomes: "Increase conversions by 47%" not "Improve performance"
+   - Name SPECIFIC tools/features: "Works with Stripe, HubSpot, and Slack" not "Integrates with your tools"
 
-Respond with the improved section data as valid JSON, maintaining the exact same structure but with transformed content.`
+3. TESTIMONIALS MUST FEEL REAL:
+   - Specific dollar amounts or percentages: "$127,000 saved in 6 months"
+   - Natural speech with personality, not marketing-speak
+   - Reference SPECIFIC features or moments
+   - Use diverse, realistic names
+
+4. HEADLINES MUST BE UNIQUE:
+   - Create curiosity or make an unexpected promise
+   - Reference THIS SPECIFIC business, not any business
+   - No clichés, no template patterns
+
+The transformation must be DRAMATIC. Before/after should be unrecognizable.
+
+Respond with the improved section data as valid JSON, maintaining the exact same structure but with completely transformed content.`
         },
         {
           role: "user",
-          content: `Improve this ${section.type} section. Current issues: ${analysis.issues.join(', ')}
+          content: `TRANSFORM this ${section.type} section from generic to EXCEPTIONAL.
 
-Current content:
+Current problems identified:
+${analysis.issues.map(i => `- ${i}`).join('\n')}
+
+Current weak content:
 ${truncateForAI(JSON.stringify(section.data, null, 2), 4000)}
 
-Return the improved section data as JSON (same structure, better content).`
+Return the DRAMATICALLY improved section data as JSON. Same structure, premium content.`
         }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.8,
+      temperature: 0.9,
     });
     
     const improvedData = JSON.parse(response.choices[0]?.message?.content || "{}");

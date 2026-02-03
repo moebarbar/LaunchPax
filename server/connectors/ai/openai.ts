@@ -63,102 +63,189 @@ function getStyleVariant(style: string): { description: string; fonts: { heading
   return variants[style] || variants.modern;
 }
 
+/**
+ * Map industry to the best heroArchetype for maximum visual impact
+ * This ensures every website gets a premium, jaw-dropping hero
+ */
+function getHeroArchetypeForIndustry(industry: string): { archetype: string; reason: string } {
+  const lowerIndustry = industry.toLowerCase();
+  
+  // Cinematic - luxury, premium, high-end
+  if (/luxury|premium|real estate|hotel|hospitality|resort|spa|jewelry|automotive|fashion/i.test(lowerIndustry)) {
+    return { archetype: "cinematic", reason: "Dramatic full-screen with film-like transitions for premium brands" };
+  }
+  
+  // Immersive - experience-based, events, hospitality
+  if (/event|wedding|photography|travel|tourism|restaurant|food|dining|entertainment/i.test(lowerIndustry)) {
+    return { archetype: "immersive", reason: "Full-screen image with centered overlay for experiential businesses" };
+  }
+  
+  // Bold - startups, creative agencies, modern brands
+  if (/startup|agency|creative|design|marketing|advertising|media|studio|innovation/i.test(lowerIndustry)) {
+    return { archetype: "bold", reason: "Extra-large typography with floating gradients for statement brands" };
+  }
+  
+  // Editorial - portfolios, personal brands, thought leaders
+  if (/portfolio|personal|consulting|author|speaker|coach|influencer|creator/i.test(lowerIndustry)) {
+    return { archetype: "editorial", reason: "Bold asymmetric layout with gradient text for personal brands" };
+  }
+  
+  // Split - SaaS, tech, B2B, software (but NOT "professional services")
+  if (/saas|software|tech|technology|app|platform|b2b|enterprise/i.test(lowerIndustry) && !/professional/i.test(lowerIndustry)) {
+    return { archetype: "split", reason: "50/50 split with product showcase for software businesses" };
+  }
+  
+  // Minimal - professional services, finance, legal, healthcare
+  if (/legal|law|finance|banking|accounting|healthcare|medical|insurance|professional/i.test(lowerIndustry)) {
+    return { archetype: "minimal", reason: "Clean, understated design for trust and professionalism" };
+  }
+  
+  // Default to bold for maximum impact
+  return { archetype: "bold", reason: "Statement design that commands attention" };
+}
+
 interface IndustryTemplate {
   context: string;
   suggestedColors: { primary: string; secondary: string; accent: string };
   suggestedStyle: string;
   keyFeatures: string[];
   testimonialFocus: string;
+  heroArchetype: string;
 }
 
 function getIndustryTemplate(industry: string): IndustryTemplate {
+  const heroInfo = getHeroArchetypeForIndustry(industry);
+  
   const templates: Record<string, IndustryTemplate> = {
     "Technology": {
       context: `Focus on innovation, efficiency, and cutting-edge solutions. Emphasize scalability, security, and ROI. Use modern tech terminology. Testimonials should mention specific metrics and time savings.`,
       suggestedColors: { primary: "#3b82f6", secondary: "#1e40af", accent: "#06b6d4" },
       suggestedStyle: "tech",
       keyFeatures: ["API Integration", "99.9% Uptime", "Enterprise Security", "24/7 Support", "Scalable Infrastructure", "Real-time Analytics"],
-      testimonialFocus: "efficiency gains, time saved, ROI improvements"
+      testimonialFocus: "efficiency gains, time saved, ROI improvements",
+      heroArchetype: "split"
     },
     "SaaS": {
       context: `Focus on productivity gains, ease of use, and seamless integration. Emphasize free trials, quick onboarding, and customer success stories. Use benefit-driven feature descriptions.`,
       suggestedColors: { primary: "#6366f1", secondary: "#4f46e5", accent: "#22d3ee" },
       suggestedStyle: "modern",
       keyFeatures: ["Free Trial", "No Credit Card Required", "Cancel Anytime", "API Access", "Team Collaboration", "Custom Integrations"],
-      testimonialFocus: "productivity improvements, ease of use, customer support quality"
+      testimonialFocus: "productivity improvements, ease of use, customer support quality",
+      heroArchetype: "split"
     },
     "Healthcare": {
       context: `Prioritize trust, safety, and patient outcomes. Use empathetic language. Emphasize certifications, experience, and care quality. Include HIPAA compliance messaging where relevant.`,
       suggestedColors: { primary: "#0d9488", secondary: "#047857", accent: "#14b8a6" },
       suggestedStyle: "corporate",
       keyFeatures: ["Board Certified", "HIPAA Compliant", "Patient-Centered Care", "Evidence-Based Treatment", "Compassionate Staff", "Modern Facilities"],
-      testimonialFocus: "care quality, staff compassion, treatment outcomes"
+      testimonialFocus: "care quality, staff compassion, treatment outcomes",
+      heroArchetype: "minimal"
     },
     "Restaurant": {
       context: `Appeal to senses and experiences. Use vivid, appetizing descriptions. Emphasize quality ingredients, atmosphere, and memorable dining experiences. Include menu highlights.`,
       suggestedColors: { primary: "#ea580c", secondary: "#c2410c", accent: "#f59e0b" },
       suggestedStyle: "elegant",
       keyFeatures: ["Fresh Ingredients", "Award-Winning Chef", "Cozy Atmosphere", "Private Dining", "Seasonal Menu", "Local Sourcing"],
-      testimonialFocus: "food quality, atmosphere, memorable experiences"
+      testimonialFocus: "food quality, atmosphere, memorable experiences",
+      heroArchetype: "immersive"
+    },
+    "Food & Beverage": {
+      context: `Appeal to senses and experiences. Use vivid, appetizing descriptions. Emphasize quality ingredients, atmosphere, and memorable dining experiences. Include menu highlights.`,
+      suggestedColors: { primary: "#ea580c", secondary: "#c2410c", accent: "#f59e0b" },
+      suggestedStyle: "elegant",
+      keyFeatures: ["Fresh Ingredients", "Artisan Quality", "Cozy Atmosphere", "Special Events", "Seasonal Offerings", "Local Sourcing"],
+      testimonialFocus: "food quality, atmosphere, memorable experiences",
+      heroArchetype: "immersive"
     },
     "E-commerce": {
       context: `Focus on product quality, fast shipping, and customer satisfaction. Emphasize secure checkout, easy returns, and product variety. Use trust signals prominently.`,
       suggestedColors: { primary: "#8b5cf6", secondary: "#7c3aed", accent: "#f472b6" },
       suggestedStyle: "modern",
       keyFeatures: ["Free Shipping", "Easy Returns", "Secure Checkout", "24/7 Support", "Quality Guarantee", "Fast Delivery"],
-      testimonialFocus: "product quality, shipping speed, customer service"
+      testimonialFocus: "product quality, shipping speed, customer service",
+      heroArchetype: "bold"
     },
     "Consulting": {
       context: `Convey expertise, results, and strategic thinking. Use authoritative language. Emphasize case studies, methodology, and measurable outcomes.`,
       suggestedColors: { primary: "#1e3a8a", secondary: "#1e40af", accent: "#ca8a04" },
       suggestedStyle: "corporate",
       keyFeatures: ["Proven Methodology", "Fortune 500 Clients", "Measurable Results", "Industry Expertise", "Custom Solutions", "Executive Team"],
-      testimonialFocus: "ROI delivered, strategic insights, business transformation"
+      testimonialFocus: "ROI delivered, strategic insights, business transformation",
+      heroArchetype: "editorial"
     },
     "Finance": {
       context: `Convey stability, expertise, and trustworthiness. Use precise language. Emphasize security, returns, and regulatory compliance. Include fiduciary responsibility messaging.`,
       suggestedColors: { primary: "#166534", secondary: "#14532d", accent: "#ca8a04" },
       suggestedStyle: "corporate",
       keyFeatures: ["Fiduciary Duty", "SEC Registered", "Transparent Fees", "Personalized Plans", "Market Expertise", "Secure Transactions"],
-      testimonialFocus: "trust, performance, personalized service"
+      testimonialFocus: "trust, performance, personalized service",
+      heroArchetype: "minimal"
     },
     "Real Estate": {
       context: `Focus on dreams, investment potential, and local expertise. Use aspirational language. Emphasize market knowledge, negotiation skills, and client success stories.`,
       suggestedColors: { primary: "#1e3a8a", secondary: "#1e40af", accent: "#ca8a04" },
       suggestedStyle: "elegant",
       keyFeatures: ["Local Market Expert", "Top Producer", "Virtual Tours", "Negotiation Skills", "Client-First Approach", "Investment Guidance"],
-      testimonialFocus: "smooth transactions, market knowledge, finding dream homes"
+      testimonialFocus: "smooth transactions, market knowledge, finding dream homes",
+      heroArchetype: "cinematic"
     },
     "Fitness": {
       context: `Inspire action and transformation. Use motivational language. Emphasize results, expertise, and community. Include transformation stories.`,
       suggestedColors: { primary: "#dc2626", secondary: "#b91c1c", accent: "#f59e0b" },
       suggestedStyle: "bold",
       keyFeatures: ["Personal Training", "Group Classes", "Nutrition Coaching", "Results Guaranteed", "Flexible Hours", "Community Support"],
-      testimonialFocus: "transformation results, trainer expertise, community atmosphere"
+      testimonialFocus: "transformation results, trainer expertise, community atmosphere",
+      heroArchetype: "bold"
     },
     "Legal": {
       context: `Convey authority, experience, and client advocacy. Use professional language. Emphasize track record, expertise areas, and client confidentiality.`,
       suggestedColors: { primary: "#1e3a5a", secondary: "#0f172a", accent: "#b45309" },
       suggestedStyle: "corporate",
       keyFeatures: ["Free Consultation", "Experienced Attorneys", "Track Record", "Confidentiality", "Client Advocacy", "Results-Oriented"],
-      testimonialFocus: "case outcomes, attorney expertise, client communication"
+      testimonialFocus: "case outcomes, attorney expertise, client communication",
+      heroArchetype: "minimal"
+    },
+    "Entertainment": {
+      context: `Create excitement and energy. Use vibrant, engaging language. Emphasize experiences, memories, and fun. Include event highlights and entertainment options.`,
+      suggestedColors: { primary: "#7c3aed", secondary: "#5b21b6", accent: "#f472b6" },
+      suggestedStyle: "bold",
+      keyFeatures: ["Unique Experiences", "Live Entertainment", "Special Events", "VIP Options", "Family-Friendly", "Memorable Moments"],
+      testimonialFocus: "entertainment quality, memorable experiences, value",
+      heroArchetype: "cinematic"
+    },
+    "Agency": {
+      context: `Showcase creativity and results. Use bold, confident language. Emphasize portfolio, methodology, and client success. Include case study highlights.`,
+      suggestedColors: { primary: "#0f172a", secondary: "#1e293b", accent: "#f97316" },
+      suggestedStyle: "creative",
+      keyFeatures: ["Award-Winning Work", "Strategic Approach", "Full-Service", "Results-Driven", "Creative Excellence", "Collaborative Process"],
+      testimonialFocus: "creative impact, business results, collaboration quality",
+      heroArchetype: "bold"
     }
   };
   
-  return templates[industry] || {
+  const template = templates[industry];
+  if (template) return template;
+  
+  // Return default with dynamically selected heroArchetype
+  return {
     context: `Focus on professionalism, quality, and customer satisfaction. Use clear, benefit-driven language. Emphasize experience, reliability, and results.`,
     suggestedColors: { primary: "#3b82f6", secondary: "#1e40af", accent: "#10b981" },
     suggestedStyle: "modern",
     keyFeatures: ["Quality Service", "Expert Team", "Customer First", "Proven Results", "Reliable Support", "Best Value"],
-    testimonialFocus: "quality, reliability, customer satisfaction"
+    testimonialFocus: "quality, reliability, customer satisfaction",
+    heroArchetype: heroInfo.archetype
   };
 }
 
-function getIndustryContext(industry: string): string {
+function getIndustryContext(industry: string): { context: string; heroArchetype: string; colors: { primary: string; secondary: string; accent: string } } {
   const template = getIndustryTemplate(industry);
-  return `${template.context}
+  return {
+    context: `${template.context}
 - Suggested feature themes: ${template.keyFeatures.join(", ")}
-- Testimonial focus: ${template.testimonialFocus}`;
+- Testimonial focus: ${template.testimonialFocus}`,
+    heroArchetype: template.heroArchetype,
+    colors: template.suggestedColors
+  };
 }
 
 export const openaiConnector = defineConnector({
@@ -436,22 +523,25 @@ ${styleVariant.description}
 - Use ${styleVariant.fonts.heading} for headings and ${styleVariant.fonts.body} for body text
 
 INDUSTRY-SPECIFIC GUIDANCE:
-${industryContext}
+${industryContext.context}
+
+MANDATORY HERO ARCHETYPE: "${industryContext.heroArchetype}"
+You MUST use heroArchetype: "${industryContext.heroArchetype}" for ALL hero sections on this website.
+This is not optional - it was specifically selected for this ${industry} business to create maximum visual impact.
+
+RECOMMENDED COLORS (based on ${industry}):
+- Primary: ${industryContext.colors.primary}
+- Secondary: ${industryContext.colors.secondary}
+- Accent: ${industryContext.colors.accent}
 
 PAGES TO CREATE: ${pageList.join(", ")}
 
 AVAILABLE SECTION TYPES:
 - "hero": {headline, subheadline, statement, ctaText, ctaLink, secondaryCtaText, badge, heroArchetype} - Powerful opening
-  - heroArchetype options based on business type:
-    * "editorial" - Best for agencies, creators, portfolios. Bold asymmetric layout with gradient text
-    * "split" - Best for SaaS, tech, startups. 50/50 split with image on right
-    * "immersive" - Best for luxury, hospitality, events. Full-screen image with centered text overlay
-    * "cinematic" - Best for premium brands, real estate, high-end products. Dramatic full-screen with film-like transitions
-    * "bold" - Best for startups, creative agencies. Extra-large typography with floating gradients
-    * "minimal" - Best for professional services, consulting. Clean, understated, focused
-  - Choose heroArchetype based on: SaaS/tech→split or bold, local business→split, agency→editorial or bold, luxury→immersive or cinematic, professional→minimal
-  - statement: 1-2 sentence powerful value proposition (optional, used in some archetypes)
-  - badge: Short text like "New in 2024" or "Award Winning" (optional)
+  - CRITICAL: You MUST set heroArchetype to "${industryContext.heroArchetype}" for all hero sections
+  - heroArchetype "${industryContext.heroArchetype}" was specifically chosen for ${industry} businesses
+  - statement: 1-2 sentence powerful value proposition (required for cinematic, immersive, bold)
+  - badge: Short text like "Award Winning" or "Est. 2010" (recommended for premium feel)
 - "features": {headline, subheadline, items:[{title, description, icon}]} - Value propositions. Icons: star, shield, zap, heart, target, users, clock, check, award, globe, briefcase, settings, wrench, lightbulb
 - "services": {headline, subheadline, items:[{title, description, icon, price, features:[]}]} - Detailed offerings with benefits
 - "testimonials": {headline, subheadline, items:[{quote, author, role, company}]} - Social proof with compelling stories
