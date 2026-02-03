@@ -540,8 +540,27 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
           throw new Error(result.error || "Failed to generate graphics");
         }
         
-        // Save each graphic asset
-        for (const graphic of result.data.graphics || []) {
+        // Fetch stock photos from Pexels for each graphic
+        const industry = ctx.project.industry || "business";
+        const stockPhotoResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+          "stock_photos",
+          "search_photos",
+          {
+            query: `${industry} ${businessName} marketing`,
+            perPage: 6,
+            orientation: "square",
+          }
+        );
+        
+        const stockPhotos = stockPhotoResult.success ? (stockPhotoResult.data?.photos || []) : [];
+        console.log(`[Workflow] Fetched ${stockPhotos.length} stock photos for marketing graphics`);
+        
+        // Save each graphic asset with stock photo if available
+        const graphics = result.data.graphics || [];
+        for (let i = 0; i < graphics.length; i++) {
+          const graphic = graphics[i];
+          const stockPhoto = stockPhotos[i] || null;
+          
           await storage.createGraphicAsset({
             projectId: ctx.projectId,
             type: graphic.type,
@@ -549,6 +568,7 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
             dimensions: graphic.dimensions,
             designBrief: graphic.designBrief,
             copyText: graphic.copyText,
+            imageUrl: stockPhoto?.url || null,
             providerUsed: result.provider,
             status: "completed",
           });
