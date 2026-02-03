@@ -102,6 +102,7 @@ class ConnectorRegistry {
 
   /**
    * Execute a task using the best available connector
+   * Falls back to mock connector if the primary one fails
    */
   async execute<I, O>(
     capability: ConnectorCapability,
@@ -109,11 +110,37 @@ class ConnectorRegistry {
     input: I,
     options?: { preferredConnector?: string }
   ): Promise<ConnectorResult<O>> {
+    const providers = this.getByCapability(capability);
+    const mockConnector = providers.find(p => p.key.endsWith("_mock"));
+    
+    // Helper to try executing with fallback
+    const tryExecute = async (connector: ConnectorDefinition): Promise<ConnectorResult<O>> => {
+      const task: ConnectorTask<I> = { capability, action, input };
+      return await connector.execute<I, O>(task);
+    };
+    
     // Try preferred connector first if specified
     if (options?.preferredConnector) {
       const preferred = this.connectors.get(options.preferredConnector);
       if (preferred?.isConfigured() && preferred.capabilities.includes(capability)) {
-        return preferred.execute<I, O>({ capability, action, input });
+        try {
+          const result = await tryExecute(preferred);
+          if (result.success) return result;
+          
+          // If preferred failed, try fallback to mock
+          if (mockConnector && mockConnector.isConfigured()) {
+            console.log(`[ConnectorRegistry] ${preferred.key} failed, falling back to mock: ${result.error}`);
+            return await tryExecute(mockConnector);
+          }
+          return result;
+        } catch (error) {
+          // On exception, try mock fallback
+          if (mockConnector && mockConnector.isConfigured()) {
+            console.log(`[ConnectorRegistry] ${preferred.key} threw error, falling back to mock`);
+            return await tryExecute(mockConnector);
+          }
+          throw error;
+        }
       }
     }
 
@@ -137,9 +164,22 @@ class ConnectorRegistry {
     }
 
     try {
-      const task: ConnectorTask<I> = { capability, action, input };
-      return await connector.execute<I, O>(task);
+      const result = await tryExecute(connector);
+      
+      // If main connector failed and we have a mock, try the mock
+      if (!result.success && mockConnector && mockConnector.isConfigured() && connector.key !== mockConnector.key) {
+        console.log(`[ConnectorRegistry] ${connector.key} failed, falling back to mock: ${result.error}`);
+        return await tryExecute(mockConnector);
+      }
+      
+      return result;
     } catch (error) {
+      // On exception, try mock fallback
+      if (mockConnector && mockConnector.isConfigured() && connector.key !== mockConnector.key) {
+        console.log(`[ConnectorRegistry] ${connector.key} threw error, falling back to mock`);
+        return await tryExecute(mockConnector);
+      }
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
