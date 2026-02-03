@@ -183,6 +183,7 @@ export async function findStockImage(
   for (const query of searchQueries) {
     try {
       const result = await pexelsConnector.execute({
+        capability: "stock_photos",
         action: "search_photos",
         input: {
           query,
@@ -190,7 +191,7 @@ export async function findStockImage(
           orientation: context.sectionType === "hero" ? "landscape" : "square",
           size: "large",
         },
-        metadata: { purpose: "section_image", sectionType: context.sectionType },
+        options: { purpose: "section_image", sectionType: context.sectionType },
       });
       
       if (result.success && result.data) {
