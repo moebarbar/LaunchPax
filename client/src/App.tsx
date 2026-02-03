@@ -92,7 +92,7 @@ function AppRouter() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="system" storageKey="launchpad-theme">
+      <ThemeProvider defaultTheme="system" storageKey="launchpax-theme">
         <TooltipProvider>
           <Toaster />
           <AppRouter />

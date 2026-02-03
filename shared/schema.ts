@@ -481,7 +481,9 @@ export type ConnectorCapability =
   | "content_generation"   // Generate website content
   | "stock_photos"         // Search stock photos
   | "image_generation"     // Generate images/graphics
+  | "graphics_generation"  // Generate logos, marketing graphics
   | "text_generation"      // General text/copy generation
+  | "long_form_content"    // Long-form articles, blog posts
   | "translation"          // Translate content
   | "hosting"              // Host/deploy websites
   | "analytics"            // Analytics integration

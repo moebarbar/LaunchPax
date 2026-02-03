@@ -66,7 +66,7 @@ export function AppSidebar() {
             <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
               <Rocket className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-lg">LaunchPad</span>
+            <span className="font-semibold text-lg">LaunchPax</span>
           </div>
         </Link>
       </SidebarHeader>

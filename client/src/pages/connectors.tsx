@@ -10,13 +10,16 @@ import {
   CheckCircle2,
   XCircle,
   Globe,
-  Palette,
   Sparkles,
   Image,
   RefreshCw,
   Loader2,
   AlertCircle,
   Key,
+  Zap,
+  Brain,
+  Palette,
+  Camera,
 } from "lucide-react";
 
 interface ConnectorInfo {
@@ -24,6 +27,7 @@ interface ConnectorInfo {
   name: string;
   description: string;
   category: string;
+  capabilities: string[];
   authType: string;
   requiredEnvVars: string[];
   isConfigured: boolean;
@@ -67,33 +71,31 @@ export default function ConnectorsPage() {
     },
   });
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "domains":
-        return Globe;
-      case "branding":
-        return Palette;
-      case "ai":
+  const getConnectorIcon = (key: string) => {
+    switch (key) {
+      case "openai":
+        return Brain;
+      case "claude":
         return Sparkles;
-      case "graphics":
+      case "nanobanana":
         return Image;
+      case "pexels":
+        return Camera;
       default:
         return Plug;
     }
   };
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "domains":
-        return "bg-blue-500/10 text-blue-600";
-      case "branding":
-        return "bg-pink-500/10 text-pink-600";
-      case "ai":
-        return "bg-purple-500/10 text-purple-600";
-      case "graphics":
-        return "bg-orange-500/10 text-orange-600";
+  const getConnectorGradient = (key: string) => {
+    switch (key) {
+      case "openai":
+        return "from-emerald-500 to-teal-600";
+      case "claude":
+        return "from-orange-500 to-amber-600";
+      case "nanobanana":
+        return "from-blue-500 to-indigo-600";
       default:
-        return "bg-muted text-muted-foreground";
+        return "from-gray-500 to-gray-600";
     }
   };
 
@@ -101,8 +103,8 @@ export default function ConnectorsPage() {
     return (
       <div className="flex-1 p-6 space-y-6 overflow-auto">
         <div>
-          <h1 className="text-2xl font-bold">Connectors</h1>
-          <p className="text-muted-foreground">Manage your API integrations</p>
+          <h1 className="text-2xl font-bold">LaunchPax Engine</h1>
+          <p className="text-muted-foreground">Loading connectors...</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -113,121 +115,248 @@ export default function ConnectorsPage() {
     );
   }
 
-  const configuredCount = connectors?.filter((c) => c.isConfigured).length || 0;
+  const aiConnectors = connectors?.filter((c) => c.category === "ai" && !c.key.endsWith("_mock")) || [];
+  const otherConnectors = connectors?.filter((c) => c.category !== "ai" || c.key.endsWith("_mock")) || [];
+  const configuredAI = aiConnectors.filter((c) => c.isConfigured).length;
 
   return (
-    <div className="flex-1 p-6 space-y-6 overflow-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Connectors</h1>
-          <p className="text-muted-foreground">
-            {configuredCount} of {connectors?.length || 0} connectors configured
-          </p>
+    <div className="flex-1 p-6 space-y-8 overflow-auto">
+      <Card className="overflow-hidden border-0 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600">
+        <CardContent className="p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">LaunchPax Engine</h1>
+                  <p className="text-white/80 text-sm">Multi-Model AI Orchestration</p>
+                </div>
+              </div>
+              <p className="text-white/90 max-w-xl">
+                The LaunchPax Engine combines the power of multiple AI models to generate 
+                premium-quality websites. Each model contributes its unique strengths for 
+                best-in-class results.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className="px-4 py-2 rounded-lg bg-white/10 backdrop-blur">
+                <div className="text-2xl font-bold text-white">{configuredAI}</div>
+                <div className="text-xs text-white/70">Active Models</div>
+              </div>
+              <div className="px-4 py-2 rounded-lg bg-white/10 backdrop-blur">
+                <div className="text-2xl font-bold text-white">{aiConnectors.length}</div>
+                <div className="text-xs text-white/70">Available</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Brain className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold">AI Models</h2>
         </div>
-      </div>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {connectors?.map((connector) => {
-          const Icon = getCategoryIcon(connector.category);
-          return (
-            <Card key={connector.key} className="relative" data-testid={`card-connector-${connector.key}`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  {connector.isConfigured ? (
-                    <Badge className="bg-green-500/10 text-green-600">
-                      <CheckCircle2 className="w-3 h-3 mr-1" />
-                      Configured
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-muted-foreground">
-                      <XCircle className="w-3 h-3 mr-1" />
-                      Not Configured
-                    </Badge>
-                  )}
-                </div>
-                <CardTitle className="text-lg mt-3">{connector.name}</CardTitle>
-                <CardDescription>{connector.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={getCategoryColor(connector.category)}>
-                    {connector.category}
-                  </Badge>
-                  <Badge variant="outline" className="capitalize">
-                    {connector.authType}
-                  </Badge>
-                </div>
-
-                {connector.requiredEnvVars.length > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    <p className="font-medium mb-1 flex items-center gap-1">
-                      <Key className="w-3 h-3" />
-                      Required:
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {connector.requiredEnvVars.map((envVar) => (
-                        <code key={envVar} className="px-1.5 py-0.5 bg-muted rounded text-xs">
-                          {envVar}
-                        </code>
-                      ))}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {aiConnectors.map((connector) => {
+            const Icon = getConnectorIcon(connector.key);
+            const gradient = getConnectorGradient(connector.key);
+            return (
+              <Card key={connector.key} className="relative overflow-hidden" data-testid={`card-connector-${connector.key}`}>
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient}`} />
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
+                    {connector.isConfigured ? (
+                      <Badge className="bg-green-500/10 text-green-600 border-green-200">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Active
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Inactive
+                      </Badge>
+                    )}
                   </div>
-                )}
+                  <CardTitle className="text-lg mt-3">{connector.name}</CardTitle>
+                  <CardDescription className="text-sm">{connector.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {connector.capabilities && connector.capabilities.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {connector.capabilities.slice(0, 3).map((cap) => (
+                        <Badge key={cap} variant="secondary" className="text-xs capitalize">
+                          {cap.replace(/_/g, " ")}
+                        </Badge>
+                      ))}
+                      {connector.capabilities.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{connector.capabilities.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
 
-                {connector.testStatus && (
-                  <div className="flex items-center gap-2 text-xs">
-                    {connector.testStatus === "ok" ? (
+                  {connector.requiredEnvVars.length > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      <p className="font-medium mb-1 flex items-center gap-1">
+                        <Key className="w-3 h-3" />
+                        Required:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {connector.requiredEnvVars.map((envVar) => (
+                          <code key={envVar} className="px-1.5 py-0.5 bg-muted rounded text-xs font-mono">
+                            {envVar}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {connector.testStatus && (
+                    <div className="flex items-center gap-2 text-xs">
+                      {connector.testStatus === "ok" ? (
+                        <>
+                          <CheckCircle2 className="w-3 h-3 text-green-500" />
+                          <span className="text-green-600">Last test passed</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-3 h-3 text-yellow-500" />
+                          <span className="text-yellow-600">{connector.testStatus}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => testConnector.mutate(connector.key)}
+                    disabled={testConnector.isPending}
+                    data-testid={`button-test-${connector.key}`}
+                  >
+                    {testConnector.isPending && testConnector.variables === connector.key ? (
                       <>
-                        <CheckCircle2 className="w-3 h-3 text-green-500" />
-                        <span className="text-green-600">Last test passed</span>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Testing...
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="w-3 h-3 text-yellow-500" />
-                        <span className="text-yellow-600">{connector.testStatus}</span>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Test Connection
                       </>
                     )}
-                  </div>
-                )}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => testConnector.mutate(connector.key)}
-                  disabled={testConnector.isPending}
-                  data-testid={`button-test-${connector.key}`}
-                >
-                  {testConnector.isPending && testConnector.variables === connector.key ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Testing...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Test Connection
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
+
+      {otherConnectors.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold">Other Services</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {otherConnectors.map((connector) => (
+              <Card key={connector.key} className="relative" data-testid={`card-connector-${connector.key}`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                      {connector.key === "pexels" ? (
+                        <Camera className="w-5 h-5 text-muted-foreground" />
+                      ) : connector.category === "domains" ? (
+                        <Globe className="w-5 h-5 text-muted-foreground" />
+                      ) : connector.category === "stockphotos" ? (
+                        <Camera className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <Plug className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    {connector.isConfigured ? (
+                      <Badge className="bg-green-500/10 text-green-600">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Configured
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Not Configured
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-lg mt-3">{connector.name}</CardTitle>
+                  <CardDescription>{connector.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="capitalize">
+                      {connector.category}
+                    </Badge>
+                  </div>
+
+                  {connector.requiredEnvVars.length > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      <p className="font-medium mb-1 flex items-center gap-1">
+                        <Key className="w-3 h-3" />
+                        Required:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {connector.requiredEnvVars.map((envVar) => (
+                          <code key={envVar} className="px-1.5 py-0.5 bg-muted rounded text-xs">
+                            {envVar}
+                          </code>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => testConnector.mutate(connector.key)}
+                    disabled={testConnector.isPending}
+                    data-testid={`button-test-${connector.key}`}
+                  >
+                    {testConnector.isPending && testConnector.variables === connector.key ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Test Connection
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Card className="bg-muted/30">
         <CardContent className="flex items-start gap-4 p-6">
-          <AlertCircle className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+          <Palette className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-medium mb-1">Adding New Connectors</h3>
+            <h3 className="font-medium mb-1">Configuring Your API Keys</h3>
             <p className="text-sm text-muted-foreground">
-              To configure a connector, add the required environment variables to your project settings.
-              The platform will automatically detect and enable the connector once the variables are set.
-              Connectors without API keys will use mock mode for demonstration purposes.
+              Add your API keys as environment variables to activate each AI model. The LaunchPax Engine 
+              automatically orchestrates the best model for each task. Configure <code className="px-1 py-0.5 bg-muted rounded">OPENAI_API_KEY</code>, <code className="px-1 py-0.5 bg-muted rounded">ANTHROPIC_API_KEY</code>, and <code className="px-1 py-0.5 bg-muted rounded">GOOGLE_AI_API_KEY</code> to 
+              unlock the full power of multi-model AI generation.
             </p>
           </div>
         </CardContent>

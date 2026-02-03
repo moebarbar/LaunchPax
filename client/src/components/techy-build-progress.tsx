@@ -261,7 +261,7 @@ export default function TechyBuildProgress({ workflowType, progress, isRunning }
                 <div className="w-3 h-3 rounded-full bg-green-500" />
               </div>
               <span className="text-xs text-zinc-400 font-mono ml-2">
-                launchpad-ai-engine
+                launchpax-engine
               </span>
               <Terminal className="w-4 h-4 text-zinc-400 ml-auto" />
             </div>

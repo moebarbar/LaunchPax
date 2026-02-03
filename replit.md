@@ -1,8 +1,8 @@
-# LaunchPad AI - AI Business Builder Platform
+# LaunchPax - AI Business Builder Platform
 
 ## Overview
 
-LaunchPad AI is an AI-powered platform designed to help users launch and grow businesses. It provides a single dashboard to orchestrate various external APIs for generating business essentials such as names, domains, brand kits, website content, and graphics. The platform uses a project-based architecture, where each "Project" represents an isolated business venture.
+LaunchPax is an AI-powered platform designed to help users launch and grow businesses. It provides a single dashboard to orchestrate various external APIs for generating business essentials such as names, domains, brand kits, website content, and graphics. The platform uses a project-based architecture, where each "Project" represents an isolated business venture.
 
 Key capabilities include:
 - Project-based business creation with isolated configurations
@@ -65,14 +65,19 @@ Preferred communication style: Simple, everyday language.
 - **PostgreSQL**: Primary database.
 - **Drizzle ORM**: Used for database schema definition and interaction.
 
-### AI Services
-- **OpenAI API** (via Replit AI Integrations): Powers AI generation for names, brand kits, and content. Uses `gpt-4o-mini` model.
-- **Mock AI Connector**: Fallback for AI services when OpenAI is not configured.
+### LaunchPax Engine (Multi-Model AI Orchestration)
+The LaunchPax Engine combines multiple premium AI models for best-in-class results:
+- **GPT-4o (OpenAI)**: Premium AI generation for names, brands, and website content. Requires `OPENAI_API_KEY`.
+- **Claude 3.5 Sonnet (Anthropic)**: Long-form content generation, blog posts, detailed copy. Requires `ANTHROPIC_API_KEY`.
+- **Nano Banana Pro (Google Gemini)**: Advanced graphics generation for logos, hero images, marketing assets. Requires `GOOGLE_AI_API_KEY`.
+- **Mock AI Connector**: Fallback for AI services when API keys are not configured.
+
+### Other Services
+- **Pexels**: Stock photography for website imagery. Requires `PEXELS_API_KEY`.
 
 ### Authentication
 - **Replit Auth**: OpenID Connect-based authentication.
 
 ### Planned Integrations (via Connector System)
 - **Domain Registrars**: For domain availability checks and purchases (e.g., GoDaddy, Namecheap).
-- **Image Generation APIs**: For graphics creation.
 - **Hosting Providers**: For website deployment.

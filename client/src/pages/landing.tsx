@@ -22,7 +22,7 @@ export default function LandingPage() {
               <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center">
                 <Rocket className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-lg">LaunchPad AI</span>
+              <span className="font-semibold text-lg">LaunchPax</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors text-sm" data-testid="link-features">Features</a>

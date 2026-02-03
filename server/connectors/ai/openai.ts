@@ -3,19 +3,22 @@ import { defineConnector } from "../registry";
 import type { ConnectorTask, ConnectorResult } from "@shared/schema";
 
 /**
- * OpenAI Connector (via Replit AI Integrations)
+ * OpenAI Connector (LaunchPax Engine)
  * 
  * Provides: name_generation, brand_generation, content_generation, text_generation
  * 
- * Uses Replit AI Integrations which provides OpenAI-compatible API access
- * without requiring user's own API key.
+ * Uses GPT-4o for premium quality generation.
+ * Requires user-provided OPENAI_API_KEY for cost control.
  */
 
+const MODEL = "gpt-4o";
+
 function getClient() {
-  return new OpenAI({
-    apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || "",
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is required for OpenAI connector");
+  }
+  return new OpenAI({ apiKey });
 }
 
 function getStyleVariant(style: string): { description: string; fonts: { heading: string; body: string }; radiusStyle: string } {
@@ -160,18 +163,15 @@ function getIndustryContext(industry: string): string {
 
 export const openaiConnector = defineConnector({
   key: "openai",
-  name: "OpenAI (via Replit AI)",
-  description: "AI text, content, and image generation powered by GPT models",
+  name: "GPT-4o (OpenAI)",
+  description: "Premium AI generation powered by GPT-4o for names, brands, and website content",
   category: "ai",
   capabilities: ["name_generation", "brand_generation", "content_generation", "text_generation", "image_generation"],
-  authType: "bearer",
-  requiredEnvVars: ["AI_INTEGRATIONS_OPENAI_API_KEY", "AI_INTEGRATIONS_OPENAI_BASE_URL"],
+  authType: "apiKey",
+  requiredEnvVars: ["OPENAI_API_KEY"],
 
   isConfigured() {
-    return !!(
-      process.env.AI_INTEGRATIONS_OPENAI_API_KEY &&
-      process.env.AI_INTEGRATIONS_OPENAI_BASE_URL
-    );
+    return !!process.env.OPENAI_API_KEY;
   },
 
   async test() {
