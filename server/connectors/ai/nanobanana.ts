@@ -12,9 +12,9 @@ import type { ConnectorTask, ConnectorResult } from "@shared/schema";
  */
 
 function getClient() {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  const apiKey = process.env.GOOGLE_API_KEY;
   if (!apiKey) {
-    throw new Error("GOOGLE_AI_API_KEY is required for Nano Banana connector");
+    throw new Error("GOOGLE_API_KEY is required for Nano Banana connector");
   }
   return new GoogleGenAI({ apiKey });
 }
@@ -154,7 +154,7 @@ export const nanoBananaConnector = defineConnector({
   category: "ai",
   capabilities: ["image_generation", "graphics_generation"],
   authType: "apiKey",
-  requiredEnvVars: ["GOOGLE_AI_API_KEY"],
-  isConfigured: () => !!process.env.GOOGLE_AI_API_KEY,
+  requiredEnvVars: ["GOOGLE_API_KEY"],
+  isConfigured: () => !!process.env.GOOGLE_API_KEY,
   execute: executeTask,
 });
