@@ -30,6 +30,7 @@ export interface QualityScore {
   heroImpact: number;       // 0-100 - First impression, above-fold power
   contentQuality: number;   // 0-100 - Copy effectiveness, clarity
   visualDepth: number;      // 0-100 - Layers, shadows, dimensionality
+  layoutSophistication?: number; // 0-100 - Section variety, visual depth, premium feel
 }
 
 export interface SectionAnalysis {
@@ -60,8 +61,8 @@ export interface ImprovementAction {
   sectionId: string;
   actionType: 'rewrite' | 'enhance' | 'restructure' | 'add_depth';
   description: string;
-  priority: number;
-  estimatedImpact: number;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  expectedImprovement: number;
 }
 
 const QUALITY_THRESHOLDS = {
@@ -181,6 +182,97 @@ const GENERIC_PATTERNS = [
   "Scalable solutions",
 ];
 
+// Layout patterns that indicate generic/template design
+const LAYOUT_ISSUES = {
+  // Minimum sections per page for premium websites
+  minSectionsHome: 8,
+  minSectionsAbout: 6,
+  minSectionsServices: 6,
+  minSectionsOther: 4,
+  
+  // Section types that indicate "breathing room"
+  breathingRoomSections: ['stats', 'trust-signals', 'text', 'story'],
+  
+  // Section types that are content-dense (need breathing room between them)
+  denseSections: ['features', 'services', 'pricing', 'team', 'testimonials'],
+};
+
+/**
+ * Analyze layout sophistication and visual variety
+ */
+function analyzeLayoutSophistication(pages: any[]): { score: number; issues: string[] } {
+  const issues: string[] = [];
+  let score = 100;
+  
+  for (const page of pages) {
+    const sections = page.sections || [];
+    const pageName = page.path || page.name || 'unknown';
+    
+    // Check minimum section count
+    let minSections = LAYOUT_ISSUES.minSectionsOther;
+    if (pageName.includes('home') || pageName === '/') minSections = LAYOUT_ISSUES.minSectionsHome;
+    else if (pageName.includes('about')) minSections = LAYOUT_ISSUES.minSectionsAbout;
+    else if (pageName.includes('services')) minSections = LAYOUT_ISSUES.minSectionsServices;
+    
+    if (sections.length < minSections) {
+      issues.push(`${pageName}: Only ${sections.length} sections (needs ${minSections}+ for premium feel)`);
+      score -= 15;
+    }
+    
+    // Check for repetitive section types
+    const sectionTypes = sections.map((s: any) => s.type);
+    const typeCounts: Record<string, number> = {};
+    for (const type of sectionTypes) {
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+      if (typeCounts[type] > 2 && type !== 'cta') {
+        issues.push(`${pageName}: Section type "${type}" used ${typeCounts[type]} times (avoid repetition)`);
+        score -= 10;
+      }
+    }
+    
+    // Check for adjacent dense sections without breathing room
+    for (let i = 0; i < sections.length - 1; i++) {
+      const current = sections[i].type;
+      const next = sections[i + 1].type;
+      if (LAYOUT_ISSUES.denseSections.includes(current) && LAYOUT_ISSUES.denseSections.includes(next)) {
+        issues.push(`${pageName}: Dense sections "${current}" and "${next}" are adjacent (add breathing room)`);
+        score -= 5;
+      }
+    }
+    
+    // Check for hero + features + features pattern (very generic)
+    for (let i = 0; i < sections.length - 2; i++) {
+      const pattern = [sections[i].type, sections[i+1].type, sections[i+2].type].join('-');
+      if (pattern === 'hero-features-services' || pattern === 'hero-features-features') {
+        issues.push(`${pageName}: Generic "hero + cards + cards" pattern detected`);
+        score -= 15;
+      }
+    }
+    
+    // Check for lack of storytelling sections
+    const hasStorySection = sections.some((s: any) => 
+      ['story', 'brand-story', 'text', 'case-studies'].includes(s.type)
+    );
+    if (sections.length >= 6 && !hasStorySection && !pageName.includes('contact')) {
+      issues.push(`${pageName}: No storytelling sections (add story, brand-story, or case-studies)`);
+      score -= 10;
+    }
+    
+    // Check for missing trust signals on home page
+    if ((pageName.includes('home') || pageName === '/') && sections.length >= 6) {
+      const hasTrustSignals = sections.some((s: any) => 
+        ['trust-signals', 'testimonials', 'case-studies', 'stats'].includes(s.type)
+      );
+      if (!hasTrustSignals) {
+        issues.push(`${pageName}: No social proof sections (add testimonials, stats, or trust-signals)`);
+        score -= 15;
+      }
+    }
+  }
+  
+  return { score: Math.max(0, score), issues };
+}
+
 /**
  * Evaluate overall website quality using AI
  */
@@ -204,22 +296,34 @@ export async function evaluateWebsiteQuality(
   // Calculate aggregate scores
   const scores = calculateAggregateScores(sectionAnalyses, websiteContent);
   
+  // Analyze layout sophistication and visual variety
+  const layoutAnalysis = analyzeLayoutSophistication(pages);
+  scores.layoutSophistication = layoutAnalysis.score;
+  
+  // Factor layout score into overall score
+  const layoutPenalty = Math.max(0, (100 - layoutAnalysis.score) / 5);
+  scores.overall = Math.max(0, scores.overall - layoutPenalty);
+  
   // Detect generic patterns across all content
   const genericPatterns = detectGenericPatterns(websiteContent);
+  
+  // Add layout issues to generic patterns
+  const allIssues = [...genericPatterns, ...layoutAnalysis.issues];
   
   // Identify weak sections
   const weakSections = sectionAnalyses.filter(s => s.isWeak || s.isGeneric);
   
-  // Generate improvement plan
-  const improvementPlan = generateImprovementPlan(weakSections, scores);
+  // Generate improvement plan with layout issues
+  const improvementPlan = generateImprovementPlan(weakSections, scores, layoutAnalysis.issues);
   
   // Determine overall verdict
   const overallVerdict = determineVerdict(scores);
   
-  // Check if passes quality gate
+  // Check if passes quality gate (including layout score)
   const passesQualityGate = 
     scores.overall >= QUALITY_THRESHOLDS.minimum &&
     scores.heroImpact >= QUALITY_THRESHOLDS.heroMinimum &&
+    layoutAnalysis.score >= 70 && // Layout must be at least 70
     weakSections.filter(s => s.priority === 'critical').length === 0;
   
   return {
@@ -227,7 +331,7 @@ export async function evaluateWebsiteQuality(
     scores,
     sectionAnalyses,
     weakSections,
-    genericPatterns,
+    genericPatterns: allIssues,
     overallVerdict,
     improvementPlan,
     passesQualityGate,
@@ -440,9 +544,23 @@ function detectGenericPatterns(websiteContent: WebsiteContent): string[] {
  */
 function generateImprovementPlan(
   weakSections: SectionAnalysis[],
-  scores: QualityScore
+  scores: QualityScore,
+  layoutIssues: string[] = []
 ): ImprovementAction[] {
   const actions: ImprovementAction[] = [];
+  
+  // Add layout improvement actions
+  if (layoutIssues.length > 0) {
+    for (const issue of layoutIssues.slice(0, 3)) { // Top 3 layout issues
+      actions.push({
+        sectionId: 'layout',
+        actionType: 'restructure',
+        priority: 'high',
+        description: `Layout issue: ${issue}`,
+        expectedImprovement: 10,
+      });
+    }
+  }
   
   // Sort by priority and impact
   const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -461,15 +579,15 @@ function generateImprovementPlan(
       actionType = 'add_depth';
     }
     
-    const estimatedImpact = section.sectionType === 'hero' ? 15 : 
+    const expectedImprovement = section.sectionType === 'hero' ? 15 : 
                            section.priority === 'high' ? 10 : 5;
     
     actions.push({
       sectionId: section.sectionId,
       actionType,
       description: section.improvements[0] || `Improve ${section.sectionType} section quality`,
-      priority: priorityOrder[section.priority],
-      estimatedImpact,
+      priority: section.priority,
+      expectedImprovement,
     });
   }
   

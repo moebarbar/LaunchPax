@@ -536,29 +536,79 @@ RECOMMENDED COLORS (based on ${industry}):
 
 PAGES TO CREATE: ${pageList.join(", ")}
 
-AVAILABLE SECTION TYPES:
+AVAILABLE SECTION TYPES (use variety - never repeat the same layout twice in a row):
+
+HERO & OPENERS:
 - "hero": {headline, subheadline, statement, ctaText, ctaLink, secondaryCtaText, badge, heroArchetype} - Powerful opening
   - CRITICAL: You MUST set heroArchetype to "${industryContext.heroArchetype}" for all hero sections
   - heroArchetype "${industryContext.heroArchetype}" was specifically chosen for ${industry} businesses
   - statement: 1-2 sentence powerful value proposition (required for cinematic, immersive, bold)
   - badge: Short text like "Award Winning" or "Est. 2010" (recommended for premium feel)
-- "features": {headline, subheadline, items:[{title, description, icon}]} - Value propositions. Icons: star, shield, zap, heart, target, users, clock, check, award, globe, briefcase, settings, wrench, lightbulb
-- "services": {headline, subheadline, items:[{title, description, icon, price, features:[]}]} - Detailed offerings with benefits
-- "testimonials": {headline, subheadline, items:[{quote, author, role, company}]} - Social proof with compelling stories
-- "team": {headline, subheadline, members:[{name, role, bio}]} - Humanize the brand
-- "stats": {headline, items:[{value, label, suffix, prefix}]} - Credibility numbers
-- "pricing": {headline, subheadline, plans:[{name, price, period, description, features:[], highlighted, ctaText}]} - Clear value tiers
-- "faq": {headline, subheadline, items:[{question, answer}]} - Objection handling
-- "cta": {headline, subheadline, buttonText, buttonLink} - Conversion driver
-- "text": {headline, content, alignment} - Story and context
-- "story": {headline, subheadline, paragraphs:[], quote, quoteAuthor, stats:[{value, label}], layout:"editorial"} - Brand narrative, origin story
-- "contact": {headline, subheadline, email, phone, address, showForm:true}
 
-PAGE BLUEPRINTS:
-1. HOME (6 sections): hero → features (6 items) → stats (4 credibility numbers) → services (4 highlighted) → testimonials (3 compelling stories) → cta
-2. ABOUT (5 sections): hero → text (origin story, mission, vision - 3 rich paragraphs) → team (4 members with personality) → stats → cta
-3. SERVICES (5 sections): hero → services (6 comprehensive offerings) → pricing (3 tiers: starter/professional/enterprise) → faq (6 objection-handlers) → cta
-4. CONTACT (4 sections): hero → contact (with form) → text (response commitment, office hours) → cta
+CONTENT & STORY:
+- "text": {headline, content, alignment} - Story and context (use sparingly, 1 paragraph max)
+- "story": {headline, subheadline, paragraphs:[], quote, quoteAuthor, stats:[{value, label}], layout:"editorial"} - Brand narrative, origin story
+- "brand-story": {headline, subheadline, founderName, founderRole, founderImage, origin, mission, vision, values:[]} - Founder/brand origin with personality
+
+FEATURES & BENEFITS:
+- "features": {headline, subheadline, items:[{title, description, icon}], layout:"grid"} - Value propositions (6 items, varied icons)
+  - Icons: star, shield, zap, heart, target, users, clock, check, award, globe, briefcase, settings, wrench, lightbulb, rocket, sparkles, trophy, crown, gem, flame
+  - layout: "grid" (default), "staggered", "alternating"
+- "benefits": {headline, subheadline, items:[{title, description, icon, stat, statLabel}]} - Outcome-focused with optional stats
+- "services": {headline, subheadline, items:[{title, description, icon, price, features:[]}]} - Detailed offerings with benefits
+
+SOCIAL PROOF & TRUST:
+- "testimonials": {headline, subheadline, items:[{quote, author, role, company, avatar, rating}], layout:"cards"} - Social proof
+  - layout: "cards" (default), "carousel", "featured", "minimal"
+- "stats": {headline, items:[{value, label, suffix, prefix}]} - Credibility numbers (4-6 items)
+- "trust-signals": {headline, logos:[{name, category}], awards:[], certifications:[], partners:[]} - Logos, awards, certifications
+- "case-studies": {headline, subheadline, items:[{title, client, challenge, solution, results:[{metric, value}], quote}]} - Detailed results
+
+PROCESS & COMPARISON:
+- "process": {headline, subheadline, steps:[{number, title, description, icon}]} - How it works (3-5 steps)
+- "comparison": {headline, subheadline, you:{name, features:[]}, competitors:[{name, features:[]}]} - Why you vs alternatives
+- "pricing": {headline, subheadline, plans:[{name, price, period, description, features:[], highlighted, ctaText}]} - Clear value tiers
+
+ENGAGEMENT:
+- "faq": {headline, subheadline, items:[{question, answer}]} - Objection handling (6-8 items)
+- "cta": {headline, subheadline, buttonText, buttonLink, secondaryText} - Conversion driver
+- "contact": {headline, subheadline, email, phone, address, showForm:true}
+- "team": {headline, subheadline, members:[{name, role, bio, image}]} - Humanize the brand
+- "gallery": {headline, subheadline, items:[{image, caption, category}], layout:"masonry"} - Visual showcase
+
+PAGE BLUEPRINTS (LONG-FORM, PREMIUM AGENCY-LEVEL):
+
+CRITICAL: Modern premium websites are NOT short. They include storytelling, credibility, proof, and depth.
+Every page must feel COMPLETE and TRUSTWORTHY. Minimum 8 sections per page (except Contact).
+
+1. HOME (10-12 sections): 
+   hero → text (bold value proposition statement, 1 paragraph) → features (6 items with varied icons) → 
+   story (brand origin, "why we exist" - editorial layout) → stats (4-6 impressive numbers) → 
+   services (4 highlighted with benefits) → process (3-5 steps "how it works") → 
+   testimonials (3-4 diverse, compelling stories) → benefits (4-6 outcome-focused) → 
+   trust-signals (logos, awards, certifications) → cta (strong final conversion)
+
+2. ABOUT (8-10 sections):
+   hero → brand-story (founder story with emotion and personality) → text (mission, vision - aspirational) →
+   team (4-6 members with personality and unexpected details) → stats (credibility numbers) → 
+   process (how you work differently) → testimonials (2-3 personal endorsements) → 
+   benefits (why clients choose you) → cta
+
+3. SERVICES (8-10 sections):
+   hero → text (service philosophy, what makes you different) → services (6+ comprehensive offerings) → 
+   process (how engagements work) → case-studies (2-3 results with specific outcomes) →
+   pricing (3 clear tiers if applicable) → comparison (why you vs alternatives) →
+   faq (6-8 objection-handlers) → testimonials (service-specific) → cta
+
+4. CONTACT (5-6 sections):
+   hero → text (what to expect, response commitment) → contact (with form) → 
+   faq (common questions about getting started) → trust-signals → cta
+
+LAYOUT SOPHISTICATION RULES:
+- NEVER use hero + 3 cards + hero + 3 cards repetition
+- Alternate between: grid layouts, editorial text blocks, full-width moments, split compositions
+- Add "breathing room" sections (stats, quotes, trust-signals) between dense content
+- Every 3rd section should feel visually different (different background, different layout)
 
 COPYWRITING MASTERY REQUIREMENTS:
 

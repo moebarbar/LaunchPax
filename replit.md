@@ -44,13 +44,19 @@ Preferred communication style: Simple, everyday language.
 - **Connector System**: A registry pattern abstracts external API integrations. Connectors implement a standard interface and are registered in `server/connectors/index.ts`. They provide capability-based lookup (e.g., "name_generation") with **automatic fallback to mock connectors** when primary AI services fail (quota exceeded, network errors, etc.).
 - **Workflow Engine**: Located in `server/workflows/engine.ts`, it orchestrates multi-step generation workflows (naming, brand, website, graphics) using connectors based on capabilities. It tracks progress and logs activity.
 - **Quality Engine**: Located in `server/workflows/quality-engine.ts`, it provides AI-powered quality evaluation and multi-pass refinement:
-    - Evaluates website quality across 7 dimensions (overall, layout, typography, creativity, heroImpact, contentQuality, visualDepth)
+    - Evaluates website quality across 8 dimensions (overall, layout, typography, creativity, heroImpact, contentQuality, visualDepth, layoutSophistication)
     - Runs up to 3 refinement passes to auto-improve weak sections
-    - **Premium Quality Thresholds**: Minimum 85 overall score, 90 for hero sections, 95 for excellent
+    - **Premium Quality Thresholds**: Minimum 85 overall score, 90 for hero sections, 95 for excellent, 70 for layout sophistication
     - Detects 100+ generic patterns and template-looking content (banned phrases like "Welcome to", "Your trusted partner", etc.)
+    - **Layout Sophistication Analysis**: Detects repetitive layouts, adjacent dense sections, hero+cards patterns, missing storytelling/trust sections
     - **Smart Hero Archetype Selection**: Industry-aware mapping (luxury→cinematic, events→immersive, startups→bold, SaaS→split, professional→minimal)
     - Provides comprehensive error handling with skipped/error flags for graceful degradation
     - Stores quality reports in activity logs for transparency
+- **Long-Form Page Blueprints**: Premium websites require 8-12+ sections per page with sophisticated layouts:
+    - HOME: hero → text → features → story → stats → services → process → testimonials → benefits → trust-signals → cta
+    - ABOUT: hero → brand-story → text → team → stats → process → testimonials → benefits → cta
+    - SERVICES: hero → text → services → process → case-studies → pricing → comparison → faq → testimonials → cta
+    - CONTACT: hero → text → contact → faq → trust-signals → cta
 - **Project Architecture**: Each project is an independent business configuration with an isolated content structure (structured JSON) and build states (draft, building, ready, error).
 - **Website Publishing System**: Supports publishing to live URLs (`/site/:projectId`) and secure previews (`/preview/:token`).
 - **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts, with section-type-aware guidance and dedicated API routes for refinement and direct data updates.
