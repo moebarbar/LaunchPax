@@ -256,7 +256,7 @@ export const launchpaxConnector = defineConnector({
   category: "ai",
   capabilities: ["text_generation", "content_generation", "long_form_content"],
   authType: "apiKey",
-  requiredEnvVars: ["DEEPSEEK_API_KEY"],
+  requiredEnvVars: [],
   isConfigured: () => !!process.env.DEEPSEEK_API_KEY,
   execute: executeTask,
   async test() {
