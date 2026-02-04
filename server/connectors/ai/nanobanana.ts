@@ -1,15 +1,28 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import { defineConnector } from "../registry";
 import type { ConnectorTask, ConnectorResult } from "@shared/schema";
 
 /**
  * Google Studio Connector
  * 
- * Provides: image_generation, graphics_generation
+ * Provides: image_generation, graphics_generation, text_generation
  * 
- * Uses Google's Gemini image generation models for high-quality graphics,
- * logos, and marketing assets with excellent text rendering.
+ * Uses Google's Gemini and Imagen models for:
+ * - Text generation (Gemini 2.0 Flash)
+ * - Image generation (Imagen 3)
+ * - Multimodal content (Gemini with vision)
  */
+
+// Available models
+const MODELS = {
+  // Text generation
+  TEXT_FAST: "gemini-2.0-flash",
+  TEXT_PRO: "gemini-1.5-pro",
+  // Image generation 
+  IMAGE_GEN: "imagen-3.0-generate-002",
+  // Multimodal (vision + text)
+  MULTIMODAL: "gemini-2.0-flash",
+};
 
 function getClient() {
   const apiKey = process.env.GOOGLE_API_KEY;
@@ -17,6 +30,36 @@ function getClient() {
     throw new Error("GOOGLE_API_KEY is required for Google Studio connector");
   }
   return new GoogleGenAI({ apiKey });
+}
+
+async function generateText(params: {
+  prompt: string;
+  model?: "fast" | "pro";
+  maxTokens?: number;
+}): Promise<ConnectorResult<{ text: string }>> {
+  try {
+    const client = getClient();
+    const modelName = params.model === "pro" ? MODELS.TEXT_PRO : MODELS.TEXT_FAST;
+    
+    const response = await client.models.generateContent({
+      model: modelName,
+      contents: params.prompt,
+    });
+    
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    
+    return {
+      success: true,
+      data: { text },
+      provider: "nanobanana",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to generate text",
+      provider: "nanobanana",
+    };
+  }
 }
 
 async function generateImage(params: {
@@ -36,24 +79,24 @@ async function generateImage(params: {
     
     const enhancedPrompt = `${params.prompt}. Style: ${styleDescriptions[params.style || "photorealistic"]}`;
     
-    const response = await client.models.generateContent({
-      model: "gemini-2.0-flash-exp-image-generation",
-      contents: enhancedPrompt,
+    // Use Imagen 3 for image generation
+    const response = await client.models.generateImages({
+      model: MODELS.IMAGE_GEN,
+      prompt: enhancedPrompt,
       config: {
-        responseModalities: ["image", "text"],
+        numberOfImages: 1,
+        aspectRatio: params.aspectRatio || "1:1",
       },
     });
     
     // Extract image from response
-    const parts = response.candidates?.[0]?.content?.parts || [];
-    for (const part of parts) {
-      if (part.inlineData) {
-        return {
-          success: true,
-          data: { b64_json: part.inlineData.data },
-          provider: "nanobanana",
-        };
-      }
+    const images = response.generatedImages || [];
+    if (images.length > 0 && images[0].image?.imageBytes) {
+      return {
+        success: true,
+        data: { b64_json: images[0].image.imageBytes },
+        provider: "nanobanana",
+      };
     }
     
     return {
@@ -130,6 +173,8 @@ Make it scroll-stopping and conversion-focused.`;
 
 async function executeTask<I, O>(task: ConnectorTask<I>): Promise<ConnectorResult<O>> {
   switch (task.action) {
+    case "generate_text":
+      return generateText(task.input as any) as Promise<ConnectorResult<O>>;
     case "generate_image":
       return generateImage(task.input as any) as Promise<ConnectorResult<O>>;
     case "generate_hero_image":
@@ -150,9 +195,9 @@ async function executeTask<I, O>(task: ConnectorTask<I>): Promise<ConnectorResul
 export const googleStudioConnector = defineConnector({
   key: "nanobanana",
   name: "Google Studio",
-  description: "AI graphics powered by Google Gemini with superior text rendering for logos, heroes, and marketing assets",
+  description: "AI powered by Google Gemini (text) and Imagen 3 (graphics) for content, logos, heroes, and marketing assets",
   category: "ai",
-  capabilities: ["image_generation", "graphics_generation"],
+  capabilities: ["image_generation", "graphics_generation", "text_generation", "content_generation"],
   authType: "apiKey",
   requiredEnvVars: ["GOOGLE_API_KEY"],
   isConfigured: () => !!process.env.GOOGLE_API_KEY,
@@ -164,10 +209,11 @@ export const googleStudioConnector = defineConnector({
     try {
       const client = getClient();
       const response = await client.models.generateContent({
-        model: "gemini-2.0-flash-exp",
-        contents: "Say hello",
+        model: MODELS.TEXT_FAST,
+        contents: "Say hello in one word",
       });
-      return { ok: true, message: "Google Studio API connection successful" };
+      const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      return { ok: true, message: `Google Studio API connected: ${text.trim()}` };
     } catch (error) {
       return { ok: false, message: error instanceof Error ? error.message : "Connection failed" };
     }
