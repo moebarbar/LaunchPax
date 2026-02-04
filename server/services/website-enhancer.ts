@@ -105,8 +105,11 @@ async function enhanceHeroSections(
   
   for (const page of content.pages || []) {
     for (const section of page.sections) {
-      const sectionData = section as any;
-      if (section.type === "hero" && (!sectionData.image || sectionData.image.includes("placeholder"))) {
+      const sectionData = section.data as Record<string, unknown>;
+      const hasImage = sectionData?.image && typeof sectionData.image === 'string';
+      const isPlaceholder = hasImage && (sectionData.image as string).includes("placeholder");
+      
+      if (section.type === "hero" && (!hasImage || isPlaceholder)) {
         try {
           const result = await generateAIImage({
             sectionType: "hero",
@@ -139,8 +142,10 @@ async function fillMissingImages(
   
   for (const page of content.pages || []) {
     for (const section of page.sections) {
-      const sectionData = section as any;
-      if (sectionsNeedingImages.includes(section.type) && !sectionData.image) {
+      const sectionData = section.data as Record<string, unknown>;
+      const hasImage = sectionData?.image && typeof sectionData.image === 'string';
+      
+      if (sectionsNeedingImages.includes(section.type) && !hasImage) {
         try {
           const result = await findStockImage({
             sectionType: section.type,
@@ -173,16 +178,18 @@ async function optimizeAllImages(
   
   for (const page of content.pages || []) {
     for (const section of page.sections) {
-      const sectionData = section as any;
-      if (sectionData.image && !sectionData.image.includes("cloudinary")) {
+      const sectionData = section.data as Record<string, unknown>;
+      const imageUrl = sectionData?.image as string | undefined;
+      
+      if (imageUrl && !imageUrl.includes("cloudinary")) {
         try {
-          const optimizedUrl = await optimizeImage(sectionData.image, {
+          const optimizedUrl = await optimizeImage(imageUrl, {
             width: section.type === "hero" ? 1920 : 1200,
             quality: "auto",
             format: "auto",
           });
           
-          if (optimizedUrl !== sectionData.image) {
+          if (optimizedUrl !== imageUrl) {
             sectionData.image = optimizedUrl;
             tracking.stats.sectionsOptimized++;
           }
