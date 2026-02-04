@@ -17,6 +17,9 @@ interface ImageMetadata {
   caption?: string;
   seoFileName: string;
   metaDescription?: string;
+  source?: string;
+  photographer?: string;
+  aiGenerated?: boolean;
 }
 
 interface ImageWithMetadata {
@@ -162,6 +165,7 @@ function generateFallbackMetadata(context: {
 
 /**
  * Search for stock photos matching section context
+ * Uses multiple sources: Pexels (primary) + Unsplash (fallback)
  */
 export async function findStockImage(
   context: {
@@ -172,47 +176,179 @@ export async function findStockImage(
   }
 ): Promise<ImageWithMetadata | null> {
   const pexelsConnector = connectorRegistry.get("pexels");
+  const unsplashConnector = connectorRegistry.get("unsplash");
   
-  if (!pexelsConnector?.isConfigured()) {
-    console.log("[ImageManager] Pexels not configured, cannot fetch stock images");
+  const stockConnectors = [
+    { connector: pexelsConnector, name: "Pexels" },
+    { connector: unsplashConnector, name: "Unsplash" },
+  ].filter(c => c.connector?.isConfigured());
+  
+  if (stockConnectors.length === 0) {
+    console.log("[ImageManager] No stock photo connectors configured");
     return null;
   }
   
   const searchQueries = buildSearchQueries(context);
+  const orientation = context.sectionType === "hero" ? "landscape" : "square";
   
-  for (const query of searchQueries) {
+  for (const { connector, name } of stockConnectors) {
+    for (const query of searchQueries) {
+      try {
+        const result = await connector!.execute({
+          capability: "stock_photos",
+          action: "search_photos",
+          input: {
+            query,
+            perPage: 5,
+            orientation,
+            size: "large",
+          },
+          options: { purpose: "section_image", sectionType: context.sectionType },
+        });
+        
+        if (result.success && result.data) {
+          const photos = (result.data as any).photos || [];
+          if (photos.length > 0) {
+            const photo = photos[0];
+            console.log(`[ImageManager] Found image from ${name} for "${query}"`);
+            return {
+              url: photo.url,
+              metadata: {
+                alt: photo.alt || `${context.industry} ${context.sectionType} image`,
+                seoFileName: `${context.industry.toLowerCase().replace(/\s+/g, '-')}-${context.sectionType}`,
+                source: name.toLowerCase(),
+                photographer: photo.photographer,
+              },
+            };
+          }
+        }
+      } catch (error) {
+        console.error(`[ImageManager] ${name} search failed for "${query}":`, error);
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Generate AI image for premium hero sections
+ * Tries multiple AI providers: DALL-E 3, Stability AI, Leonardo AI
+ */
+export async function generateAIImage(
+  context: {
+    sectionType: string;
+    businessName: string;
+    industry: string;
+    style?: "professional" | "creative" | "minimal" | "bold" | "luxury";
+    mood?: string;
+  }
+): Promise<ImageWithMetadata | null> {
+  const dalleConnector = connectorRegistry.get("dalle");
+  const stabilityConnector = connectorRegistry.get("stability");
+  const leonardoConnector = connectorRegistry.get("leonardo");
+  
+  const aiConnectors = [
+    { connector: dalleConnector, name: "DALL-E", action: "generate_hero" },
+    { connector: stabilityConnector, name: "Stability", action: "generate_website_graphic" },
+    { connector: leonardoConnector, name: "Leonardo", action: "generate_stylized" },
+  ].filter(c => c.connector?.isConfigured());
+  
+  if (aiConnectors.length === 0) {
+    console.log("[ImageManager] No AI image connectors configured, falling back to stock");
+    return findStockImage({
+      sectionType: context.sectionType,
+      industry: context.industry,
+      mood: context.mood,
+    });
+  }
+  
+  for (const { connector, name, action } of aiConnectors) {
     try {
-      const result = await pexelsConnector.execute({
-        capability: "stock_photos",
-        action: "search_photos",
+      console.log(`[ImageManager] Generating AI image with ${name}...`);
+      
+      const result = await connector!.execute({
+        capability: "image_generation",
+        action,
         input: {
-          query,
-          perPage: 5,
-          orientation: context.sectionType === "hero" ? "landscape" : "square",
-          size: "large",
+          businessName: context.businessName,
+          industry: context.industry,
+          style: context.style || "professional",
+          mood: context.mood,
+          type: context.sectionType === "hero" ? "hero" : "feature",
+          subject: `${context.businessName} ${context.industry} business`,
         },
-        options: { purpose: "section_image", sectionType: context.sectionType },
       });
       
       if (result.success && result.data) {
-        const photos = (result.data as any).photos || [];
-        if (photos.length > 0) {
-          const photo = photos[0];
+        const data = result.data as any;
+        const imageUrl = data.images?.[0]?.url || data.url;
+        
+        if (imageUrl) {
+          console.log(`[ImageManager] AI image generated with ${name}`);
           return {
-            url: photo.url,
+            url: imageUrl,
             metadata: {
-              alt: photo.alt || `${context.industry} ${context.sectionType} image`,
-              seoFileName: `${context.industry.toLowerCase().replace(/\s+/g, '-')}-${context.sectionType}`,
+              alt: `${context.businessName} ${context.sectionType} - AI generated`,
+              seoFileName: `${context.businessName.toLowerCase().replace(/\s+/g, '-')}-${context.sectionType}`,
+              source: `ai-${name.toLowerCase()}`,
+              aiGenerated: true,
             },
           };
         }
       }
     } catch (error) {
-      console.error(`[ImageManager] Stock search failed for "${query}":`, error);
+      console.error(`[ImageManager] ${name} generation failed:`, error);
     }
   }
   
-  return null;
+  console.log("[ImageManager] All AI generators failed, falling back to stock photos");
+  return findStockImage({
+    sectionType: context.sectionType,
+    industry: context.industry,
+    mood: context.mood,
+  });
+}
+
+/**
+ * Optimize image URL using Cloudinary CDN
+ */
+export async function optimizeImage(
+  imageUrl: string,
+  options?: {
+    width?: number;
+    height?: number;
+    quality?: "auto" | number;
+    format?: "auto" | "webp" | "avif";
+  }
+): Promise<string> {
+  const cloudinaryConnector = connectorRegistry.get("cloudinary");
+  
+  if (!cloudinaryConnector?.isConfigured()) {
+    return imageUrl;
+  }
+  
+  try {
+    const result = await cloudinaryConnector.execute({
+      capability: "image_optimization",
+      action: "optimize_url",
+      input: {
+        url: imageUrl,
+        width: options?.width || 1200,
+        quality: options?.quality || "auto",
+        format: options?.format || "auto",
+      },
+    });
+    
+    if (result.success && result.data) {
+      const data = result.data as any;
+      return data.optimizedUrl || imageUrl;
+    }
+  } catch (error) {
+    console.error("[ImageManager] Cloudinary optimization failed:", error);
+  }
+  
+  return imageUrl;
 }
 
 function buildSearchQueries(context: {
