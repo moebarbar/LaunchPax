@@ -75,6 +75,16 @@ Preferred communication style: Simple, everyday language.
 - **Project Architecture**: Each project is an independent business configuration with an isolated content structure (structured JSON) and build states (draft, building, ready, error).
 - **Website Publishing System**: Supports publishing to live URLs (`/site/:projectId`) and secure previews (`/preview/:token`).
 - **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts, with section-type-aware guidance and dedicated API routes for refinement and direct data updates.
+- **Website Enhancement Service**: Located in `server/services/website-enhancer.ts`, orchestrates all integrations to create premium websites:
+    - **AI Hero Images**: Generates premium hero images using DALL-E 3, Stability AI, or Leonardo AI
+    - **Multi-Source Stock Photos**: Auto-fills missing images from Pexels (primary) with Unsplash fallback
+    - **CDN Optimization**: Optimizes all images through Cloudinary for responsive sizes and modern formats
+    - **Analytics Injection**: Adds Google Analytics tracking to all pages
+    - **Maps Integration**: Embeds Google Maps for business locations with address provided
+    - **Payment Processing**: Integrates Stripe checkout for e-commerce functionality
+    - **Contact Forms**: Connects SendGrid for email handling and Twilio for SMS alerts
+    - **Animations**: Adds Lottie animated icons and micro-interactions
+    - API endpoints: `GET /api/enhancement-capabilities` (available integrations), `POST /api/projects/:id/enhance` (apply enhancements)
 
 ### White-Label Requirements
 - Replit is used solely as internal infrastructure.
