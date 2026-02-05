@@ -255,11 +255,12 @@ function SectionRenderer({ section, globalContent }: { section: SectionContent; 
 function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalContent?: GlobalContent; onNavigate?: (pageSlug: string) => void; siteSettings?: WebsiteContent["siteSettings"] }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const navigation = globalContent?.navigation || [];
   
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -275,117 +276,180 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
   };
   
   return (
-    <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled 
-          ? "bg-white/90 backdrop-blur-2xl border-b border-gray-200/50 shadow-[0_1px_3px_rgba(0,0,0,0.05)]" 
-          : "bg-transparent"
-      }`}
-    >
-      <nav className="max-w-7xl mx-auto px-6 sm:px-8 py-5">
-        <div className="flex items-center justify-between">
-          <a 
-            href="/" 
-            className="font-bold text-xl flex items-center gap-3 group"
-            onClick={(e) => handleNavClick(e, "/")}
-          >
-            {(globalContent as any)?.logoB64 ? (
-              <div className="relative">
-                <div 
-                  className="absolute inset-0 blur-lg opacity-50 group-hover:opacity-70 transition-opacity"
-                  style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                />
+    <header className="fixed top-0 left-0 right-0 z-50">
+      {/* Floating navigation container */}
+      <div className={`transition-all duration-700 ease-out ${scrolled ? 'pt-3 px-4' : 'pt-6 px-6'}`}>
+        <nav 
+          className={`max-w-6xl mx-auto transition-all duration-500 ${
+            scrolled 
+              ? 'bg-white/95 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-2xl border border-white/20' 
+              : 'bg-transparent'
+          }`}
+        >
+          <div className={`flex items-center justify-between transition-all duration-500 ${scrolled ? 'px-6 py-3' : 'px-2 py-4'}`}>
+            {/* Logo */}
+            <a 
+              href="/" 
+              className="font-bold text-xl flex items-center gap-3 group relative"
+              onClick={(e) => handleNavClick(e, "/")}
+            >
+              {(globalContent as any)?.logoB64 ? (
+                <div className="relative">
+                  <div 
+                    className="absolute inset-0 blur-xl opacity-40 group-hover:opacity-60 transition-opacity duration-500 scale-150"
+                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                  />
+                  <img 
+                    src={`data:image/png;base64,${(globalContent as any).logoB64}`}
+                    alt={`${globalContent?.siteName || "Website"} logo`}
+                    className="h-10 w-10 object-contain relative transition-transform duration-300 group-hover:scale-110"
+                  />
+                </div>
+              ) : globalContent?.logo ? (
                 <img 
-                  src={`data:image/png;base64,${(globalContent as any).logoB64}`}
+                  src={globalContent.logo}
                   alt={`${globalContent?.siteName || "Website"} logo`}
-                  className="h-10 w-10 object-contain relative"
+                  className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
                 />
-              </div>
-            ) : globalContent?.logo ? (
-              <img 
-                src={globalContent.logo}
-                alt={`${globalContent?.siteName || "Website"} logo`}
-                className="h-10 w-10 object-contain"
-              />
-            ) : (
-              <div 
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                style={{ 
-                  background: `linear-gradient(135deg, 
-                    var(--brand-primary, hsl(var(--primary))) 0%, 
-                    var(--brand-secondary, hsl(var(--primary))) 100%)`
-                }}
-              >
-                {(globalContent?.siteName || "W").charAt(0)}
-              </div>
-            )}
-            <span className="hidden sm:inline-block tracking-tight">
-              {globalContent?.siteName || "Website"}
-            </span>
-          </a>
-          
-          {navigation.length > 0 && (
-            <>
-              <div className="hidden md:flex items-center gap-1">
-                {navigation.map((item, index) => (
-                  <a
-                    key={index}
-                    href={sanitizeHref(item.href)}
-                    className="px-4 py-2.5 rounded-lg text-[15px] font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 transition-all duration-200"
-                    onClick={(e) => handleNavClick(e, item.href)}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-                <a
-                  href="#contact"
-                  className="ml-3 px-6 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              ) : (
+                <div 
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-bold text-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
                   style={{ 
                     background: `linear-gradient(135deg, 
-                      var(--brand-primary, #3b82f6) 0%, 
-                      var(--brand-secondary, var(--brand-primary, #2563eb)) 100%)`
+                      var(--brand-primary, hsl(var(--primary))) 0%, 
+                      var(--brand-secondary, hsl(var(--primary))) 100%)`,
+                    boxShadow: '0 4px 20px -4px var(--brand-primary, rgba(59, 130, 246, 0.5))'
                   }}
                 >
-                  Get Started
-                </a>
+                  {(globalContent?.siteName || "W").charAt(0)}
+                </div>
+              )}
+              <div className="hidden sm:flex flex-col">
+                <span className="tracking-tight font-semibold text-gray-900 text-lg leading-tight">
+                  {globalContent?.siteName || "Website"}
+                </span>
               </div>
+            </a>
+            
+            {/* Center Navigation - Floating Pill */}
+            {navigation.length > 0 && (
+              <>
+                <div className="hidden lg:flex items-center">
+                  <div 
+                    className={`flex items-center gap-1 p-1.5 rounded-full transition-all duration-500 ${
+                      scrolled ? 'bg-gray-100/80' : 'bg-white/90 backdrop-blur-xl shadow-lg border border-gray-200/50'
+                    }`}
+                  >
+                    {navigation.map((item, index) => (
+                      <a
+                        key={index}
+                        href={sanitizeHref(item.href)}
+                        className="relative px-5 py-2.5 text-[14px] font-medium transition-all duration-300"
+                        onClick={(e) => handleNavClick(e, item.href)}
+                        onMouseEnter={() => setHoveredIndex(index)}
+                        onMouseLeave={() => setHoveredIndex(null)}
+                        style={{ 
+                          color: hoveredIndex === index ? 'var(--brand-primary, #3b82f6)' : '#374151'
+                        }}
+                      >
+                        {/* Animated background pill */}
+                        <span 
+                          className={`absolute inset-0 rounded-full transition-all duration-300 ${
+                            hoveredIndex === index ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                          }`}
+                          style={{ 
+                            background: 'white',
+                            boxShadow: hoveredIndex === index ? '0 2px 12px rgba(0,0,0,0.08)' : 'none'
+                          }}
+                        />
+                        {/* Text with animated underline dot */}
+                        <span className="relative z-10 flex items-center gap-1">
+                          {item.label}
+                          <span 
+                            className={`w-1 h-1 rounded-full transition-all duration-300 ${
+                              hoveredIndex === index ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
+                            }`}
+                            style={{ background: 'var(--brand-primary, #3b82f6)' }}
+                          />
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <div className="hidden lg:flex items-center gap-3">
+                  <a
+                    href="#contact"
+                    className="group relative px-7 py-3 rounded-full text-sm font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]"
+                    style={{ 
+                      background: `linear-gradient(135deg, 
+                        var(--brand-primary, #3b82f6) 0%, 
+                        var(--brand-secondary, var(--brand-primary, #1d4ed8)) 100%)`,
+                      boxShadow: '0 4px 20px -4px var(--brand-primary, rgba(59, 130, 246, 0.5))'
+                    }}
+                  >
+                    {/* Shine effect */}
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <span className="relative flex items-center gap-2">
+                      Get Started
+                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </span>
+                  </a>
+                </div>
               
-              <button
-                className="md:hidden p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
-            </>
-          )}
-        </div>
-        
-        {mobileMenuOpen && navigation.length > 0 && (
-          <div className="md:hidden pt-4 pb-4 space-y-1 border-t mt-4">
+                {/* Mobile menu button */}
+                <button
+                  className="lg:hidden p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                >
+                  {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+              </>
+            )}
+          </div>
+        </nav>
+      </div>
+      
+      {/* Mobile Menu - Full screen overlay */}
+      {mobileMenuOpen && navigation.length > 0 && (
+        <div className="lg:hidden fixed inset-0 top-20 bg-white/98 backdrop-blur-xl z-40">
+          <div className="flex flex-col p-6 space-y-2">
             {navigation.map((item, index) => (
               <a
                 key={index}
                 href={sanitizeHref(item.href)}
-                className="block py-3 px-4 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+                className="py-4 px-6 text-xl font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-2xl transition-all flex items-center justify-between group"
                 onClick={(e) => handleNavClick(e, item.href)}
               >
                 {item.label}
+                <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </a>
             ))}
-            <a
-              href="#contact"
-              className="block py-3 px-4 rounded-xl text-center text-white font-medium mt-2"
-              style={{ 
-                background: `linear-gradient(135deg, 
-                  var(--brand-primary, hsl(var(--primary))) 0%, 
-                  var(--brand-secondary, hsl(var(--primary))) 100%)`
-              }}
-            >
-              Get Started
-            </a>
+            <div className="pt-4">
+              <a
+                href="#contact"
+                className="flex items-center justify-center py-4 px-6 rounded-2xl text-lg text-white font-semibold"
+                style={{ 
+                  background: `linear-gradient(135deg, 
+                    var(--brand-primary, hsl(var(--primary))) 0%, 
+                    var(--brand-secondary, hsl(var(--primary))) 100%)`,
+                  boxShadow: '0 8px 24px -8px var(--brand-primary, rgba(59, 130, 246, 0.5))'
+                }}
+              >
+                Get Started
+                <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
+            </div>
           </div>
-        )}
-      </nav>
+        </div>
+      )}
     </header>
   );
 }
