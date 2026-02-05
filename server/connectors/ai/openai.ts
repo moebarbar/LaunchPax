@@ -1122,10 +1122,12 @@ Requirements:
 
         try {
           const imageResponse = await client.images.generate({
-            model: "gpt-image-1",
+            model: "dall-e-3",
             prompt: logoPrompt,
             n: 1,
             size: "1024x1024",
+            quality: "hd",
+            style: "natural",
           });
 
           const imageData = imageResponse.data?.[0];

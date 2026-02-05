@@ -128,7 +128,7 @@ export default function ProjectDetailPage() {
           <NamingDomain projectId={projectId} project={project} />
         </TabsContent>
         <TabsContent value="brand">
-          <BrandKit projectId={projectId} />
+          <BrandKit projectId={projectId} project={project} />
         </TabsContent>
         <TabsContent value="website">
           <WebsitePlan projectId={projectId} />

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
@@ -14,15 +15,18 @@ import {
   MessageSquare,
   Quote,
   Target,
+  Paintbrush,
 } from "lucide-react";
 import TechyBuildProgress from "@/components/techy-build-progress";
-import type { BrandKit as BrandKitType, WorkflowJob } from "@shared/schema";
+import BrandingEditor from "./branding-editor";
+import type { BrandKit as BrandKitType, WorkflowJob, Project } from "@shared/schema";
 
 interface BrandKitProps {
   projectId: number;
+  project?: Project;
 }
 
-export default function BrandKit({ projectId }: BrandKitProps) {
+export default function BrandKit({ projectId, project }: BrandKitProps) {
   const { toast } = useToast();
 
   const { data: brandKit, isLoading, refetch: refetchBrandKit } = useQuery<BrandKitType>({
@@ -150,141 +154,138 @@ export default function BrandKit({ projectId }: BrandKitProps) {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <MessageSquare className="w-5 h-5" />
-              Brand Voice
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm leading-relaxed" data-testid="text-brand-voice">
-              {brandKit.brandVoice || "Not generated yet"}
-            </p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="identity" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="identity" className="flex items-center gap-2" data-testid="tab-brand-identity">
+            <Target className="h-4 w-4" />
+            Brand Identity
+          </TabsTrigger>
+          <TabsTrigger value="customize" className="flex items-center gap-2" data-testid="tab-customize">
+            <Paintbrush className="h-4 w-4" />
+            Customize Branding
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Quote className="w-5 h-5" />
-              Elevator Pitch
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm leading-relaxed italic" data-testid="text-elevator-pitch">
-              "{brandKit.elevatorPitch || "Not generated yet"}"
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="identity" className="mt-6 space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <MessageSquare className="w-5 h-5" />
+                  Brand Voice
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed" data-testid="text-brand-voice">
+                  {brandKit.brandVoice || "Not generated yet"}
+                </p>
+              </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="w-5 h-5" />
-            Taglines
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {brandKit.taglines && brandKit.taglines.length > 0 ? (
-              brandKit.taglines.map((tagline, index) => (
-                <Badge key={index} variant="outline" className="text-sm py-1 px-3" data-testid={`badge-tagline-${index}`}>
-                  {tagline}
-                </Badge>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-sm">No taglines generated</p>
-            )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Quote className="w-5 h-5" />
+                  Elevator Pitch
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm leading-relaxed italic" data-testid="text-elevator-pitch">
+                  "{brandKit.elevatorPitch || "Not generated yet"}"
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Palette className="w-5 h-5" />
-            Color Palette
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            {brandKit.colorPalette && brandKit.colorPalette.length > 0 ? (
-              brandKit.colorPalette.map((color, index) => (
-                <div key={index} className="space-y-2" data-testid={`color-${index}`}>
-                  <div
-                    className="aspect-square rounded-lg ring-1 ring-black/10"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <div className="text-center">
-                    <p className="text-sm font-medium">{color.name}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{color.hex}</p>
-                    <p className="text-xs text-muted-foreground">{color.usage}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-sm col-span-full">No colors generated</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Sparkles className="w-5 h-5" />
+                Taglines
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {brandKit.taglines && brandKit.taglines.length > 0 ? (
+                  brandKit.taglines.map((tagline, index) => (
+                    <Badge key={index} variant="outline" className="text-sm py-1 px-3" data-testid={`badge-tagline-${index}`}>
+                      {tagline}
+                    </Badge>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm">No taglines generated</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Type className="w-5 h-5" />
-            Typography
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {brandKit.fontPairings && brandKit.fontPairings.length > 0 ? (
-              brandKit.fontPairings.map((pairing, index) => (
-                <Card key={index} className="bg-muted/30">
-                  <CardContent className="p-4 space-y-2">
-                    <p className="text-xs text-muted-foreground">Pairing {index + 1}</p>
-                    <p className="font-semibold">{pairing.heading}</p>
-                    <p className="text-sm text-muted-foreground">{pairing.body}</p>
-                    {pairing.accent && (
-                      <p className="text-xs text-muted-foreground">Accent: {pairing.accent}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-sm col-span-full">No font pairings generated</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Type className="w-5 h-5" />
+                Typography
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {brandKit.fontPairings && brandKit.fontPairings.length > 0 ? (
+                  brandKit.fontPairings.map((pairing, index) => (
+                    <Card key={index} className="bg-muted/30">
+                      <CardContent className="p-4 space-y-2">
+                        <p className="text-xs text-muted-foreground">Pairing {index + 1}</p>
+                        <p className="font-semibold">{pairing.heading}</p>
+                        <p className="text-sm text-muted-foreground">{pairing.body}</p>
+                        {pairing.accent && (
+                          <p className="text-xs text-muted-foreground">Accent: {pairing.accent}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm col-span-full">No font pairings generated</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Target className="w-5 h-5" />
-            Messaging Pillars
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {brandKit.messagingPillars && brandKit.messagingPillars.length > 0 ? (
-              brandKit.messagingPillars.map((pillar, index) => (
-                <Card key={index} className="bg-muted/30">
-                  <CardContent className="p-4">
-                    <h4 className="font-semibold mb-2">{pillar.title}</h4>
-                    <p className="text-sm text-muted-foreground">{pillar.description}</p>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-sm col-span-full">No messaging pillars generated</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Target className="w-5 h-5" />
+                Messaging Pillars
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid sm:grid-cols-2 gap-4">
+                {brandKit.messagingPillars && brandKit.messagingPillars.length > 0 ? (
+                  brandKit.messagingPillars.map((pillar, index) => (
+                    <Card key={index} className="bg-muted/30">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold mb-2">{pillar.title}</h4>
+                        <p className="text-sm text-muted-foreground">{pillar.description}</p>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm col-span-full">No messaging pillars generated</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="customize" className="mt-6">
+          {project ? (
+            <BrandingEditor projectId={projectId} project={project} />
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <p className="text-muted-foreground">Loading project data...</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

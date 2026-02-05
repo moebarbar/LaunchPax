@@ -186,6 +186,173 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(brandKit || { status: "pending" });
   });
 
+  app.patch("/api/projects/:id/brand-kit", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    try {
+      const updates = req.body;
+      const brandKit = await storage.upsertBrandKit({
+        projectId,
+        ...updates,
+        status: "ready",
+      });
+      res.json(brandKit);
+    } catch (error) {
+      console.error("[PATCH /brand-kit] Error:", error);
+      res.status(500).json({ error: "Failed to update brand kit" });
+    }
+  });
+
+  app.post("/api/projects/:id/brand-kit/generate-logo", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    try {
+      const { style, model } = req.body;
+      console.log(`[Logo Generation] Starting for project ${projectId}, style: ${style}, model: ${model}`);
+      
+      const brandKit = await storage.getBrandKit(projectId);
+      
+      if (!brandKit?.colorsApproved) {
+        console.log(`[Logo Generation] Colors not approved for project ${projectId}`);
+        return res.status(400).json({ error: "Please approve brand colors before generating a logo" });
+      }
+
+      const businessProfile = project.businessProfile as any;
+      const colors = brandKit.colorPalette?.map(c => c.hex) || [];
+      console.log(`[Logo Generation] Colors: ${colors.join(", ")}, Business: ${businessProfile?.name || project.name}`);
+      
+      let logoResult;
+      const { connectorRegistry } = await import("./connectors/registry");
+      
+      if (model === "leonardo") {
+        console.log(`[Logo Generation] Using Leonardo AI`);
+        logoResult = await connectorRegistry.execute(
+          "image_generation",
+          "generate_image",
+          {
+            prompt: `Professional logo design for "${businessProfile?.name || project.name}", a ${businessProfile?.industry || "business"} company. Style: ${style || "modern"}. Colors: ${colors.join(", ")}. Clean, scalable, memorable logo on white background. No text, symbol only.`,
+            width: 1024,
+            height: 1024,
+          }
+        );
+      } else {
+        console.log(`[Logo Generation] Using DALL-E 3`);
+        logoResult = await connectorRegistry.execute(
+          "image_generation",
+          "generate_logo",
+          {
+            businessName: businessProfile?.name || project.name,
+            industry: businessProfile?.industry || "business",
+            style: style || "modern",
+            colors,
+          }
+        );
+      }
+
+      console.log(`[Logo Generation] Result:`, JSON.stringify(logoResult, null, 2));
+
+      if (!logoResult.success) {
+        console.error(`[Logo Generation] Failed:`, logoResult.error);
+        return res.status(500).json({ error: logoResult.error || "Failed to generate logo" });
+      }
+
+      const logoUrl = (logoResult.data as any)?.images?.[0]?.url || (logoResult.data as any)?.url;
+      console.log(`[Logo Generation] Logo URL:`, logoUrl);
+      
+      if (logoUrl) {
+        const updatedBrandKit = await storage.upsertBrandKit({
+          projectId,
+          brandVoice: brandKit.brandVoice,
+          taglines: brandKit.taglines,
+          colorPalette: brandKit.colorPalette,
+          fontPairings: brandKit.fontPairings,
+          messagingPillars: brandKit.messagingPillars,
+          elevatorPitch: brandKit.elevatorPitch,
+          colorsApproved: brandKit.colorsApproved,
+          colorExplanation: brandKit.colorExplanation,
+          faviconUrl: brandKit.faviconUrl,
+          logoUrl,
+          logoStyle: style || "modern",
+          status: "ready",
+        });
+        console.log(`[Logo Generation] Brand kit updated, logoUrl saved:`, updatedBrandKit.logoUrl);
+      } else {
+        console.warn(`[Logo Generation] No logo URL in result`);
+        return res.status(500).json({ error: "Failed to get logo URL from AI provider" });
+      }
+
+      res.json({ 
+        success: true, 
+        logoUrl,
+        provider: logoResult.provider,
+      });
+    } catch (error) {
+      console.error("[POST /brand-kit/generate-logo] Error:", error);
+      res.status(500).json({ error: "Failed to generate logo" });
+    }
+  });
+
+  app.post("/api/projects/:id/brand-kit/upload-logo", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    try {
+      const { imageBase64, type } = req.body;
+      
+      if (!imageBase64) {
+        return res.status(400).json({ error: "Image data is required" });
+      }
+
+      const { uploadToCloudinary } = await import("./services/cloudinary");
+      const uploadResult = await uploadToCloudinary(imageBase64, {
+        folder: `launchpax/${projectId}/branding`,
+        transformation: type === "favicon" 
+          ? { width: 512, height: 512, crop: "fill" }
+          : { width: 1024, height: 1024, crop: "fit" },
+      });
+
+      if (!uploadResult.success || !uploadResult.url) {
+        return res.status(500).json({ error: "Failed to upload image" });
+      }
+
+      const updateData = type === "favicon" 
+        ? { faviconUrl: uploadResult.url }
+        : { logoUrl: uploadResult.url };
+
+      await storage.upsertBrandKit({
+        projectId,
+        ...updateData,
+        status: "ready",
+      });
+
+      res.json({ 
+        success: true, 
+        url: uploadResult.url,
+        type,
+      });
+    } catch (error) {
+      console.error("[POST /brand-kit/upload-logo] Error:", error);
+      res.status(500).json({ error: "Failed to upload image" });
+    }
+  });
+
   // ============================================================================
   // WEBSITE CONTENT API
   // ============================================================================

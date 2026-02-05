@@ -117,3 +117,16 @@ Preferred communication style: Simple, everyday language.
 - **Fix**: Updated hero archetype selection to use "split" for healthcare/dental/medical industries (image-supporting archetype)
 - **Enhancement**: Updated hero-minimal to support images with dark overlay and white text when image is available
 - **Contrast Fix**: Updated hero-split to use explicit dark text colors (text-gray-900, text-gray-600) instead of CSS variables to ensure readability on light backgrounds
+
+### AI Logo Generation Fix (Feb 2026)
+- **Issue**: Logo generation was failing silently - server started generation but logoUrl never saved
+- **Root Cause**: OpenAI connector was using invalid model name "gpt-image-1" instead of "dall-e-3"
+- **Fix**: Changed model to "dall-e-3" with quality="hd" and style="natural" for professional logo output
+- **Response Handling**: Fixed upsertBrandKit to explicitly pass only valid fields (avoiding extra DB fields like id, createdAt)
+- **Error Handling**: Added proper error response when logo URL is missing from AI provider response
+- **Logging**: Enhanced logging throughout logo generation flow for debugging:
+  - `[Logo Generation] Starting for project X, style: Y, model: Z`
+  - `[Logo Generation] Result: {JSON}`
+  - `[Logo Generation] Logo URL: <url>`
+  - `[Logo Generation] Brand kit updated, logoUrl saved: <url>`
+- **Testing Verified**: DALL-E 3 logo generation successfully creates and saves logos to brand kit
