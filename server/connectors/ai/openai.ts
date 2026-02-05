@@ -21,46 +21,201 @@ function getClient() {
   return new OpenAI({ apiKey });
 }
 
-function getStyleVariant(style: string): { description: string; fonts: { heading: string; body: string }; radiusStyle: string } {
-  const variants: Record<string, { description: string; fonts: { heading: string; body: string }; radiusStyle: string }> = {
+interface StyleVariant {
+  description: string;
+  fonts: { heading: string; body: string };
+  radiusStyle: string;
+  gradientStyle?: string;
+  visualSignatures?: string[];
+}
+
+function getStyleVariant(style: string): StyleVariant {
+  const variants: Record<string, StyleVariant> = {
     modern: {
       description: "Clean lines, generous whitespace, subtle shadows. Focus on clarity and contemporary aesthetics.",
       fonts: { heading: "Inter", body: "Inter" },
-      radiusStyle: "rounded-xl (12px)"
+      radiusStyle: "rounded-xl (12px)",
+      gradientStyle: "subtle linear gradient from slate-50 to white",
+      visualSignatures: ["glassmorphism cards", "soft shadows", "micro-interactions"]
     },
     minimal: {
       description: "Ultra-clean, lots of negative space, monochromatic with single accent. Typography-focused.",
       fonts: { heading: "DM Sans", body: "DM Sans" },
-      radiusStyle: "rounded-lg (8px)"
+      radiusStyle: "rounded-lg (8px)",
+      gradientStyle: "none - pure solid colors",
+      visualSignatures: ["oversized typography", "single accent color", "negative space mastery"]
     },
     bold: {
       description: "High contrast, large typography, vibrant colors, dramatic shadows. Makes a strong statement.",
       fonts: { heading: "Oswald", body: "Open Sans" },
-      radiusStyle: "rounded-md (6px)"
+      radiusStyle: "rounded-md (6px)",
+      gradientStyle: "bold diagonal gradient with vibrant colors",
+      visualSignatures: ["oversized headlines", "color blocks", "geometric shapes"]
     },
     corporate: {
       description: "Professional, trustworthy, structured layouts. Emphasizes stability and expertise.",
       fonts: { heading: "Montserrat", body: "Source Sans 3" },
-      radiusStyle: "rounded (4px)"
+      radiusStyle: "rounded (4px)",
+      gradientStyle: "subtle navy to slate gradient",
+      visualSignatures: ["structured grids", "trust badges", "formal photography"]
     },
     elegant: {
       description: "Sophisticated, refined typography, subtle gradients. Luxury feel with attention to detail.",
       fonts: { heading: "Playfair Display", body: "Lora" },
-      radiusStyle: "rounded-lg (8px)"
+      radiusStyle: "rounded-lg (8px)",
+      gradientStyle: "warm cream to champagne gradient",
+      visualSignatures: ["serif typography", "gold accents", "editorial layouts"]
     },
     creative: {
       description: "Playful, unexpected layouts, creative use of color. Fun and approachable.",
       fonts: { heading: "Poppins", body: "Nunito" },
-      radiusStyle: "rounded-2xl (16px)"
+      radiusStyle: "rounded-2xl (16px)",
+      gradientStyle: "multi-color gradient with playful transitions",
+      visualSignatures: ["asymmetric layouts", "blob shapes", "animated elements"]
     },
     tech: {
       description: "Futuristic, sharp edges optional, gradient accents. Modern technology feel.",
       fonts: { heading: "Space Grotesk", body: "Work Sans" },
-      radiusStyle: "rounded-lg (8px)"
+      radiusStyle: "rounded-lg (8px)",
+      gradientStyle: "electric blue to purple gradient",
+      visualSignatures: ["gradient text", "terminal/code aesthetics", "dark mode optimized"]
+    },
+    luxe: {
+      description: "Premium, exclusive feel with dark backgrounds. High-end hospitality and fashion.",
+      fonts: { heading: "Cormorant Garamond", body: "Raleway" },
+      radiusStyle: "rounded-md (6px)",
+      gradientStyle: "deep charcoal to black with gold accents",
+      visualSignatures: ["dark backgrounds", "gold typography", "cinematic imagery"]
+    },
+    editorial: {
+      description: "Magazine-quality layout with dramatic typography. Perfect for storytelling.",
+      fonts: { heading: "Libre Baskerville", body: "Source Serif 4" },
+      radiusStyle: "rounded-lg (8px)",
+      gradientStyle: "paper-like texture with subtle warmth",
+      visualSignatures: ["large pull quotes", "asymmetric grids", "dropcaps"]
+    },
+    startup: {
+      description: "Fresh, energetic, forward-thinking. Silicon Valley meets Main Street.",
+      fonts: { heading: "Sora", body: "Outfit" },
+      radiusStyle: "rounded-xl (12px)",
+      gradientStyle: "gradient mesh with startup-friendly colors",
+      visualSignatures: ["floating elements", "gradient buttons", "motion graphics"]
+    },
+    artisan: {
+      description: "Handcrafted, authentic, warm. Perfect for local businesses and craftspeople.",
+      fonts: { heading: "Josefin Sans", body: "Crimson Pro" },
+      radiusStyle: "rounded-lg (8px)",
+      gradientStyle: "warm earth tones gradient",
+      visualSignatures: ["hand-drawn elements", "warm photography", "natural textures"]
+    },
+    healthcare: {
+      description: "Calming, trustworthy, accessible. Conveys care and expertise.",
+      fonts: { heading: "Manrope", body: "Karla" },
+      radiusStyle: "rounded-xl (12px)",
+      gradientStyle: "calming teal to soft green gradient",
+      visualSignatures: ["rounded shapes", "soft colors", "human-centered imagery"]
     }
   };
   
   return variants[style] || variants.modern;
+}
+
+interface HeroArchetypeDetail {
+  name: string;
+  description: string;
+  layoutSpec: string;
+  subVariations: Array<{ name: string; spec: string }>;
+  bestFor: string[];
+}
+
+function getDetailedHeroArchetype(archetype: string): HeroArchetypeDetail {
+  const archetypes: Record<string, HeroArchetypeDetail> = {
+    cinematic: {
+      name: "Cinematic Hero",
+      description: "Full-screen immersive experience with film-like quality",
+      layoutSpec: "100vh height, full-bleed image with dark gradient overlay (60% opacity at bottom), centered content with headline at 4-6rem, subtle parallax scroll effect",
+      subVariations: [
+        { name: "cinematic-fade", spec: "Content fades in from bottom on scroll, ken-burns effect on image" },
+        { name: "cinematic-reveal", spec: "Split curtain reveal animation, content appears with stagger" },
+        { name: "cinematic-parallax", spec: "Multi-layer parallax with foreground/background elements" }
+      ],
+      bestFor: ["luxury", "real estate", "hospitality", "automotive", "fashion"]
+    },
+    immersive: {
+      name: "Immersive Hero",
+      description: "Full-screen image with centered text overlay for experiential brands",
+      layoutSpec: "100vh height, large background image with centered content block, glassmorphism optional, CTA prominently placed below headline",
+      subVariations: [
+        { name: "immersive-centered", spec: "Content perfectly centered with soft vignette around edges" },
+        { name: "immersive-bottom", spec: "Content anchored to bottom third with gradient fade up" },
+        { name: "immersive-floating", spec: "Content in floating glassmorphism card over image" }
+      ],
+      bestFor: ["restaurants", "travel", "events", "photography", "wellness"]
+    },
+    bold: {
+      name: "Bold Statement Hero",
+      description: "Typography-forward with massive headlines and gradient backgrounds",
+      layoutSpec: "90vh minimum, gradient or solid color background, headline at 5-8rem with gradient text effect optional, supporting text with high contrast",
+      subVariations: [
+        { name: "bold-gradient", spec: "Multi-color gradient background with floating geometric shapes" },
+        { name: "bold-split-color", spec: "Diagonal color split with text spanning both zones" },
+        { name: "bold-oversized", spec: "Typography so large it bleeds off screen edges" }
+      ],
+      bestFor: ["startups", "creative agencies", "marketing", "entertainment"]
+    },
+    editorial: {
+      name: "Editorial Hero",
+      description: "Magazine-style asymmetric layout with personality",
+      layoutSpec: "Asymmetric grid with large image on one side, text on other with generous whitespace, dropcap optional, pull-quote styling",
+      subVariations: [
+        { name: "editorial-portrait", spec: "Large portrait/headshot with text alongside" },
+        { name: "editorial-offset", spec: "Image offset from edge with overlapping text block" },
+        { name: "editorial-story", spec: "Long-form intro text with small supporting image" }
+      ],
+      bestFor: ["consultants", "coaches", "authors", "personal brands", "thought leaders"]
+    },
+    split: {
+      name: "Split Screen Hero",
+      description: "50/50 or 60/40 split between content and visual",
+      layoutSpec: "Two-column layout, one side with content (headline, description, CTAs), other side with image/illustration/product mockup",
+      subVariations: [
+        { name: "split-product", spec: "Product screenshot/mockup floating with shadow on right" },
+        { name: "split-video", spec: "Inline video player or animated demo on right side" },
+        { name: "split-stats", spec: "Key metrics/stats displayed alongside hero content" }
+      ],
+      bestFor: ["SaaS", "technology", "B2B", "software products"]
+    },
+    minimal: {
+      name: "Minimal Hero",
+      description: "Clean, text-focused with maximum breathing room",
+      layoutSpec: "Centered text-only or with small supporting visual, lots of whitespace, elegant typography as the star, subtle animation on load",
+      subVariations: [
+        { name: "minimal-centered", spec: "Pure centered text with no imagery, icon above optional" },
+        { name: "minimal-logo", spec: "Large logo/mark with tagline below" },
+        { name: "minimal-line", spec: "Horizontal line dividers with stacked text blocks" }
+      ],
+      bestFor: ["legal", "finance", "healthcare", "professional services"]
+    }
+  };
+  
+  return archetypes[archetype] || archetypes.bold;
+}
+
+/**
+ * Generate detailed guidance text for the AI prompt based on hero archetype
+ */
+function getHeroArchetypeGuidance(archetype: string): string {
+  const detail = getDetailedHeroArchetype(archetype);
+  const randomVariant = detail.subVariations[Math.floor(Math.random() * detail.subVariations.length)];
+  
+  return `
+DETAILED HERO SPECIFICATIONS for "${archetype}" archetype:
+- Style: ${detail.name} - ${detail.description}
+- Layout spec: ${detail.layoutSpec}
+- Recommended sub-variant: "${randomVariant.name}" - ${randomVariant.spec}
+- Include heroVariant: "${randomVariant.name}" in your hero section data
+- This archetype is ideal for: ${detail.bestFor.join(", ")}
+`;
 }
 
 /**
@@ -435,20 +590,30 @@ Return a JSON object with these fields:
 
         const industryContext = getIndustryContext(industry);
         const styleVariant = getStyleVariant(designStyle);
+        
+        console.log(`[OpenAI] Website generation for industry="${industry}", heroArchetype="${industryContext.heroArchetype}"`);
+        console.log(`[OpenAI] Style: ${designStyle}, Tone: ${tone}`);
 
         const prompt = `You are an elite conversion copywriter who has written for Apple, Stripe, Airbnb, and Linear. Create an EXCEPTIONAL, award-winning website that would impress Awwwards judges.
 
 CRITICAL QUALITY REQUIREMENTS - READ CAREFULLY:
 Your output will be scored by an AI quality evaluator. To score 85+, you MUST:
 
-1. NEVER use these generic phrases (automatic failure):
-   - "Welcome to our website" / "Welcome to [company]"
-   - "Your trusted partner" / "Your one-stop solution"
-   - "Best in class" / "Industry-leading" / "World-class"
+1. NEVER use these generic phrases (automatic FAILURE if used):
+   - "Welcome to" (ANY variation - "Welcome to our", "Welcome to [name]", etc.)
+   - "Start your journey" / "Begin your journey" / "Embark on"
+   - "Your trusted partner" / "Your one-stop solution" / "Your go-to"
+   - "Best in class" / "Industry-leading" / "World-class" / "Top-tier"
    - "We are passionate about..." / "We pride ourselves on..."
    - "Quality service guaranteed" / "Excellence is our priority"
    - "Lorem ipsum" or any placeholder text
-   - "Contact us today" (use specific, benefit-driven CTAs instead)
+   - ANY brackets like [Your Name], [Insert Here], [Company], {placeholder}
+   - "Contact us today" / "Get in touch" (use specific, benefit-driven CTAs instead)
+   - "Discover" / "Explore" / "Experience" as the first word of headlines
+   - "Solutions for all your needs" / "All your [X] needs"
+   - "Learn more" / "Click here" / "Find out more"
+   
+AUTOMATIC FAILURE: If ANY of the above phrases appear in your output, the quality score will be 0.
    
 2. ALWAYS include specificity:
    - Use real numbers: "Save 12 hours per week" not "Save time"
@@ -529,6 +694,12 @@ MANDATORY HERO ARCHETYPE: "${industryContext.heroArchetype}"
 You MUST use heroArchetype: "${industryContext.heroArchetype}" for ALL hero sections on this website.
 This is not optional - it was specifically selected for this ${industry} business to create maximum visual impact.
 
+${getHeroArchetypeGuidance(industryContext.heroArchetype)}
+
+PREMIUM VISUAL STYLE:
+${styleVariant.gradientStyle ? `- Gradient style: ${styleVariant.gradientStyle}` : ""}
+${styleVariant.visualSignatures ? `- Visual signatures to incorporate: ${styleVariant.visualSignatures.join(", ")}` : ""}
+
 RECOMMENDED COLORS (based on ${industry}):
 - Primary: ${industryContext.colors.primary}
 - Secondary: ${industryContext.colors.secondary}
@@ -536,12 +707,29 @@ RECOMMENDED COLORS (based on ${industry}):
 
 PAGES TO CREATE: ${pageList.join(", ")}
 
+LAYOUT VARIATION RULES (CRITICAL for premium feel):
+1. NEVER use the same section layout back-to-back
+2. Alternate between: full-width → grid → editorial → split → centered
+3. Every 3rd section should have a different background treatment (gradient, image, solid color)
+4. Insert "breathing room" sections (stats, quotes, dividers) between dense content blocks
+5. Vary content alignment: left → centered → right → left (no repetition)
+6. Mix text-heavy and visual-heavy sections for rhythm
+
+SECTION BACKGROUND PATTERNS (assign variety):
+- "default" - standard white/light background
+- "muted" - subtle gray/off-white
+- "accent" - uses primary brand color (sparingly, 1-2 per page max)
+- "dark" - dark background with light text (for impact sections)
+- "gradient" - gradient background for premium feel
+- "image" - background image with overlay
+
 AVAILABLE SECTION TYPES (use variety - never repeat the same layout twice in a row):
 
 HERO & OPENERS:
-- "hero": {headline, subheadline, statement, ctaText, ctaLink, secondaryCtaText, badge, heroArchetype} - Powerful opening
+- "hero": {headline, subheadline, statement, ctaText, ctaLink, secondaryCtaText, badge, heroArchetype, heroVariant} - Powerful opening
   - CRITICAL: You MUST set heroArchetype to "${industryContext.heroArchetype}" for all hero sections
   - heroArchetype "${industryContext.heroArchetype}" was specifically chosen for ${industry} businesses
+  - heroVariant: sub-variation for uniqueness (see archetype details above)
   - statement: 1-2 sentence powerful value proposition (required for cinematic, immersive, bold)
   - badge: Short text like "Award Winning" or "Est. 2010" (recommended for premium feel)
 
@@ -664,6 +852,25 @@ COLOR PSYCHOLOGY (choose based on ${industry}):
 - Finance: Navy (#1e3a5a), forest green (#166534), gold
 - Food/Restaurant: Warm oranges (#ea580c), rich reds, earthy tones
 - Real Estate: Sophisticated navy (#1e3a8a), gold (#ca8a04), warm grays
+
+FINAL CRITICAL REMINDER - HERO ARCHETYPE:
+Your hero sections MUST use heroArchetype: "${industryContext.heroArchetype}"
+This is mandatory. Using any other archetype will fail quality validation.
+For ${industry}, the correct archetype is "${industryContext.heroArchetype}".
+
+HERO SECTION EXAMPLE (you MUST follow this format):
+{
+  "id": "hero-home",
+  "type": "hero",
+  "data": {
+    "headline": "Your compelling headline",
+    "subheadline": "Supporting text",
+    "statement": "Value proposition",
+    "ctaText": "Primary CTA",
+    "heroArchetype": "${industryContext.heroArchetype}",
+    "badge": "Award Winning"
+  }
+}
 
 JSON STRUCTURE (follow exactly):
 {

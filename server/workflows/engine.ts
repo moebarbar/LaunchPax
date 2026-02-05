@@ -10,6 +10,76 @@ import { storage } from "../storage";
 import type { Project, ConnectorResult } from "@shared/schema";
 import { evaluateWebsiteQuality, runMultiPassRefinement, type QualityReport } from "./quality-engine";
 
+/**
+ * Get the correct hero archetype for an industry
+ * This is server-side enforcement to override any AI mistakes
+ */
+function getCorrectHeroArchetype(industry: string): string {
+  const lowerIndustry = (industry || "").toLowerCase();
+  
+  // Cinematic - luxury, premium, high-end
+  if (/luxury|premium|real estate|hotel|hospitality|resort|spa|jewelry|automotive|fashion/i.test(lowerIndustry)) {
+    return "cinematic";
+  }
+  
+  // Immersive - experience-based, events, hospitality
+  if (/event|wedding|photography|travel|tourism|restaurant|food|dining|entertainment|beverage/i.test(lowerIndustry)) {
+    return "immersive";
+  }
+  
+  // Bold - startups, creative agencies, modern brands
+  if (/startup|agency|creative|design|marketing|advertising|media|studio|innovation/i.test(lowerIndustry)) {
+    return "bold";
+  }
+  
+  // Editorial - portfolios, personal brands, thought leaders
+  if (/portfolio|personal|consulting|author|speaker|coach|influencer|creator/i.test(lowerIndustry)) {
+    return "editorial";
+  }
+  
+  // Split - SaaS, tech, B2B, software
+  if (/saas|software|tech|technology|app|platform|b2b|enterprise/i.test(lowerIndustry)) {
+    return "split";
+  }
+  
+  // Minimal - professional services, finance, legal, healthcare
+  if (/legal|law|finance|banking|accounting|healthcare|medical|insurance|professional/i.test(lowerIndustry)) {
+    return "minimal";
+  }
+  
+  // Default to bold for maximum impact
+  return "bold";
+}
+
+/**
+ * Enforce correct hero archetype on all pages
+ * This overrides any AI mistakes
+ */
+function enforceHeroArchetype(pages: any[], industry: string): any[] {
+  const correctArchetype = getCorrectHeroArchetype(industry);
+  console.log(`[Workflow] Enforcing hero archetype: "${correctArchetype}" for industry "${industry}"`);
+  
+  return pages.map(page => ({
+    ...page,
+    sections: page.sections?.map((section: any) => {
+      if (section.type === "hero" && section.data) {
+        const currentArchetype = section.data.heroArchetype;
+        if (currentArchetype !== correctArchetype) {
+          console.log(`[Workflow] Correcting heroArchetype from "${currentArchetype}" to "${correctArchetype}" on ${page.slug}`);
+        }
+        return {
+          ...section,
+          data: {
+            ...section.data,
+            heroArchetype: correctArchetype,
+          }
+        };
+      }
+      return section;
+    })
+  }));
+}
+
 export interface WorkflowContext {
   projectId: number;
   project: Project;
@@ -332,10 +402,13 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           headingFont: brandKit?.fontPairings?.[0]?.heading,
         };
         
+        // Enforce correct hero archetype based on industry (server-side override)
+        const enforcedPages = enforceHeroArchetype(result.data.pages, ctx.project.industry || "");
+        
         // Save results including SEO data
         await storage.upsertWebsiteContent({
           projectId: ctx.projectId,
-          pages: result.data.pages,
+          pages: enforcedPages,
           globalContent: result.data.globalContent,
           siteSettings,
           seo: result.data.seo,
@@ -343,7 +416,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           status: "completed",
         });
         
-        return result.data;
+        return { ...result.data, pages: enforcedPages };
       },
     },
     {
