@@ -140,7 +140,7 @@ export default function SectionFeatures({ section }: { section: SectionContent }
                   <div 
                     className={`${isLarge ? 'w-16 h-16' : 'w-12 h-12'} rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 group-hover:scale-105`}
                     style={{ 
-                      backgroundColor: "var(--brand-surface, #f1f5f9)",
+                      backgroundColor: "var(--brand-surface, #ffffff)",
                       border: "1px solid var(--brand-border, #e2e8f0)"
                     }}
                   >

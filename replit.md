@@ -105,11 +105,12 @@ Preferred communication style: Simple, everyday language.
 - **Issue**: Light text on light backgrounds causing poor readability across website sections
 - **Solution**: Implemented comprehensive solid color enforcement system
 - **Schema Updates**: Added `headingColor` and `cardBackground` properties to SiteSettings interface
-- **Professional Color Palettes**: Enhanced quality-engine with industry-specific palettes (healthcare, dental, technology, professional, creative, food) including heading, text, and muted colors
+- **Professional Color Palettes**: Enhanced quality-engine with 7 industry-specific palettes (healthcare, dental, technology, professional, creative, food, default) including heading, text, and muted colors
 - **Engine Integration**: Updated workflow engine to apply palette colors for headingColor, textColor, mutedTextColor, and cardBackground
-- **Global CSS Enforcement**: Changed website-renderer to use `.website-renderer` class (not preview-mode) for global CSS that enforces solid colors on all h1-h6, paragraphs, and cards
-- **Section Updates**: Updated section-features and section-services to use solid backgrounds and inline styles with CSS variables
-- **Verified Colors**: headingColor=#0f172a, textColor=#1e293b, mutedTextColor=#475569, cardBackground=#ffffff
+- **Global CSS Enforcement**: Changed website-renderer to use `.website-renderer` class for global CSS that enforces solid colors on all h1-h6, paragraphs, and cards
+- **Section Updates**: Updated section-features and section-services to use solid white backgrounds with inline CSS variable styles
+- **Verified Colors**: headingColor=#0f172a, textColor=#1e293b, mutedTextColor=#475569, cardBackground=#ffffff, surfaceColor=#ffffff
+- **Testing Verified**: All 4 tested previews (Healthcare, Food industries) passed with correct card backgrounds (rgb(255,255,255)) and text contrast
 
 ### Hero Image Rendering Fix (Feb 2026)
 - **Issue**: Healthcare/dental websites were using "minimal" hero archetype which doesn't display images

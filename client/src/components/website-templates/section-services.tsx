@@ -125,7 +125,7 @@ export default function SectionServices({ section }: { section: SectionContent }
                   <div 
                     className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-105"
                     style={{ 
-                      backgroundColor: "var(--brand-surface, #f1f5f9)",
+                      backgroundColor: "var(--brand-surface, #ffffff)",
                       border: "1px solid var(--brand-border, #e2e8f0)"
                     }}
                   >
@@ -164,7 +164,7 @@ export default function SectionServices({ section }: { section: SectionContent }
                           <div 
                             className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                             style={{ 
-                              backgroundColor: "var(--brand-surface, #f1f5f9)"
+                              backgroundColor: "var(--brand-surface, #ffffff)"
                             }}
                           >
                             <Check 
