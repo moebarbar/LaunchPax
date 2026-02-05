@@ -111,6 +111,7 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
 
   // Track previous workflow status to detect completion
   const prevStatusRef = useRef<string | undefined>(undefined);
+  const autoOpenedRef = useRef<boolean>(false);
   
   // Refetch results when workflow completes or fails
   useEffect(() => {
@@ -121,10 +122,29 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
     if (prevStatus === "running" && (currentStatus === "completed" || currentStatus === "failed")) {
       refetchWebsiteContent();
       refetchQualityReport();
+      
+      // Auto-open preview in new tab when workflow completes successfully
+      if (currentStatus === "completed" && websiteContent?.previewToken && !autoOpenedRef.current) {
+        autoOpenedRef.current = true;
+        setTimeout(() => {
+          window.open(`/preview/${websiteContent.previewToken}`, '_blank');
+          toast({
+            title: "Website Ready!",
+            description: "Your premium website has been generated and opened in a new tab.",
+          });
+        }, 1500); // Wait for final updates to complete
+      }
     }
     
     prevStatusRef.current = currentStatus;
-  }, [workflowJob?.status, refetchWebsiteContent, refetchQualityReport]);
+  }, [workflowJob?.status, refetchWebsiteContent, refetchQualityReport, websiteContent?.previewToken, toast]);
+  
+  // Reset auto-open flag when starting a new build
+  useEffect(() => {
+    if (workflowJob?.status === "running") {
+      autoOpenedRef.current = false;
+    }
+  }, [workflowJob?.status]);
   
   // Also refetch when progress reaches 100 (in case status update is delayed)
   const prevProgressRef = useRef<number | null | undefined>(undefined);
@@ -320,12 +340,32 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
         <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
-            onClick={() => window.open(`/preview/${websiteContent.previewToken}`, '_blank')}
+            onClick={() => {
+              if (isRunning) {
+                toast({
+                  title: "Still Building",
+                  description: "Your website is still being generated. Please wait for the build to complete.",
+                  variant: "default",
+                });
+                return;
+              }
+              window.open(`/preview/${websiteContent.previewToken}`, '_blank');
+            }}
             data-testid="button-preview-website"
             className="w-full sm:w-auto"
+            disabled={isRunning}
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Open Preview
+            {isRunning ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Building...
+              </>
+            ) : (
+              <>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open Preview
+              </>
+            )}
           </Button>
           <Button
             variant="outline"

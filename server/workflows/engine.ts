@@ -632,7 +632,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
       },
     },
     {
-      name: "Auto-filling missing images with stock photos",
+      name: "Auto-filling ALL missing images with business-specific stock photos",
       execute: async (ctx) => {
         const websiteContent = await storage.getWebsiteContent(ctx.projectId);
         if (!websiteContent || !websiteContent.pages) {
@@ -642,41 +642,234 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         
         const industry = ctx.project.industry || "business";
         const businessIdea = ctx.project.businessIdea || "";
+        const businessProfile = ctx.project.businessProfile;
         let imagesAdded = 0;
         let heroesUpdated = 0;
+        let testimonialsUpdated = 0;
+        let servicesUpdated = 0;
+        let storyUpdated = 0;
+        let processUpdated = 0;
         
-        console.log(`[Image Auto-Fill] Processing images for ${industry} business...`);
+        console.log(`[Image Auto-Fill] Processing ALL sections for ${industry} business...`);
         
-        // Section type to image query mapping for high-quality, industry-appropriate images
-        const sectionImageQueries: Record<string, (industry: string) => string[]> = {
-          hero: (ind) => {
+        // Extract business-specific keywords for highly targeted image searches
+        const extractBusinessKeywords = (): string[] => {
+          const keywords: string[] = [];
+          
+          // Extract cuisine type from businessIdea
+          const cuisinePatterns = [
+            /mediterranean/i, /italian/i, /american/i, /mexican/i, /asian/i, /chinese/i,
+            /japanese/i, /indian/i, /thai/i, /french/i, /greek/i, /middle eastern/i,
+            /seafood/i, /barbecue/i, /bbq/i, /vegan/i, /vegetarian/i, /fusion/i,
+            /sushi/i, /pizza/i, /burger/i, /steak/i, /cafe/i, /bakery/i, /pastry/i
+          ];
+          for (const pattern of cuisinePatterns) {
+            const match = businessIdea.match(pattern);
+            if (match) keywords.push(match[0].toLowerCase());
+          }
+          
+          // Extract location for local context
+          const locationMatch = businessIdea.match(/(?:in|at|located in)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+          if (locationMatch) keywords.push(locationMatch[1].toLowerCase());
+          
+          // Extract key services/products
+          const servicePatterns = [
+            /dine-in/i, /takeout/i, /delivery/i, /catering/i, /brunch/i, /lunch/i, /dinner/i,
+            /consultation/i, /training/i, /coaching/i, /therapy/i, /treatment/i
+          ];
+          for (const pattern of servicePatterns) {
+            const match = businessIdea.match(pattern);
+            if (match) keywords.push(match[0].toLowerCase());
+          }
+          
+          // Add services from businessProfile
+          if (businessProfile?.services) {
+            businessProfile.services.slice(0, 3).forEach((s: any) => {
+              if (s.name) keywords.push(s.name.toLowerCase().replace(/^\d+\.\s*/, ''));
+            });
+          }
+          
+          // Add USPs
+          if (businessProfile?.uniqueSellingPoints) {
+            businessProfile.uniqueSellingPoints.slice(0, 2).forEach((usp: string) => {
+              const words = usp.toLowerCase().split(' ').filter(w => w.length > 4).slice(0, 2);
+              keywords.push(...words);
+            });
+          }
+          
+          return [...new Set(keywords)].slice(0, 5); // Max 5 unique keywords
+        };
+        
+        const businessKeywords = extractBusinessKeywords();
+        console.log(`[Image Auto-Fill] Extracted business keywords: ${businessKeywords.join(", ")}`);
+        
+        // Build highly specific queries using business context
+        const buildBusinessSpecificQuery = (baseQuery: string, sectionType: string): string => {
+          // For restaurant/food businesses, use cuisine-specific terms
+          if (businessKeywords.some(k => ["mediterranean", "italian", "american", "mexican", "asian", "fusion", "greek", "middle eastern"].includes(k))) {
+            const cuisineKeyword = businessKeywords.find(k => 
+              ["mediterranean", "italian", "american", "mexican", "asian", "fusion", "greek", "middle eastern"].includes(k)
+            );
+            if (cuisineKeyword && sectionType !== "team" && sectionType !== "testimonials") {
+              return `${cuisineKeyword} ${baseQuery}`.trim();
+            }
+          }
+          
+          // Add first relevant keyword if available
+          const relevantKeyword = businessKeywords.find(k => !["dine-in", "takeout", "delivery"].includes(k));
+          if (relevantKeyword && sectionType !== "team" && sectionType !== "testimonials") {
+            return `${relevantKeyword} ${baseQuery}`.trim();
+          }
+          
+          return baseQuery;
+        };
+        
+        // Section type to image query mapping with business-specific enhancements
+        const sectionImageQueries: Record<string, (ind: string, keywords: string[]) => string[]> = {
+          hero: (ind, keywords) => {
+            const cuisineKeyword = keywords.find(k => 
+              ["mediterranean", "italian", "american", "mexican", "asian", "fusion", "greek", "middle eastern", "seafood", "sushi", "pizza", "bakery"].includes(k)
+            );
+            
             const heroQueries: Record<string, string[]> = {
-              restaurant: ["elegant restaurant interior dining", "gourmet food presentation chef", "fine dining atmosphere", "delicious food plating professional"],
-              food: ["appetizing food professional photography", "gourmet cuisine presentation", "chef cooking kitchen professional"],
-              technology: ["modern tech office workspace", "software team working", "digital innovation technology"],
-              healthcare: ["healthcare professional caring", "modern medical facility", "wellness health clinic"],
-              consulting: ["professional business meeting", "corporate office executive", "business strategy team"],
-              fitness: ["fitness gym modern", "active healthy lifestyle", "personal training workout"],
-              beauty: ["luxury spa treatment", "beauty salon professional", "wellness relaxation"],
-              realestate: ["luxury home interior design", "modern architecture exterior", "beautiful property real estate"],
-              ecommerce: ["ecommerce product photography", "online shopping modern", "retail store design"],
-              education: ["education classroom learning", "university campus students", "academic environment"],
-              legal: ["law office professional", "legal business meeting", "courthouse architecture"],
-              creative: ["creative design studio", "artistic workspace professional", "design team collaboration"],
+              restaurant: cuisineKeyword 
+                ? [`${cuisineKeyword} cuisine plating professional`, `${cuisineKeyword} food presentation`, `${cuisineKeyword} restaurant dining`, `delicious ${cuisineKeyword} dishes`]
+                : ["gourmet food plating professional", "restaurant dining ambiance elegant", "chef cooking kitchen", "delicious food presentation"],
+              food: cuisineKeyword
+                ? [`${cuisineKeyword} food photography`, `appetizing ${cuisineKeyword} dishes`, `professional ${cuisineKeyword} cuisine`]
+                : ["appetizing food professional photography", "gourmet cuisine presentation", "chef cooking kitchen professional"],
+              technology: ["modern tech office workspace", "software engineering team collaboration", "digital innovation startup", "technology workspace modern"],
+              healthcare: ["healthcare professional caring patient", "modern medical facility clean", "wellness health clinic", "doctor patient consultation"],
+              consulting: ["executive business strategy meeting", "corporate office professional", "business consulting team", "professional boardroom meeting"],
+              fitness: ["fitness gym modern equipment", "personal training session", "active healthy lifestyle workout", "sports training athlete"],
+              beauty: ["luxury spa treatment relaxation", "beauty salon professional", "skincare wellness", "beauty treatment professional"],
+              realestate: ["luxury home interior design", "modern architecture house", "beautiful property exterior", "real estate staging professional"],
+              ecommerce: ["product photography studio professional", "ecommerce packaging modern", "online shopping experience", "retail store design"],
+              education: ["university classroom learning", "students studying campus", "education teaching professional", "academic library environment"],
+              legal: ["law office interior professional", "legal meeting boardroom", "attorney professional portrait", "courthouse architecture"],
+              creative: ["creative design studio modern", "artistic workspace colorful", "design team brainstorming", "photography studio professional"],
+              marketing: ["marketing team meeting creative", "digital marketing agency", "brand strategy presentation", "advertising campaign"],
+              finance: ["financial planning meeting", "banking professional office", "investment trading modern", "wealth management"],
             };
             return heroQueries[ind.toLowerCase()] || heroQueries.consulting;
           },
-          features: () => ["business features icons", "professional service illustration"],
-          services: (ind) => [`${ind} services professional`, `${ind} business service`, "professional service offering"],
-          testimonials: () => ["professional portrait business", "diverse team portraits", "customer testimonial person"],
-          team: () => ["professional team portrait", "business team diverse", "corporate headshot professional"],
-          story: (ind) => [`${ind} brand story`, `${ind} company history`, "business journey origin"],
-          "brand-story": () => ["founder entrepreneur portrait", "business origin story", "company history milestone"],
-          "case-studies": (ind) => [`${ind} success results`, `${ind} project completed`, "business case study results"],
-          gallery: (ind) => [`${ind} portfolio showcase`, `${ind} work samples`, "professional gallery images"],
-          process: () => ["business process workflow", "step by step professional", "process diagram visual"],
-          about: (ind) => [`${ind} team about us`, `${ind} company office`, "professional team workplace"],
-          contact: () => ["customer service professional", "contact us friendly", "business communication"],
+          
+          services: (ind, keywords) => {
+            const cuisineKeyword = keywords.find(k => ["mediterranean", "italian", "american", "mexican", "asian", "fusion"].includes(k));
+            if (ind === "restaurant" && cuisineKeyword) {
+              return [`${cuisineKeyword} food service`, `${cuisineKeyword} cuisine dish`, `${cuisineKeyword} meal presentation`, "restaurant service professional"];
+            }
+            return [`${ind} professional service`, `${ind} business offering`, "service delivery professional", "professional service team"];
+          },
+          
+          testimonials: () => [
+            "professional business portrait confident", 
+            "diverse professional headshot", 
+            "customer portrait smiling professional",
+            "business person portrait friendly",
+            "professional headshot diverse"
+          ],
+          
+          team: () => [
+            "professional team portrait business", 
+            "corporate headshot professional diverse", 
+            "business team diverse workplace",
+            "professional portrait confident",
+            "executive portrait professional"
+          ],
+          
+          story: (ind, keywords) => {
+            const cuisineKeyword = keywords.find(k => ["mediterranean", "italian", "american", "mexican"].includes(k));
+            if (ind === "restaurant" && cuisineKeyword) {
+              return [`${cuisineKeyword} cooking tradition`, `${cuisineKeyword} food preparation`, "restaurant kitchen professional", "chef cooking passion"];
+            }
+            return [`${ind} company story`, `${ind} business origin`, "founder entrepreneur vision", "company milestone achievement"];
+          },
+          
+          "brand-story": () => [
+            "entrepreneur founder portrait", 
+            "business owner professional", 
+            "company founder vision",
+            "startup founder passionate"
+          ],
+          
+          "case-studies": (ind) => [
+            `${ind} success project`, 
+            `${ind} completed work`, 
+            `${ind} results achievement`,
+            "business success results"
+          ],
+          
+          gallery: (ind, keywords) => {
+            const cuisineKeyword = keywords.find(k => ["mediterranean", "italian", "american", "mexican", "asian", "fusion", "seafood", "sushi", "pizza", "bakery"].includes(k));
+            if (ind === "restaurant" && cuisineKeyword) {
+              return [`${cuisineKeyword} food photography`, `${cuisineKeyword} dish presentation`, `${cuisineKeyword} cuisine plating`, `delicious ${cuisineKeyword} meal`];
+            }
+            return [`${ind} portfolio showcase`, `${ind} work professional`, `${ind} gallery images`, "professional portfolio work"];
+          },
+          
+          process: (ind) => [
+            `${ind} workflow process`, 
+            "step by step professional", 
+            "business process visualization",
+            "workflow diagram professional"
+          ],
+          
+          about: (ind) => [
+            `${ind} team workplace`, 
+            `${ind} company office`, 
+            "professional team collaboration",
+            "workplace environment modern"
+          ],
+          
+          contact: () => [
+            "customer service professional friendly", 
+            "contact communication business", 
+            "support team helpful",
+            "business communication professional"
+          ],
+          
+          stats: (ind) => [
+            `${ind} success metrics`, 
+            "business growth chart", 
+            "achievement milestone professional"
+          ],
+          
+          benefits: (ind) => [
+            `${ind} benefits value`, 
+            "customer satisfaction happy", 
+            "business value professional"
+          ],
+          
+          faq: () => [
+            "customer support helpful", 
+            "questions answers professional", 
+            "help support friendly"
+          ],
+          
+          cta: (ind) => [
+            `${ind} call to action`, 
+            "get started professional", 
+            "contact us inviting"
+          ],
+          
+          comparison: (ind) => [
+            `${ind} comparison chart`, 
+            "value proposition professional", 
+            "competitive advantage"
+          ],
+          
+          pricing: (ind) => [
+            `${ind} pricing value`, 
+            "investment value professional", 
+            "premium service pricing"
+          ],
+          
+          "trust-signals": () => [
+            "business awards professional", 
+            "certification achievement", 
+            "trust credibility professional"
+          ],
         };
         
         // Normalize industry for lookup
@@ -684,7 +877,9 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                                     industry.toLowerCase().includes("restaurant") || 
                                     industry.toLowerCase().includes("beverage") ||
                                     industry.toLowerCase().includes("dining") ||
-                                    industry.toLowerCase().includes("cafe")
+                                    industry.toLowerCase().includes("cafe") ||
+                                    industry.toLowerCase().includes("bakery") ||
+                                    industry.toLowerCase().includes("catering")
                                     ? "restaurant" 
                                     : industry.toLowerCase().replace(/[^a-z]/g, "");
         
@@ -700,13 +895,18 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                              section.data?.image || 
                              section.data?.imageUrl;
             
+            // Helper to get a random query from a query function
+            const getRandomQuery = (queryFn: (ind: string, keywords: string[]) => string[]): string => {
+              const queries = queryFn(normalizedIndustry, businessKeywords);
+              return queries[Math.floor(Math.random() * queries.length)];
+            };
+            
             // Hero sections MUST have an image
             if (sectionType === "hero" && !hasImage) {
               console.log(`[Image Auto-Fill] Hero section "${section.id}" on ${page.slug} needs image`);
               
-              const queryFn = sectionImageQueries.hero;
-              const queries = queryFn(normalizedIndustry);
-              const query = queries[Math.floor(Math.random() * queries.length)];
+              const query = getRandomQuery(sectionImageQueries.hero);
+              console.log(`[Image Auto-Fill] Hero query: "${query}"`);
               
               const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
                 "stock_photos",
@@ -733,13 +933,111 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
               }
             }
             
+            // Testimonials sections need avatar photos
+            if (sectionType === "testimonials" && section.data?.items) {
+              const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
+                if (!item.avatar && !item.image) {
+                  const query = getRandomQuery(sectionImageQueries.testimonials);
+                  
+                  const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                    "stock_photos",
+                    "search_photos",
+                    { query, perPage: 1, page: idx + 1, orientation: "square" }
+                  );
+                  
+                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                    imagesAdded++;
+                    testimonialsUpdated++;
+                    return { ...item, avatar: stockResult.data.photos[0].url };
+                  }
+                }
+                return item;
+              }));
+              
+              if (testimonialsUpdated > 0) {
+                console.log(`[Image Auto-Fill] Added ${testimonialsUpdated} testimonial avatars`);
+              }
+              return { ...section, data: { ...section.data, items: updatedItems } };
+            }
+            
+            // Services sections can have images
+            if (sectionType === "services" && section.data?.items) {
+              const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
+                if (!item.image && !item.imageUrl) {
+                  const query = getRandomQuery(sectionImageQueries.services);
+                  
+                  const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                    "stock_photos",
+                    "search_photos",
+                    { query, perPage: 1, page: idx + 1, orientation: "square" }
+                  );
+                  
+                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                    imagesAdded++;
+                    servicesUpdated++;
+                    return { ...item, image: stockResult.data.photos[0].url };
+                  }
+                }
+                return item;
+              }));
+              
+              if (servicesUpdated > 0) {
+                console.log(`[Image Auto-Fill] Added ${servicesUpdated} service images`);
+              }
+              return { ...section, data: { ...section.data, items: updatedItems } };
+            }
+            
+            // Story and brand-story sections need images
+            if ((sectionType === "story" || sectionType === "brand-story") && !hasImage) {
+              const queryFn = sectionType === "brand-story" ? sectionImageQueries["brand-story"] : sectionImageQueries.story;
+              const query = getRandomQuery(queryFn);
+              
+              const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                "stock_photos",
+                "search_photos",
+                { query, perPage: 1, orientation: "landscape" }
+              );
+              
+              if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                imagesAdded++;
+                storyUpdated++;
+                console.log(`[Image Auto-Fill] Added story section image`);
+                return {
+                  ...section,
+                  data: {
+                    ...section.data,
+                    image: stockResult.data.photos[0].url,
+                    founderImage: sectionType === "brand-story" ? stockResult.data.photos[0].url : section.data?.founderImage,
+                  },
+                };
+              }
+            }
+            
+            // About sections need images
+            if (sectionType === "about" && !hasImage) {
+              const query = getRandomQuery(sectionImageQueries.about);
+              
+              const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                "stock_photos",
+                "search_photos",
+                { query, perPage: 1, orientation: "landscape" }
+              );
+              
+              if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                imagesAdded++;
+                console.log(`[Image Auto-Fill] Added about section image`);
+                return {
+                  ...section,
+                  data: { ...section.data, image: stockResult.data.photos[0].url },
+                };
+              }
+            }
+            
             // Gallery sections need images
             if (sectionType === "gallery" && section.data?.items) {
               const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
                 if (!item.image && !item.imageUrl) {
-                  const queryFn = sectionImageQueries.gallery;
-                  const queries = queryFn(normalizedIndustry);
-                  const query = queries[Math.floor(Math.random() * queries.length)];
+                  const query = getRandomQuery(sectionImageQueries.gallery);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
                     "stock_photos",
@@ -762,10 +1060,12 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             if (sectionType === "team" && section.data?.members) {
               const updatedMembers = await Promise.all(section.data.members.map(async (member: any, idx: number) => {
                 if (!member.image && !member.avatar) {
+                  const query = getRandomQuery(sectionImageQueries.team);
+                  
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
                     "stock_photos",
                     "search_photos",
-                    { query: "professional portrait business person", perPage: 1, page: idx + 1, orientation: "square" }
+                    { query, perPage: 1, page: idx + 1, orientation: "square" }
                   );
                   
                   if (stockResult.success && stockResult.data?.photos?.length > 0) {
@@ -783,9 +1083,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             if (sectionType === "case-studies" && section.data?.items) {
               const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
                 if (!item.image && !item.imageUrl) {
-                  const queryFn = sectionImageQueries["case-studies"];
-                  const queries = queryFn(normalizedIndustry);
-                  const query = queries[Math.floor(Math.random() * queries.length)];
+                  const query = getRandomQuery(sectionImageQueries["case-studies"]);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
                     "stock_photos",
@@ -802,6 +1100,35 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
               }));
               
               return { ...section, data: { ...section.data, items: updatedItems } };
+            }
+            
+            // Process sections can have step images
+            if (sectionType === "process" && section.data?.steps) {
+              let stepsWithImages = 0;
+              const updatedSteps = await Promise.all(section.data.steps.map(async (step: any, idx: number) => {
+                if (!step.image) {
+                  const query = getRandomQuery(sectionImageQueries.process);
+                  
+                  const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                    "stock_photos",
+                    "search_photos",
+                    { query, perPage: 1, page: idx + 1, orientation: "square" }
+                  );
+                  
+                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                    imagesAdded++;
+                    stepsWithImages++;
+                    return { ...step, image: stockResult.data.photos[0].url };
+                  }
+                }
+                return step;
+              }));
+              
+              if (stepsWithImages > 0) {
+                processUpdated++;
+                console.log(`[Image Auto-Fill] Added ${stepsWithImages} process step images`);
+              }
+              return { ...section, data: { ...section.data, steps: updatedSteps } };
             }
             
             return section;
@@ -821,12 +1148,17 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           status: "completed",
         });
         
-        console.log(`[Image Auto-Fill] Complete: ${heroesUpdated} heroes updated, ${imagesAdded} additional images added`);
+        console.log(`[Image Auto-Fill] Complete: ${heroesUpdated} heroes, ${testimonialsUpdated} testimonials, ${servicesUpdated} services, ${storyUpdated} story, ${processUpdated} process sections, ${imagesAdded} total images added`);
         
         return {
           heroesUpdated,
+          testimonialsUpdated,
+          servicesUpdated,
+          storyUpdated,
+          processUpdated,
           imagesAdded,
           industry: normalizedIndustry,
+          businessKeywords,
         };
       },
     },

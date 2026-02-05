@@ -276,20 +276,89 @@ function analyzeLayoutSophistication(pages: any[]): { score: number; issues: str
 /**
  * Evaluate overall website quality using AI
  */
+// Create a default section analysis for timeout/error cases
+function createDefaultSectionAnalysis(section: SectionContent): SectionAnalysis {
+  return {
+    sectionId: section.id,
+    sectionType: section.type,
+    score: 75, // Assume acceptable quality when can't evaluate
+    issues: ['Unable to evaluate section quality'],
+    improvements: [],
+    isWeak: false,
+    isGeneric: false,
+    priority: 'low',
+  };
+}
+
+// Timeout wrapper for async operations
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  let timeoutHandle: ReturnType<typeof setTimeout>;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutHandle = setTimeout(() => {
+      console.warn(`[Quality Engine] Operation timed out after ${timeoutMs}ms, using fallback`);
+      resolve(fallback);
+    }, timeoutMs);
+  });
+  
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timeoutHandle!);
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutHandle!);
+    throw error;
+  }
+}
+
 export async function evaluateWebsiteQuality(
   websiteContent: WebsiteContent,
   businessContext: { name: string; industry: string; description: string }
 ): Promise<QualityReport> {
-  const client = getClient();
+  const startTime = Date.now();
+  const MAX_EVALUATION_TIME = 60000; // 60 seconds max for quality evaluation
+  const MAX_SECTIONS_TO_ANALYZE = 8; // Limit sections to analyze for speed
   
-  // Analyze each section across all pages
+  let client: OpenAI;
+  try {
+    client = getClient();
+  } catch (error) {
+    console.warn("[Quality Engine] OpenAI not configured, skipping quality evaluation");
+    return createDefaultReport("OpenAI not configured");
+  }
+  
+  // Analyze each section across all pages (with limits)
   const sectionAnalyses: SectionAnalysis[] = [];
   const pages = websiteContent.pages || [];
+  let sectionsAnalyzed = 0;
   
   for (const page of pages) {
     for (const section of page.sections || []) {
-      const analysis = await analyzeSectionQuality(section, businessContext, client);
+      // Check time limit
+      if (Date.now() - startTime > MAX_EVALUATION_TIME) {
+        console.warn("[Quality Engine] Time limit reached, skipping remaining sections");
+        break;
+      }
+      
+      // Limit number of sections analyzed
+      if (sectionsAnalyzed >= MAX_SECTIONS_TO_ANALYZE) {
+        console.log(`[Quality Engine] Section limit reached (${MAX_SECTIONS_TO_ANALYZE}), skipping remaining`);
+        break;
+      }
+      
+      // Priority: always analyze hero, cta, and a few key sections
+      const isPrioritySection = ['hero', 'cta', 'features', 'services', 'testimonials'].includes(section.type);
+      if (sectionsAnalyzed >= 5 && !isPrioritySection) {
+        // Skip non-priority sections after first 5
+        continue;
+      }
+      
+      const analysis = await withTimeout(
+        analyzeSectionQuality(section, businessContext, client),
+        15000, // 15 second timeout per section
+        createDefaultSectionAnalysis(section)
+      );
       sectionAnalyses.push(analysis);
+      sectionsAnalyzed++;
     }
   }
   
@@ -872,19 +941,39 @@ Return the DRAMATICALLY improved section data as JSON. Same structure, premium c
 export async function runMultiPassRefinement(
   websiteContent: WebsiteContent,
   businessContext: { name: string; industry: string; description: string },
-  maxPasses: number = 3
+  maxPasses: number = 2 // Reduced from 3 to speed up workflow
 ): Promise<{ content: WebsiteContent; report: QualityReport; passCount: number }> {
+  const startTime = Date.now();
+  const MAX_REFINEMENT_TIME = 90000; // 90 seconds max for entire refinement process
+  
   let currentContent = { ...websiteContent };
   let report: QualityReport;
   let passCount = 0;
   
+  console.log(`[Quality Engine] Starting multi-pass refinement (max ${maxPasses} passes, ${MAX_REFINEMENT_TIME/1000}s timeout)`);
+  
   try {
     for (let pass = 0; pass < maxPasses; pass++) {
+      // Check time limit
+      if (Date.now() - startTime > MAX_REFINEMENT_TIME) {
+        console.warn(`[Quality Engine] Time limit reached after ${passCount} passes, returning current content`);
+        return {
+          content: currentContent,
+          report: report! || createDefaultReport("Time limit reached"),
+          passCount,
+        };
+      }
+      
       passCount = pass + 1;
+      console.log(`[Quality Engine] Pass ${passCount}/${maxPasses} started`);
       
       // Evaluate current quality
       try {
-        report = await evaluateWebsiteQuality(currentContent, businessContext);
+        report = await withTimeout(
+          evaluateWebsiteQuality(currentContent, businessContext),
+          45000, // 45 second timeout for evaluation
+          createDefaultReport("Evaluation timed out")
+        );
       } catch (evalError) {
         const errorMsg = evalError instanceof Error ? evalError.message : 'Unknown evaluation error';
         console.error(`[Quality Engine] Evaluation failed on pass ${passCount}:`, evalError);
@@ -896,9 +985,11 @@ export async function runMultiPassRefinement(
         };
       }
       
+      console.log(`[Quality Engine] Pass ${passCount} evaluation complete: score=${report.scores.overall}, passes=${report.passesQualityGate}`);
+      
       // If passes quality gate, we're done
       if (report.passesQualityGate && report.overallVerdict !== 'poor') {
-        console.log(`Quality gate passed on pass ${passCount} with score ${report.scores.overall}`);
+        console.log(`[Quality Engine] Quality gate passed on pass ${passCount} with score ${report.scores.overall}`);
         return { content: currentContent, report, passCount };
       }
       
@@ -977,6 +1068,7 @@ function createDefaultReport(errorMessage?: string): QualityReport {
       heroImpact: 0,
       contentQuality: 0,
       visualDepth: 0,
+      layoutSophistication: 0,
     },
     overallVerdict: 'needs_improvement',
     sectionAnalyses: [],

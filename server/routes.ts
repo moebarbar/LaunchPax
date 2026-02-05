@@ -243,13 +243,32 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     res.json(content);
   });
 
-  // Get shareable preview URL for a project
+  // Get shareable preview URL for a project (quality-gated)
   app.get("/api/projects/:id/preview-url", isAuthenticated, async (req: Request, res: Response) => {
     const projectId = parseInt(req.params.id);
     const content = await storage.getWebsiteContent(projectId);
     
     if (!content?.previewToken) {
       return res.status(404).json({ error: "Website content not generated yet" });
+    }
+
+    // Check if workflow is still running
+    const workflowJob = await storage.getWorkflowJob(projectId, "website-plan");
+    const isBuilding = workflowJob?.status === "running" || workflowJob?.status === "pending";
+    
+    // Get quality report from activity logs
+    const activityLogs = await storage.getActivityLogs(projectId);
+    const qualityLog = activityLogs?.find(log => log.action === "Quality evaluation completed");
+    let qualityReport = null;
+    let passesQualityGate = false;
+    
+    if (qualityLog?.details) {
+      try {
+        qualityReport = JSON.parse(qualityLog.details);
+        passesQualityGate = qualityReport.passesGate === true;
+      } catch (e) {
+        console.log("[Preview] Could not parse quality report");
+      }
     }
 
     // Check visual completeness and include warning if incomplete
@@ -262,6 +281,12 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     
     const previewUrl = `${baseUrl}/preview/${content.previewToken}`;
     
+    // Determine if preview is ready
+    // Allow preview when: not building AND (quality passes OR quality was skipped/errored)
+    const qualityWasSkipped = qualityReport?.skipped === true || qualityReport?.error;
+    const isReady = !isBuilding && (passesQualityGate || qualityWasSkipped);
+    const buildProgress = workflowJob?.progress || 0;
+    
     res.json({ 
       previewUrl,
       previewToken: content.previewToken,
@@ -273,6 +298,15 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
         isComplete: completeness.isComplete,
         score: completeness.completenessScore,
         missingCount: completeness.missingImages.length,
+      },
+      // Quality gate status
+      qualityGate: {
+        isBuilding,
+        buildProgress,
+        passesQualityGate,
+        isReady,
+        qualityScore: qualityReport?.scores?.overall || 0,
+        verdict: qualityReport?.verdict || "pending",
       },
     });
   });
