@@ -393,13 +393,14 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         
         // Fallback to stock photos if AI generation failed
         if (!heroImageB64) {
-          console.log(`[Workflow] AI hero image failed, falling back to stock photos for ${ctx.project.industry || "consulting"}`);
+          console.log(`[Workflow] AI hero image failed, falling back to stock photos for ${ctx.project.industry || "business"}`);
           const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
             "stock_photos",
             "get_photo_for_industry",
             {
-              industry: ctx.project.industry || "consulting",
+              industry: ctx.project.industry || "business",
               type: "hero",
+              businessIdea: ctx.project.businessIdea || "",
             }
           );
           
@@ -630,6 +631,205 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         }
       },
     },
+    {
+      name: "Auto-filling missing images with stock photos",
+      execute: async (ctx) => {
+        const websiteContent = await storage.getWebsiteContent(ctx.projectId);
+        if (!websiteContent || !websiteContent.pages) {
+          console.log("[Image Auto-Fill] No website content to process");
+          return { skipped: true };
+        }
+        
+        const industry = ctx.project.industry || "business";
+        const businessIdea = ctx.project.businessIdea || "";
+        let imagesAdded = 0;
+        let heroesUpdated = 0;
+        
+        console.log(`[Image Auto-Fill] Processing images for ${industry} business...`);
+        
+        // Section type to image query mapping for high-quality, industry-appropriate images
+        const sectionImageQueries: Record<string, (industry: string) => string[]> = {
+          hero: (ind) => {
+            const heroQueries: Record<string, string[]> = {
+              restaurant: ["elegant restaurant interior dining", "gourmet food presentation chef", "fine dining atmosphere", "delicious food plating professional"],
+              food: ["appetizing food professional photography", "gourmet cuisine presentation", "chef cooking kitchen professional"],
+              technology: ["modern tech office workspace", "software team working", "digital innovation technology"],
+              healthcare: ["healthcare professional caring", "modern medical facility", "wellness health clinic"],
+              consulting: ["professional business meeting", "corporate office executive", "business strategy team"],
+              fitness: ["fitness gym modern", "active healthy lifestyle", "personal training workout"],
+              beauty: ["luxury spa treatment", "beauty salon professional", "wellness relaxation"],
+              realestate: ["luxury home interior design", "modern architecture exterior", "beautiful property real estate"],
+              ecommerce: ["ecommerce product photography", "online shopping modern", "retail store design"],
+              education: ["education classroom learning", "university campus students", "academic environment"],
+              legal: ["law office professional", "legal business meeting", "courthouse architecture"],
+              creative: ["creative design studio", "artistic workspace professional", "design team collaboration"],
+            };
+            return heroQueries[ind.toLowerCase()] || heroQueries.consulting;
+          },
+          features: () => ["business features icons", "professional service illustration"],
+          services: (ind) => [`${ind} services professional`, `${ind} business service`, "professional service offering"],
+          testimonials: () => ["professional portrait business", "diverse team portraits", "customer testimonial person"],
+          team: () => ["professional team portrait", "business team diverse", "corporate headshot professional"],
+          story: (ind) => [`${ind} brand story`, `${ind} company history`, "business journey origin"],
+          "brand-story": () => ["founder entrepreneur portrait", "business origin story", "company history milestone"],
+          "case-studies": (ind) => [`${ind} success results`, `${ind} project completed`, "business case study results"],
+          gallery: (ind) => [`${ind} portfolio showcase`, `${ind} work samples`, "professional gallery images"],
+          process: () => ["business process workflow", "step by step professional", "process diagram visual"],
+          about: (ind) => [`${ind} team about us`, `${ind} company office`, "professional team workplace"],
+          contact: () => ["customer service professional", "contact us friendly", "business communication"],
+        };
+        
+        // Normalize industry for lookup
+        const normalizedIndustry = industry.toLowerCase().includes("food") || 
+                                    industry.toLowerCase().includes("restaurant") || 
+                                    industry.toLowerCase().includes("beverage") ||
+                                    industry.toLowerCase().includes("dining") ||
+                                    industry.toLowerCase().includes("cafe")
+                                    ? "restaurant" 
+                                    : industry.toLowerCase().replace(/[^a-z]/g, "");
+        
+        console.log(`[Image Auto-Fill] Normalized industry: ${normalizedIndustry}`);
+        
+        // Process each page and section
+        const updatedPages = await Promise.all(websiteContent.pages.map(async (page: any) => {
+          const updatedSections = await Promise.all(page.sections.map(async (section: any) => {
+            // Check if section needs an image
+            const sectionType = section.type;
+            const hasImage = section.data?.backgroundImage || 
+                             section.data?.backgroundImageB64 || 
+                             section.data?.image || 
+                             section.data?.imageUrl;
+            
+            // Hero sections MUST have an image
+            if (sectionType === "hero" && !hasImage) {
+              console.log(`[Image Auto-Fill] Hero section "${section.id}" on ${page.slug} needs image`);
+              
+              const queryFn = sectionImageQueries.hero;
+              const queries = queryFn(normalizedIndustry);
+              const query = queries[Math.floor(Math.random() * queries.length)];
+              
+              const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                "stock_photos",
+                "search_photos",
+                {
+                  query,
+                  perPage: 3,
+                  orientation: "landscape",
+                  size: "large",
+                }
+              );
+              
+              if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                const photo = stockResult.data.photos[0];
+                console.log(`[Image Auto-Fill] Added hero image: ${photo.url}`);
+                heroesUpdated++;
+                return {
+                  ...section,
+                  data: {
+                    ...section.data,
+                    backgroundImage: photo.url,
+                  },
+                };
+              }
+            }
+            
+            // Gallery sections need images
+            if (sectionType === "gallery" && section.data?.items) {
+              const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
+                if (!item.image && !item.imageUrl) {
+                  const queryFn = sectionImageQueries.gallery;
+                  const queries = queryFn(normalizedIndustry);
+                  const query = queries[Math.floor(Math.random() * queries.length)];
+                  
+                  const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                    "stock_photos",
+                    "search_photos",
+                    { query, perPage: 1, page: idx + 1, orientation: "square" }
+                  );
+                  
+                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                    imagesAdded++;
+                    return { ...item, image: stockResult.data.photos[0].url };
+                  }
+                }
+                return item;
+              }));
+              
+              return { ...section, data: { ...section.data, items: updatedItems } };
+            }
+            
+            // Team sections need member photos
+            if (sectionType === "team" && section.data?.members) {
+              const updatedMembers = await Promise.all(section.data.members.map(async (member: any, idx: number) => {
+                if (!member.image && !member.avatar) {
+                  const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                    "stock_photos",
+                    "search_photos",
+                    { query: "professional portrait business person", perPage: 1, page: idx + 1, orientation: "square" }
+                  );
+                  
+                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                    imagesAdded++;
+                    return { ...member, image: stockResult.data.photos[0].url };
+                  }
+                }
+                return member;
+              }));
+              
+              return { ...section, data: { ...section.data, members: updatedMembers } };
+            }
+            
+            // Case studies need images
+            if (sectionType === "case-studies" && section.data?.items) {
+              const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
+                if (!item.image && !item.imageUrl) {
+                  const queryFn = sectionImageQueries["case-studies"];
+                  const queries = queryFn(normalizedIndustry);
+                  const query = queries[Math.floor(Math.random() * queries.length)];
+                  
+                  const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
+                    "stock_photos",
+                    "search_photos",
+                    { query, perPage: 1, page: idx + 1, orientation: "landscape" }
+                  );
+                  
+                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                    imagesAdded++;
+                    return { ...item, image: stockResult.data.photos[0].url };
+                  }
+                }
+                return item;
+              }));
+              
+              return { ...section, data: { ...section.data, items: updatedItems } };
+            }
+            
+            return section;
+          }));
+          
+          return { ...page, sections: updatedSections };
+        }));
+        
+        // Save updated content
+        await storage.upsertWebsiteContent({
+          projectId: ctx.projectId,
+          pages: updatedPages,
+          globalContent: websiteContent.globalContent,
+          siteSettings: websiteContent.siteSettings,
+          seo: websiteContent.seo,
+          providerUsed: websiteContent.providerUsed,
+          status: "completed",
+        });
+        
+        console.log(`[Image Auto-Fill] Complete: ${heroesUpdated} heroes updated, ${imagesAdded} additional images added`);
+        
+        return {
+          heroesUpdated,
+          imagesAdded,
+          industry: normalizedIndustry,
+        };
+      },
+    },
   ];
   
   await executeWorkflow(ctx, steps, "Website Plan");
@@ -694,6 +894,7 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
             {
               industry: ctx.project.industry || "business",
               type: "hero",
+              businessIdea: ctx.project.businessIdea || "",
             }
           );
           

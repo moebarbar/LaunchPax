@@ -224,24 +224,209 @@ export const pexelsConnector = defineConnector({
         const input = task.input as { 
           industry: string;
           type?: "hero" | "team" | "product" | "background";
+          businessIdea?: string;
         };
         
+        // Comprehensive industry queries with high-quality, specific search terms
         const industryQueries: Record<string, string[]> = {
-          technology: ["modern office tech", "software development", "computer technology"],
-          restaurant: ["restaurant interior", "gourmet food", "dining experience"],
-          healthcare: ["medical healthcare", "doctor patient", "wellness clinic"],
-          consulting: ["business meeting", "professional consulting", "corporate office"],
-          ecommerce: ["online shopping", "product photography", "retail store"],
-          saas: ["saas dashboard", "software team", "startup office"],
-          legal: ["law office", "legal documents", "courthouse"],
-          fitness: ["fitness gym", "workout training", "healthy lifestyle"],
-          education: ["classroom learning", "students studying", "education school"],
-          realestate: ["modern home interior", "real estate property", "house architecture"],
+          restaurant: ["delicious food plating", "restaurant dining ambiance", "gourmet cuisine presentation", "chef cooking kitchen", "fresh ingredients cooking"],
+          food: ["appetizing food photography", "fresh culinary dishes", "professional food styling", "restaurant meal presentation", "delicious gourmet plating"],
+          technology: ["modern tech workspace", "software engineering team", "innovative technology office", "digital transformation", "tech startup environment"],
+          healthcare: ["medical professional caring", "wellness health clinic", "doctor patient consultation", "healthcare facility modern", "medical team caring"],
+          consulting: ["business strategy meeting", "professional consulting office", "executive boardroom", "corporate teamwork collaboration", "business professionals working"],
+          ecommerce: ["online shopping experience", "product photography studio", "retail store modern", "ecommerce packaging delivery", "shopping checkout"],
+          saas: ["software dashboard interface", "tech startup team", "modern office workspace", "software development team", "digital product meeting"],
+          legal: ["law office professional", "legal documents desk", "courthouse architecture", "attorney professional", "law firm interior"],
+          fitness: ["fitness gym workout", "personal training session", "healthy active lifestyle", "modern gym equipment", "sports training athlete"],
+          education: ["classroom learning students", "university campus", "education school teaching", "library studying", "academic environment"],
+          realestate: ["luxury home interior", "modern architecture house", "real estate property", "beautiful home design", "residential interior design"],
+          beauty: ["beauty spa treatment", "skincare cosmetics", "salon professional", "wellness relaxation", "beauty products luxury"],
+          automotive: ["luxury car automotive", "car dealership showroom", "automotive mechanic", "vehicle showroom", "modern car design"],
+          travel: ["travel destination scenic", "vacation resort luxury", "tourism adventure", "hotel hospitality", "travel adventure exploration"],
+          finance: ["financial planning meeting", "banking professional", "investment trading", "finance business office", "wealth management"],
+          manufacturing: ["modern factory manufacturing", "industrial production", "machinery equipment", "quality control inspection", "warehouse logistics"],
+          creative: ["creative design studio", "artistic workspace", "design team brainstorming", "creative agency office", "art photography studio"],
+          marketing: ["marketing team meeting", "digital marketing agency", "creative brainstorming", "advertising campaign", "brand strategy"],
+          nonprofit: ["community volunteer helping", "charity donation", "nonprofit organization", "community service", "helping people together"],
+          entertainment: ["entertainment performance stage", "music concert", "event venue", "entertainment production", "creative performance"],
+          construction: ["construction building site", "architecture engineering", "construction workers", "building development", "civil engineering project"],
         };
         
-        const queries = industryQueries[input.industry.toLowerCase()] || 
-          industryQueries.consulting;
+        // Industry aliases - map variations to canonical industry names
+        const industryAliases: Record<string, string> = {
+          // Food & Restaurant variations
+          "food & beverage": "restaurant",
+          "food and beverage": "restaurant",
+          "f&b": "restaurant",
+          "dining": "restaurant",
+          "cafe": "restaurant",
+          "coffee shop": "restaurant",
+          "bakery": "restaurant",
+          "catering": "restaurant",
+          "fast food": "restaurant",
+          "quick service": "restaurant",
+          "hospitality": "restaurant",
+          "culinary": "restaurant",
+          "foodservice": "restaurant",
+          "bar": "restaurant",
+          "pub": "restaurant",
+          "bistro": "restaurant",
+          
+          // Tech variations
+          "tech": "technology",
+          "it": "technology",
+          "software": "technology",
+          "information technology": "technology",
+          "digital": "technology",
+          "web development": "technology",
+          "app development": "technology",
+          "startup": "saas",
+          "fintech": "technology",
+          
+          // Healthcare variations
+          "health": "healthcare",
+          "medical": "healthcare",
+          "wellness": "healthcare",
+          "dental": "healthcare",
+          "pharmacy": "healthcare",
+          "mental health": "healthcare",
+          "therapy": "healthcare",
+          "chiropractic": "healthcare",
+          "veterinary": "healthcare",
+          "vet": "healthcare",
+          
+          // Real estate variations
+          "real estate": "realestate",
+          "property": "realestate",
+          "housing": "realestate",
+          "mortgage": "realestate",
+          "rental": "realestate",
+          "apartments": "realestate",
+          
+          // Fitness variations
+          "gym": "fitness",
+          "sports": "fitness",
+          "wellness center": "fitness",
+          "yoga": "fitness",
+          "personal training": "fitness",
+          "athletics": "fitness",
+          
+          // Beauty variations
+          "salon": "beauty",
+          "spa": "beauty",
+          "cosmetics": "beauty",
+          "skincare": "beauty",
+          "hair": "beauty",
+          "nails": "beauty",
+          
+          // Legal variations
+          "law": "legal",
+          "attorney": "legal",
+          "lawyer": "legal",
+          "law firm": "legal",
+          
+          // Education variations
+          "school": "education",
+          "university": "education",
+          "college": "education",
+          "training": "education",
+          "tutoring": "education",
+          "learning": "education",
+          "academy": "education",
+          
+          // Finance variations
+          "financial": "finance",
+          "banking": "finance",
+          "investment": "finance",
+          "insurance": "finance",
+          "accounting": "finance",
+          "wealth management": "finance",
+          
+          // Business services variations
+          "professional services": "consulting",
+          "business services": "consulting",
+          "management": "consulting",
+          "advisory": "consulting",
+          
+          // Retail/Ecommerce variations
+          "retail": "ecommerce",
+          "online store": "ecommerce",
+          "shop": "ecommerce",
+          "store": "ecommerce",
+          
+          // Marketing variations
+          "advertising": "marketing",
+          "pr": "marketing",
+          "public relations": "marketing",
+          "media": "marketing",
+          "digital marketing": "marketing",
+          "social media": "marketing",
+          
+          // Creative variations
+          "design": "creative",
+          "graphic design": "creative",
+          "photography": "creative",
+          "video production": "creative",
+          "art": "creative",
+          "agency": "creative",
+        };
+        
+        // Normalize industry input
+        const normalizedIndustry = input.industry.toLowerCase().trim();
+        
+        // Try direct match first, then aliases
+        let matchedIndustry = industryQueries[normalizedIndustry] 
+          ? normalizedIndustry 
+          : industryAliases[normalizedIndustry];
+        
+        // If still no match, try partial matching
+        if (!matchedIndustry) {
+          for (const [alias, canonical] of Object.entries(industryAliases)) {
+            if (normalizedIndustry.includes(alias) || alias.includes(normalizedIndustry)) {
+              matchedIndustry = canonical;
+              break;
+            }
+          }
+        }
+        
+        // Smart fallback: analyze businessIdea for keywords if industry unknown
+        if (!matchedIndustry && input.businessIdea) {
+          const ideaLower = input.businessIdea.toLowerCase();
+          const industryKeywords: Record<string, string[]> = {
+            restaurant: ["food", "restaurant", "dining", "meal", "eat", "chef", "cook", "cuisine", "menu", "kitchen", "dish", "grill", "pizza", "sushi", "burger", "cafe", "coffee", "bakery", "catering"],
+            healthcare: ["health", "medical", "doctor", "patient", "clinic", "therapy", "wellness", "care", "hospital", "nurse", "dental", "pharmacy"],
+            technology: ["software", "app", "tech", "digital", "code", "platform", "saas", "ai", "data", "cloud", "api"],
+            fitness: ["gym", "fitness", "workout", "training", "exercise", "sports", "athletic", "yoga"],
+            beauty: ["beauty", "salon", "spa", "cosmetic", "skincare", "hair", "nail", "makeup"],
+            realestate: ["home", "house", "property", "real estate", "apartment", "rental", "mortgage"],
+            education: ["school", "learn", "teach", "education", "course", "training", "tutor", "academy"],
+            ecommerce: ["shop", "store", "buy", "sell", "product", "retail", "ecommerce", "order"],
+            legal: ["law", "legal", "attorney", "lawyer", "court"],
+            finance: ["finance", "bank", "invest", "money", "loan", "insurance", "accounting"],
+            creative: ["design", "creative", "art", "photo", "video", "brand", "agency"],
+            consulting: ["consult", "business", "strategy", "management", "advisory"],
+          };
+          
+          let bestMatch = { industry: "", score: 0 };
+          for (const [industry, keywords] of Object.entries(industryKeywords)) {
+            const score = keywords.filter(kw => ideaLower.includes(kw)).length;
+            if (score > bestMatch.score) {
+              bestMatch = { industry, score };
+            }
+          }
+          
+          if (bestMatch.score > 0) {
+            matchedIndustry = bestMatch.industry;
+            console.log(`[Pexels] Smart match: "${input.industry}" → "${matchedIndustry}" (score: ${bestMatch.score})`);
+          }
+        }
+        
+        // Final fallback: use a visually appealing generic business query (NOT boring meeting rooms)
+        const finalIndustry = matchedIndustry || "creative";
+        const queries = industryQueries[finalIndustry] || industryQueries.creative;
         const query = queries[Math.floor(Math.random() * queries.length)];
+        
+        console.log(`[Pexels] Industry "${input.industry}" → "${finalIndustry}" → query: "${query}"`);
         
         const orientation = input.type === "hero" ? "landscape" : "square";
         
