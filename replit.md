@@ -34,6 +34,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Systems
 - **Connector System**: A registry pattern for abstracting external API integrations. Connectors provide capability-based lookup and automatically fall back to mock connectors if primary AI services fail.
+- **Creative Theme Engine**: Automatically selects dramatic visual themes based on industry and tone. 8 unique themes (Dark Neon, Editorial Luxury, Soft Gradient, etc.) with complete design systems including colors, typography, hero archetypes, and photography direction.
 - **Image Management System**: Handles user uploads, auto-generates SEO-optimized alt text, integrates with stock photo services (Pexels, Unsplash), and enforces visual completeness with auto-filling missing images and optimization via Cloudinary.
 - **Section Transitions**: Implements smooth visual transitions (gradient-fade, overlap, soft-merge, blur-blend) between website sections.
 - **Workflow Engine**: Orchestrates multi-step generation processes (naming, brand, website, graphics) with self-healing capabilities (automatic retries, workflow recovery).
@@ -100,6 +101,15 @@ Preferred communication style: Simple, everyday language.
 - **Replit Auth**: For OpenID Connect-based authentication.
 
 ## Recent Changes
+
+### Creative Theme Engine Integration (Feb 2026)
+- **Purpose**: Generate unique, award-winning websites with dramatic visual personalities instead of generic templates
+- **8 Creative Themes**: Dark Neon, Editorial Luxury, Soft Gradient, Bold Modern, Minimal Clean, Urban Gritty, Vibrant Pop, Classic Elegant
+- **Theme Components**: Each theme includes colors, typography pairings, hero archetype preferences, layout preferences, and photography direction
+- **Industry Mapping**: 50+ business types mapped to optimal themes (e.g., Technology → Soft Gradient/Dark Neon, Food → Urban Gritty, Healthcare → Classic Elegant)
+- **Workflow Integration**: Automatic theme selection based on industry + tone, applies theme settings to siteSettings, hero archetypes, and typography
+- **Key Files**: `server/services/creative-theme-engine.ts`, `client/src/lib/creative-themes.ts`
+- **siteSettings Enhancement**: Added `creativeThemeId` field to track which theme was selected for frontend rendering
 
 ### Color Contrast Enforcement System (Feb 2026)
 - **Issue**: Light text on light backgrounds causing poor readability across website sections

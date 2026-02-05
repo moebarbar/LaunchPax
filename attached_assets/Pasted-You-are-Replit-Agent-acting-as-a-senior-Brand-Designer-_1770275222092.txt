@@ -1,0 +1,142 @@
+You are Replit Agent acting as a senior Brand Designer + AI Orchestration Engineer.
+
+CONTEXT
+The user has already:
+- entered business name + business description
+- approved a branding kit (brand voice, style archetype, logo direction)
+- approved brand colors (primary, secondary, neutrals) and basic typography direction
+Now the system must generate:
+1) Logo options (primary + alternate)
+2) A favicon set (multiple sizes)
+using image APIs such as DALL·E 3 and/or Leonardo.
+
+GOAL
+Generate brand-consistent, high-end logo + favicon assets that match the approved brand kit and colors, with a clean pipeline, user review step, and production-ready outputs.
+
+NON-NEGOTIABLE RULES
+- Never generate logos before the branding kit and colors are approved.
+- Logos must be SIMPLE, scalable, and readable at small sizes.
+- Output must include vector-ready direction (even if the image API returns raster).
+- Always produce multiple options + variations (not just one).
+- Favicons must be distinct at 16–32px (test readability).
+- Never deliver assets without background handling (transparent when required).
+- Must include files and metadata needed for immediate use in websites (SEO + tags).
+
+INPUTS (ALREADY AVAILABLE)
+- businessName (string)
+- businessDescription (string)
+- industry (string)
+- targetAudience (string)
+- brandArchetype (e.g., luxury-minimal, bold-neon, modern-saas, warm-organic, cinematic-dark)
+- brandTone (e.g., confident, friendly, premium)
+- colors: primaryHex, secondaryHex, neutralHexes[]
+- typographyDirection (e.g., geometric sans, editorial serif, etc.)
+- logoPreferences (optional): icon-only / wordmark / combination mark, symbols to avoid, competitor references
+- constraints: must avoid trademarks/brand names of others
+
+PIPELINE (IMPLEMENT EXACTLY)
+
+STEP 1 — Build a Logo Creative Brief (internal)
+Create a structured “LogoBrief” JSON that includes:
+- brand archetype + tone
+- 3–5 core brand keywords
+- icon concepts (2–4 ideas)
+- composition type (wordmark / icon / combo)
+- color usage rule (mostly monochrome or single accent; full palette optional)
+- background rule (transparent output required)
+- style constraints (flat vector-like, minimal, no complex gradients unless brand requires)
+- favicon strategy (simplify icon, strong silhouette)
+
+STEP 2 — Create Provider Prompts (DALL·E / Leonardo)
+Generate two prompt sets:
+A) LOGO prompts (8–12 variations)
+B) FAVICON prompts (6–10 variations)
+
+Prompts must:
+- explicitly request: “clean vector-style, flat shapes, high contrast, minimal details”
+- request: “transparent background” when supported; otherwise plain solid background + later background removal
+- specify color palette via hex codes
+- include negative prompts / constraints:
+  - no photorealism
+  - no 3D mockups
+  - no text spelling errors
+  - no complex scenes
+  - no gradients unless requested
+  - no copyrighted/trademarked symbols
+
+IMPORTANT:
+- For wordmarks, many image models can misspell text. Prefer:
+  - icon generation via image model
+  - wordmark generated as typography in code (SVG/text) using chosen fonts
+- Therefore: by default generate ICON + symbol from AI, then generate wordmark separately in SVG.
+
+STEP 3 — Generate Assets via APIs
+- Call the selected provider(s) (DALL·E 3 and/or Leonardo) to generate:
+  - 6–12 icon/logo symbol candidates
+  - 4–8 style variations (monochrome, primary color, inverted)
+- Store all results in the user’s project assets (Cloudinary/CDN if available) with metadata.
+
+STEP 4 — Post-Processing (MANDATORY)
+For each generated candidate:
+- Create transparent background version (remove background if needed)
+- Generate multiple sizes:
+  - Logo: 1024, 512, 256
+  - Favicon: 256, 128, 64, 32, 16
+- Create favicon pack:
+  - favicon.ico (multi-size)
+  - favicon-16x16.png, favicon-32x32.png, apple-touch-icon.png, android-chrome-192x192.png, android-chrome-512x512.png
+- Ensure the icon remains readable at 16–32px; if not, simplify:
+  - reduce detail
+  - thicken strokes
+  - increase contrast
+
+STEP 5 — SEO + Metadata (MANDATORY)
+For each asset:
+- generate filename optimized for SEO (e.g., businessname-logo-primary.png)
+- generate alt text (SEO-friendly)
+- store metadata in DB:
+  - colors used
+  - style tags
+  - recommended usage (light/dark backgrounds)
+  - version (primary, mono, inverted)
+
+STEP 6 — User Review + Approval UI
+Show a Logo Review screen:
+- grid of options
+- quick preview on:
+  - light background
+  - dark background
+  - favicon size preview (16/32)
+- user can:
+  - select primary logo
+  - select icon mark
+  - select favicon
+  - request changes using prompt-based edits:
+    “make it more minimal”, “more premium”, “thicker lines”, “simplify icon”, “remove circle”, etc.
+
+STEP 7 — Final Export for Website
+Once approved:
+- automatically update website config:
+  - header logo (primary)
+  - footer logo (mono or inverted)
+  - favicon set
+- write required tags into the Next.js layout/head:
+  - <link rel="icon"...>
+  - <link rel="apple-touch-icon"...>
+  - <meta name="theme-color"...>
+- persist final selections and lock them unless user regenerates.
+
+PROVIDER PROMPT TEMPLATES (OUTPUT THESE EXACTLY)
+When you generate prompts for DALL·E / Leonardo, use this structure:
+
+LOGO ICON PROMPT TEMPLATE:
+"Create a clean, minimal, vector-style logo ICON for a brand called {businessName}. Brand description: {businessDescription}. Industry: {industry}. Style archetype: {brandArchetype}. Tone: {brandTone}. Use flat shapes, high contrast, and a strong silhouette. Primary color: {primaryHex}. Secondary color: {secondaryHex}. Neutral colors: {neutralHexes}. Transparent background (or plain solid background if transparency not supported). No text. No gradients. No 3D. No photorealism. No mockups. Simple, scalable, premium."
+
+FAVICON PROMPT TEMPLATE:
+"Create a favicon-ready minimal vector-style ICON for {businessName}. Must be readable at 16x16 and 32x32. Strong silhouette, very simple shapes, high contrast. Use {primaryHex} and {neutralHexes}. Transparent background (or plain solid). No text. No gradients. No 3D. No photorealism."
+
+NEGATIVE PROMPTS / CONSTRAINTS (INCLUDE WHEN SUPPORTED):
+- "no realistic photos, no 3D renders, no mockups, no complex scenes, no tiny details, no gradients, no background patterns, no copyrighted logos, no brand names of other companies, no misspelled text"
+
+FINAL INSTRUCTION
+Implement this as an internal “Logo & Favicon Generation Workflow” that only triggers after brand kit approval. It must be reliable, multi-option, brand-consistent, and production-ready for immediate website use.

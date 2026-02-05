@@ -20,12 +20,19 @@ import { aiRouter } from "../services/ai-router";
 import { contentCache } from "../services/content-cache";
 import { workflowRecovery } from "../services/workflow-recovery";
 import { runCreativityChecklist, consolidateFonts } from "../services/creativity-checklist";
+import { selectCreativeTheme, applyThemeToSiteSettings, type CreativeThemeConfig } from "../services/creative-theme-engine";
 
 /**
  * Get the correct hero archetype for an industry
  * This is server-side enforcement to override any AI mistakes
+ * Can optionally use a creative theme's preferred hero style
  */
-function getCorrectHeroArchetype(industry: string): string {
+function getCorrectHeroArchetype(industry: string, creativeTheme?: CreativeThemeConfig): string {
+  // If a creative theme is specified, use its preferred hero archetype
+  if (creativeTheme?.heroArchetype) {
+    return creativeTheme.heroArchetype;
+  }
+  
   const lowerIndustry = (industry || "").toLowerCase();
   
   // Cinematic - luxury, premium, high-end
@@ -70,10 +77,11 @@ function getCorrectHeroArchetype(industry: string): string {
 /**
  * Enforce correct hero archetype on all pages
  * This overrides any AI mistakes
+ * Uses creative theme's preferred hero archetype if available
  */
-function enforceHeroArchetype(pages: any[], industry: string): any[] {
-  const correctArchetype = getCorrectHeroArchetype(industry);
-  console.log(`[Workflow] Enforcing hero archetype: "${correctArchetype}" for industry "${industry}"`);
+function enforceHeroArchetype(pages: any[], industry: string, creativeTheme?: CreativeThemeConfig): any[] {
+  const correctArchetype = getCorrectHeroArchetype(industry, creativeTheme);
+  console.log(`[Workflow] Enforcing hero archetype: "${correctArchetype}" for industry "${industry}"${creativeTheme ? ` (theme: ${creativeTheme.name})` : ""}`);
   
   return pages.map(page => ({
     ...page,
@@ -439,6 +447,12 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const industry = ctx.project.industry || "";
         const professionalPalette = getProfessionalPalette(industry);
         
+        // SELECT CREATIVE THEME based on industry and tone
+        const projectTone = ctx.project.tone || "";
+        const creativeTheme = selectCreativeTheme(industry, projectTone);
+        const themeSettings = applyThemeToSiteSettings(creativeTheme);
+        console.log(`[Creative Theme] Selected theme "${creativeTheme.name}" for industry="${industry}", tone="${projectTone}"`);
+        
         // Fix brand colors if they have contrast issues
         const fixedColors = fixBrandColors({
           primary: primaryColor,
@@ -447,35 +461,46 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         }, industry);
         
         // Use fixed colors with solid, high-contrast values from professional palette
-        const finalPrimaryColor = fixedColors.primary || primaryColor;
-        const finalBackgroundColor = fixedColors.background || backgroundColor;
-        const finalCardBackground = fixedColors.cardBackground || professionalPalette.cardBg;
+        // But prefer creative theme colors when brand kit doesn't have specific colors
+        const finalPrimaryColor = fixedColors.primary || primaryColor || themeSettings.primaryColor;
+        const finalBackgroundColor = fixedColors.background || backgroundColor || themeSettings.backgroundColor;
+        const finalCardBackground = fixedColors.cardBackground || professionalPalette.cardBg || themeSettings.cardBackground;
         
         // CRITICAL: Use professional palette text colors for maximum contrast
-        const finalTextColor = fixedColors.foreground || professionalPalette.text;
-        const finalMutedTextColor = fixedColors.mutedForeground || professionalPalette.muted;
-        const finalHeadingColor = fixedColors.headingColor || professionalPalette.heading;
+        const finalTextColor = fixedColors.foreground || professionalPalette.text || themeSettings.textColor;
+        const finalMutedTextColor = fixedColors.mutedForeground || professionalPalette.muted || themeSettings.mutedTextColor;
+        const finalHeadingColor = fixedColors.headingColor || professionalPalette.heading || themeSettings.headingColor;
+        
+        // Use creative theme fonts if brand kit doesn't specify
+        const finalHeadingFont = brandKit?.fontPairings?.[0]?.heading || themeSettings.headingFont || creativeTheme.headingFont;
+        const finalBodyFont = brandKit?.fontPairings?.[0]?.body || themeSettings.fontFamily || creativeTheme.bodyFont;
         
         const siteSettings = {
           ...result.data.siteSettings,
+          // Apply creative theme as base
+          style: themeSettings.style,
+          // Colors - use brand kit with theme fallback
           backgroundColor: finalBackgroundColor,
           primaryColor: finalPrimaryColor,
-          secondaryColor,
-          accentColor,
-          surfaceColor,
+          secondaryColor: secondaryColor || themeSettings.secondaryColor,
+          accentColor: accentColor || themeSettings.accentColor,
+          surfaceColor: surfaceColor || themeSettings.surfaceColor,
           textColor: finalTextColor,
           mutedTextColor: finalMutedTextColor,
           headingColor: finalHeadingColor,
           cardBackground: finalCardBackground,
-          colorScheme,
-          fontFamily: brandKit?.fontPairings?.[0]?.body,
-          headingFont: brandKit?.fontPairings?.[0]?.heading,
+          colorScheme: themeSettings.colorScheme || colorScheme,
+          // Typography from theme
+          fontFamily: finalBodyFont,
+          headingFont: finalHeadingFont,
+          // Store theme info for frontend rendering
+          creativeThemeId: creativeTheme.id,
         };
         
-        console.log(`[Color Fix] Applied professional palette: heading=${finalHeadingColor}, text=${finalTextColor}, muted=${finalMutedTextColor}, bg=${finalBackgroundColor}, cardBg=${finalCardBackground}`);
+        console.log(`[Creative Theme] Applied: theme="${creativeTheme.name}", heading=${finalHeadingColor}, text=${finalTextColor}, headingFont="${finalHeadingFont}", bodyFont="${finalBodyFont}"`);
         
-        // Enforce correct hero archetype based on industry (server-side override)
-        const enforcedPages = enforceHeroArchetype(result.data.pages, ctx.project.industry || "");
+        // Enforce correct hero archetype based on industry and creative theme (server-side override)
+        const enforcedPages = enforceHeroArchetype(result.data.pages, ctx.project.industry || "", creativeTheme);
         
         // Build preliminary content for validation
         let websiteData = {
