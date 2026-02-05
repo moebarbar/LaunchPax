@@ -63,7 +63,14 @@ Respond with JSON:
       throw new Error("Unexpected response type from Claude");
     }
     
-    const result = JSON.parse(textContent.text);
+    // Extract JSON from markdown code blocks if present
+    let jsonText = textContent.text.trim();
+    const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[1].trim();
+    }
+    
+    const result = JSON.parse(jsonText);
     
     return {
       success: true,
