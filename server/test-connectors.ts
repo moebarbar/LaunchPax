@@ -214,12 +214,23 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       return { success: true, message: "Mock connector ready" };
     }
 
+    case "namecheap": {
+      const result = await connector.execute({
+        action: "get_pricing",
+        input: { tlds: ["com", "io"] },
+      });
+      if (result.success && result.data) {
+        const pricing = result.data as { tld: string; registerPrice: number }[];
+        return { success: true, message: `Namecheap pricing: ${pricing.length} TLDs available` };
+      }
+      return { success: false, error: result.error || "No pricing returned" };
+    }
+
     case "stripe":
     case "sendgrid":
     case "twilio":
     case "google-maps":
     case "google-analytics":
-    case "namecheap":
     case "cloudflare": {
       return { success: true, message: "Not configured - skipped" };
     }
