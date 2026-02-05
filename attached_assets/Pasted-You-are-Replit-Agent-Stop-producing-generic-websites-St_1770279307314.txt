@@ -1,0 +1,188 @@
+You are Replit Agent. Stop producing generic websites. Stop shipping “working but average” outputs.
+
+I’m not asking for another website builder. I’m asking you to build a REPLIT-LEVEL WEBSITE ENGINE: a deterministic, iterative, self-correcting production pipeline that generates stunning, modern, agency-grade websites for ANY business type.
+
+This must be a real system. If you cut corners, simplify, or default to generic Tailwind sections, you fail.
+
+────────────────────────────────────────────
+0) THE PROBLEM (READ CAREFULLY)
+────────────────────────────────────────────
+Right now the websites are:
+- generic / template-y
+- too short (like a basic landing page)
+- weak at the top (logo/header/hero placement looks average)
+- visually empty or lacking premium imagery
+- harsh section breaks (visible lines / cheap transitions)
+- inconsistent typography (default-looking fonts)
+- “AI-built” in a bad way
+
+This is unacceptable. I need “premium studio site” quality, consistently.
+
+────────────────────────────────────────────
+1) CORE PRINCIPLE (NON-NEGOTIABLE)
+────────────────────────────────────────────
+Do NOT generate raw HTML or “one-off pages” from AI.
+
+Instead, implement a Replit-style ENGINE:
+Intent → Plan → Scaffold → Compose → Populate → QA → Self-Fix → Preview → Export/Deploy
+
+Websites are PROJECTS (artifacts) not strings.
+
+Use structured data:
+- BusinessSpec (strategy)
+- BrandConfig (design tokens + archetype)
+- WebsiteSpec (pages + section list + props)
+Then RENDER using an elite component library.
+
+This is the ONLY acceptable approach.
+
+────────────────────────────────────────────
+2) ARCHITECTURE (MUST IMPLEMENT)
+────────────────────────────────────────────
+Implement these layers as real modules with clean interfaces:
+
+A) BusinessSpec Generator (“Planner”)
+Input: business name, description, industry, audience, goals, tone
+Output: BusinessSpec JSON including:
+- businessType (local, SaaS, creator, ecommerce, etc.)
+- primaryGoal (leads, sales, bookings, newsletter, etc.)
+- requiredSections (must-have blocks)
+- contentDepth (low/medium/high)
+- styleArchetype (cinematic, editorial, luxury, bold-neon, modern-saas, warm-organic)
+- imageStrategy (stock vs AI vs hybrid)
+
+B) Composer (“Site Architect”)
+Input: BusinessSpec + BrandConfig
+Output: WebsiteSpec JSON:
+- pages
+- ordered sections with chosen variants (NOT generic)
+- per-section props placeholders
+- layout rhythm rules
+
+C) Section Library (“The Moat”)
+Create 60–120 premium, art-directed sections with multiple variants.
+Minimum to ship MVP:
+- 10 hero variants (must be elite)
+- 8 header/nav variants (must fix logo placement quality)
+- 10 service/product variants
+- 6 proof variants (logos/testimonials/stats)
+- 4 process variants
+- 3 pricing variants
+- 3 case study variants
+- 3 CTA variants
+- 2 FAQ variants
+- 2 About/Story variants
+Each section must:
+- be responsive-perfect
+- use Framer Motion tastefully
+- be token-driven (no random styling)
+- be designed like a real agency component, not a Tailwind template
+
+D) Renderer
+Maps section.type -> React component and injects props from WebsiteSpec.
+No hard-coded copy inside components.
+
+E) Asset Orchestrator (Images/Graphics)
+Rules:
+- User can upload images at ANY stage (hero, offers, products, etc.)
+- If missing: auto-fill with premium stock OR AI-generated images
+- Every site MUST be visually complete before preview/publish
+- Process images (resize/format) and generate SEO:
+  alt text, captions if needed, SEO filenames, metadata
+
+F) QA + Self-Fix (“Never show bad output”)
+Before preview:
+- detect generic layout patterns
+- detect weak hero/top section
+- detect bad header/logo composition
+- detect missing images
+- detect typography rhythm problems
+- detect harsh section transitions/lines
+- detect site too short/incomplete for businessType
+If any fail:
+- auto-fix by swapping section variants, regenerating copy blocks, improving imagery, adjusting tokens
+- re-run QA until pass or max attempts
+User must never see low-quality output.
+
+G) Prompt-Based Editing
+Users can type:
+- “Make it more premium and cinematic”
+- “Fix header/logo placement”
+- “Add case studies and make it longer”
+- “Improve visuals/backgrounds”
+Apply non-destructive patches to WebsiteSpec/BrandConfig:
+- only regenerate affected parts
+- preserve user uploads and favorites
+
+H) Transparent Build Timeline
+Show a techy live log:
+- stage name + subtask
+- what changed (sections added/swapped, images filled)
+- QA checks and fixes
+- retries/fallbacks
+Save ActivityLog per project.
+
+────────────────────────────────────────────
+3) DESIGN SYSTEM (TOKEN-FIRST, PREMIUM)
+────────────────────────────────────────────
+Implement a real design system:
+- typography scale (editorial hierarchy)
+- spacing rhythm system
+- radius + shadows depth
+- background treatments (gradients/noise/layers)
+- motion presets (Framer Motion)
+- premium font pairings per archetype (NO default fonts)
+
+Hard rule:
+Never show harsh divider lines between sections.
+Transitions must be smooth using overlap, gradients, spacing, and motion.
+
+────────────────────────────────────────────
+4) “REPLIT-LEVEL” QUALITY REQUIREMENTS
+────────────────────────────────────────────
+Top section MUST be premium:
+- intelligent logo placement based on logo aspect ratio
+- non-generic header layouts
+- hero composition must be art-directed (cinematic/editorial)
+
+Websites MUST be long and complete:
+- do not stop at 5–7 sections
+- include trust, proof, process, FAQs, CTAs, pricing/offer if relevant
+
+Visuals MUST be complete:
+- never show/publish without images/graphics
+- always fill all needed visuals automatically
+
+────────────────────────────────────────────
+5) IMPLEMENTATION ORDER (FOLLOW EXACTLY)
+────────────────────────────────────────────
+1) Build tokens + typography + motion system
+2) Build 3 premium header variants + 3 premium hero variants (fix the “average top” first)
+3) Implement WebsiteSpec schema + renderer
+4) Implement BusinessSpec + Composer (rules first)
+5) Implement Asset Orchestrator + SEO image metadata
+6) Implement QA + Self-Fix + TopSectionQualityGate
+7) Implement Prompt-Based Editing
+8) Implement Build Timeline + Activity Logs
+9) Expand Section Library to MVP minimum counts above
+10) Generate 4 demo sites with distinct archetypes:
+   - Premium dark/neon studio
+   - Cinematic restaurant
+   - Editorial lifestyle/coffee
+   - Clean modern SaaS
+
+────────────────────────────────────────────
+6) SUCCESS CRITERIA (HARD GATE)
+────────────────────────────────────────────
+Do not claim success unless:
+- sites look like premium studio work (2026 level)
+- top/header/hero NEVER looks generic
+- sites are long and business-complete
+- every site has images/graphics filled
+- no harsh section lines
+- typography looks intentional and premium
+- QA prevents low-quality outputs from being shown
+
+DO NOT ASK ME CLARIFYING QUESTIONS.
+Make strong decisions, implement the engine, and iterate until the quality gate passes.
+Start now with tokens + typography, then build premium header/hero variants, then wire the JSON-driven renderer.

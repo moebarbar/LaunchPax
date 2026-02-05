@@ -34,7 +34,28 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Systems
 - **Connector System**: Registry pattern for abstracting external API integrations with capability-based lookup and mock fallbacks.
-- **Creative Theme Engine**: Automatically selects dramatic visual themes (8 unique themes) based on industry and tone, including design systems for colors, typography, hero archetypes, and photography.
+- **Creative Theme Engine v4.0.0**: World-class design system with 24 distinctive themes covering ALL business types:
+  - **Original 12 Themes**: dark-neon, editorial-luxury, soft-gradient, bold-modern, minimal-clean, urban-gritty, vibrant-pop, classic-elegant, nature-organic, tech-futuristic, warm-artisan, crisp-corporate
+  - **NEW 12 Specialized Themes v4.0**:
+    - `startup-velocity`: Dynamic startup/tech companies with purple/cyan gradients
+    - `saas-aurora`: Modern SaaS products with aurora-inspired gradients
+    - `fintech-precision`: Financial/banking with trust-building blue/green palette
+    - `healthcare-trust`: Medical/wellness with calming cyan/green tones
+    - `cyber-matrix`: Cybersecurity/dev tools with terminal green aesthetic
+    - `creative-studio`: Creative agencies with expressive orange/purple
+    - `luxury-noir`: High-end luxury with gold on black elegance
+    - `eco-sustainable`: Environmental/organic with natural green palette
+    - `indie-maker`: Indie hackers/solo founders with warm orange energy
+    - `enterprise-power`: Enterprise B2B with authoritative blue
+    - `retro-future`: Synthwave/gaming with pink/cyan/yellow neon
+    - `zen-minimal`: Ultra-minimal Japanese aesthetic with serene neutrals
+  - **Complete Design Systems**: 22+ color palette, named gradient definitions, 7-level shadow system, typography scales, spacing/border-radius scales per theme
+  - **Motion Design**: Theme-specific durations, easings, hover/click transforms, page transitions, scroll reveal animations
+  - **Visual Effects**: Glass morphism, gradient overlays, animated gradients, parallax, particle effects, grain textures
+  - **Intelligent Selection**: Advanced scoring algorithm with 150+ industry mappings, 25+ tone modifiers with boost/suppress logic
+  - **Hero/Navigation/Card Configs**: Per-theme configurations for archetypes, styles, animations
+  - **Photography Direction**: Style, mood, lighting, composition, color treatment per theme
+  - **Quality Metrics**: Sophistication, accessibility, uniqueness scores with bestFor/avoidFor recommendations
 - **Image Management System**: Handles user uploads, auto-generates SEO-optimized alt text, integrates with stock photo services, and optimizes images via Cloudinary.
 - **Section Transitions**: Implements smooth visual transitions (gradient-fade, overlap, soft-merge, blur-blend) between website sections.
 - **Workflow Engine**: Orchestrates multi-step generation processes with self-healing capabilities (automatic retries, workflow recovery).
