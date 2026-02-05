@@ -1100,25 +1100,71 @@ Requirements:
           businessName: string;
           industry?: string;
           style?: string;
+          colors?: string[];
           brandColors?: { primary: string; secondary?: string; accent?: string };
         };
 
-        const logoPrompt = `Create a minimalist, professional logo icon for "${input.businessName}".
+        // Industry-specific design elements for better logos
+        const industryDesignElements: Record<string, { symbols: string; style: string; mood: string }> = {
+          "healthcare": { symbols: "medical cross, heart, shield, leaf, care hands", style: "clean, trustworthy, calming", mood: "professional and caring" },
+          "dental": { symbols: "tooth, smile, dental care, clean teeth, bright smile", style: "friendly, modern, fresh", mood: "welcoming and professional" },
+          "technology": { symbols: "circuit, hexagon, data flow, connection nodes, digital wave", style: "futuristic, sleek, innovative", mood: "cutting-edge and reliable" },
+          "food": { symbols: "chef hat, fork/spoon, plate, steam, artisan elements", style: "warm, inviting, artisanal", mood: "appetizing and quality" },
+          "bakery": { symbols: "wheat, bread, rolling pin, pastry swirl, oven", style: "warm, homey, artisanal", mood: "cozy and delicious" },
+          "restaurant": { symbols: "plate, utensils, flame, chef hat, elegant dining", style: "sophisticated, appetizing", mood: "quality and experience" },
+          "fitness": { symbols: "strong figure, dumbbell, energy bolt, mountain peak", style: "dynamic, powerful, energetic", mood: "motivating and strong" },
+          "beauty": { symbols: "flower, leaf, elegant curves, feminine shapes", style: "elegant, luxurious, refined", mood: "beauty and sophistication" },
+          "real estate": { symbols: "house, key, building, home silhouette, roof", style: "stable, trustworthy, solid", mood: "reliable and professional" },
+          "legal": { symbols: "scales of justice, pillar, gavel, shield", style: "authoritative, traditional, solid", mood: "trust and expertise" },
+          "education": { symbols: "book, graduation cap, lightbulb, open book", style: "inspiring, knowledge-focused", mood: "growth and learning" },
+          "finance": { symbols: "chart, arrow up, shield, building, coin", style: "stable, professional, secure", mood: "trust and growth" },
+          "automotive": { symbols: "car silhouette, wheel, speedometer, road", style: "dynamic, powerful, sleek", mood: "speed and reliability" },
+          "construction": { symbols: "building, crane, hard hat, blueprint", style: "solid, reliable, strong", mood: "quality and craftsmanship" },
+          "entertainment": { symbols: "star, spotlight, ticket, musical note", style: "vibrant, exciting, dynamic", mood: "fun and memorable" },
+        };
 
-Industry: ${input.industry || "general business"}
-Style: ${input.style || "modern, clean, minimal"}
+        const normalizedIndustry = (input.industry || "").toLowerCase();
+        let designGuide = industryDesignElements["technology"]; // default
+        for (const [key, value] of Object.entries(industryDesignElements)) {
+          if (normalizedIndustry.includes(key)) {
+            designGuide = value;
+            break;
+          }
+        }
 
-Requirements:
-- Simple, iconic design that works at any size
-- Single color or limited palette using: ${input.brandColors?.primary || "#3b82f6"}
-- No text - icon/symbol only
-- Geometric or abstract shapes
-- Professional and memorable
-- Suitable for favicon, app icon, and social media
-- Clean white or transparent-looking background
-- Should evoke trust and professionalism`;
+        const primaryColor = input.colors?.[0] || input.brandColors?.primary || "#3b82f6";
+        const secondaryColor = input.colors?.[1] || input.brandColors?.secondary || "";
+        const styleGuide = input.style === "playful" ? "friendly, approachable, fun" :
+                          input.style === "classic" ? "timeless, elegant, traditional" :
+                          input.style === "minimal" ? "ultra-clean, simple, refined" :
+                          input.style === "tech" ? "futuristic, digital, innovative" :
+                          "modern, clean, professional";
 
-        console.log("[OpenAI] Generating logo for:", input.businessName);
+        const logoPrompt = `Design a stunning, professional logo mark for "${input.businessName}".
+
+BUSINESS CONTEXT:
+- Industry: ${input.industry || "business"}
+- Design Direction: ${styleGuide}
+- Brand Personality: ${designGuide.mood}
+
+DESIGN REQUIREMENTS:
+1. Create a sophisticated, memorable ICON/SYMBOL only (no text, no letters, no words)
+2. Draw inspiration from: ${designGuide.symbols}
+3. Style: ${designGuide.style}
+4. Use these brand colors: Primary ${primaryColor}${secondaryColor ? `, Secondary ${secondaryColor}` : ""}
+5. The icon should be:
+   - Instantly recognizable and unique
+   - Scalable from favicon (16px) to billboard
+   - Balanced, harmonious composition
+   - Professional enough for Fortune 500, creative enough to stand out
+   - Clean negative space
+6. Clean white background with centered composition
+7. NO text, NO letters, NO words - pure symbol/icon only
+8. Think Apple, Nike, Twitter level of iconic simplicity
+
+QUALITY: HD, vector-quality edges, perfect proportions`;
+
+        console.log("[OpenAI] Generating logo for:", input.businessName, "Industry:", input.industry);
 
         try {
           const imageResponse = await client.images.generate({

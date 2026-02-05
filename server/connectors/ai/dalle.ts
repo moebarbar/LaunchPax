@@ -99,18 +99,57 @@ async function generateLogo(options: {
   colors?: string[];
 }): Promise<ConnectorResult<ImageGenerationResult>> {
   const styleDescriptions: Record<string, string> = {
-    modern: "sleek, contemporary, clean lines",
-    classic: "timeless, traditional, elegant",
-    playful: "fun, friendly, approachable",
-    minimal: "simple, clean, iconic",
-    tech: "futuristic, digital, innovative",
+    modern: "sleek, contemporary, clean geometric lines, minimalist",
+    classic: "timeless, traditional, elegant, refined",
+    playful: "fun, friendly, approachable, vibrant",
+    minimal: "ultra-simple, clean, iconic, refined whitespace",
+    tech: "futuristic, digital, innovative, cutting-edge",
   };
 
+  // Industry-specific design inspiration
+  const industryDesign: Record<string, string> = {
+    healthcare: "incorporate medical cross or heart symbol, conveys trust and care",
+    dental: "incorporate tooth or smile symbolism, clean and fresh aesthetic",
+    technology: "hexagon, circuit, or data flow patterns, futuristic feel",
+    food: "chef elements, utensils, or artisan touches, appetizing warmth",
+    bakery: "wheat, bread, or pastry swirl elements, homey warmth",
+    restaurant: "elegant dining elements, sophisticated culinary feel",
+    fitness: "dynamic movement, strength symbols, energetic",
+    beauty: "floral, elegant curves, refined luxury feel",
+    real_estate: "home or building silhouette, stability and trust",
+    finance: "upward trends, shield, growth and security",
+    education: "book or lightbulb elements, knowledge and growth",
+    construction: "building or blueprint elements, solid reliability",
+  };
+
+  const normalizedIndustry = options.industry.toLowerCase();
+  let industryHint = "";
+  for (const [key, value] of Object.entries(industryDesign)) {
+    if (normalizedIndustry.includes(key.replace("_", " ")) || normalizedIndustry.includes(key)) {
+      industryHint = value;
+      break;
+    }
+  }
+
   const colorPart = options.colors?.length 
-    ? `using colors: ${options.colors.join(", ")}` 
+    ? `Brand colors: ${options.colors.slice(0, 3).join(", ")}. Use these colors prominently.` 
     : "";
 
-  const prompt = `Design a professional logo for "${options.businessName}", a ${options.industry} company. Style: ${styleDescriptions[options.style]}. ${colorPart}. The logo should be memorable, scalable, and suitable for both digital and print. White or transparent background, centered composition.`;
+  const prompt = `Design a stunning, professional logo ICON/SYMBOL for "${options.businessName}".
+
+Industry: ${options.industry}
+${industryHint ? `Design Inspiration: ${industryHint}` : ""}
+Style: ${styleDescriptions[options.style]}
+${colorPart}
+
+CRITICAL REQUIREMENTS:
+- Pure ICON/SYMBOL only - absolutely NO text, NO letters, NO words
+- Simple enough to work as a favicon (16px) yet striking at any size
+- Memorable, unique, balanced composition
+- Think Apple, Nike, or Twitter-level iconic simplicity
+- Clean white background, perfectly centered
+- Professional quality suitable for Fortune 500 company
+- Vector-quality sharp edges and perfect proportions`;
 
   return generateImage({
     prompt,
