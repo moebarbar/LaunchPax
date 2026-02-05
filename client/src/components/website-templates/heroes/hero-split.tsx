@@ -51,7 +51,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.1 }}
-                className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]"
+                className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1] text-gray-900 dark:text-white"
               >
                 {data.headline}
               </motion.h1>
@@ -61,7 +61,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-lg sm:text-xl text-muted-foreground leading-relaxed"
+                  className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed"
                 >
                   {data.statement || data.subheadline}
                 </motion.p>

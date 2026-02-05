@@ -98,3 +98,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication
 - **Replit Auth**: For OpenID Connect-based authentication.
+
+## Recent Changes
+
+### Hero Image Rendering Fix (Feb 2026)
+- **Issue**: Healthcare/dental websites were using "minimal" hero archetype which doesn't display images
+- **Fix**: Updated hero archetype selection to use "split" for healthcare/dental/medical industries (image-supporting archetype)
+- **Enhancement**: Updated hero-minimal to support images with dark overlay and white text when image is available
+- **Contrast Fix**: Updated hero-split to use explicit dark text colors (text-gray-900, text-gray-600) instead of CSS variables to ensure readability on light backgrounds

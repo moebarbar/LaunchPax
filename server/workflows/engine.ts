@@ -53,8 +53,13 @@ function getCorrectHeroArchetype(industry: string): string {
     return "split";
   }
   
-  // Minimal - professional services, finance, legal, healthcare
-  if (/legal|law|finance|banking|accounting|healthcare|medical|insurance|professional/i.test(lowerIndustry)) {
+  // Split - professional services with image support (healthcare, dental, medical)
+  if (/healthcare|medical|dental|wellness|clinic|hospital|doctor/i.test(lowerIndustry)) {
+    return "split";
+  }
+  
+  // Minimal - legal, finance (text-focused professional services)
+  if (/legal|law|finance|banking|accounting|insurance|professional/i.test(lowerIndustry)) {
     return "minimal";
   }
   
