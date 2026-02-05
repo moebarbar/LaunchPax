@@ -92,11 +92,29 @@ async function generateHeroImage(options: {
   });
 }
 
+// Industry-specific icon design inspiration
+const INDUSTRY_LOGO_STYLES: Record<string, { symbols: string; style: string; mood: string }> = {
+  healthcare: { symbols: "medical cross, heart, pulse line", style: "clean trustworthy", mood: "caring professional" },
+  dental: { symbols: "stylized tooth, smile curve", style: "fresh clean", mood: "friendly reassuring" },
+  technology: { symbols: "hexagon, circuit node, abstract tech", style: "futuristic sleek", mood: "innovative" },
+  software: { symbols: "code brackets, geometric shapes", style: "modern tech", mood: "smart innovative" },
+  food: { symbols: "chef hat, utensils crossed, flame", style: "warm inviting", mood: "delicious authentic" },
+  restaurant: { symbols: "fork knife elegant, plate circle", style: "sophisticated", mood: "refined culinary" },
+  fitness: { symbols: "dumbbell abstract, runner silhouette", style: "dynamic powerful", mood: "energetic strong" },
+  beauty: { symbols: "flower petal, elegant curves", style: "elegant refined", mood: "luxurious beautiful" },
+  real_estate: { symbols: "house roof, key abstract", style: "solid trustworthy", mood: "reliable home" },
+  finance: { symbols: "upward arrow, shield", style: "strong stable", mood: "secure prosperous" },
+  education: { symbols: "book open, lightbulb", style: "inspiring modern", mood: "enlightening growth" },
+  construction: { symbols: "hammer, building frame", style: "solid strong", mood: "reliable built-to-last" },
+  consulting: { symbols: "arrow pointing up, lightbulb", style: "professional elegant", mood: "expert trusted" },
+};
+
 async function generateLogo(options: {
   businessName: string;
   industry: string;
   style: "modern" | "classic" | "playful" | "minimal" | "tech";
   colors?: string[];
+  includeText?: boolean;
 }): Promise<ConnectorResult<ImageGenerationResult>> {
   const styleDescriptions: Record<string, string> = {
     modern: "sleek, contemporary, clean geometric lines, minimalist",
@@ -106,27 +124,13 @@ async function generateLogo(options: {
     tech: "futuristic, digital, innovative, cutting-edge",
   };
 
-  // Industry-specific design inspiration
-  const industryDesign: Record<string, string> = {
-    healthcare: "incorporate medical cross or heart symbol, conveys trust and care",
-    dental: "incorporate tooth or smile symbolism, clean and fresh aesthetic",
-    technology: "hexagon, circuit, or data flow patterns, futuristic feel",
-    food: "chef elements, utensils, or artisan touches, appetizing warmth",
-    bakery: "wheat, bread, or pastry swirl elements, homey warmth",
-    restaurant: "elegant dining elements, sophisticated culinary feel",
-    fitness: "dynamic movement, strength symbols, energetic",
-    beauty: "floral, elegant curves, refined luxury feel",
-    real_estate: "home or building silhouette, stability and trust",
-    finance: "upward trends, shield, growth and security",
-    education: "book or lightbulb elements, knowledge and growth",
-    construction: "building or blueprint elements, solid reliability",
-  };
-
   const normalizedIndustry = options.industry.toLowerCase();
-  let industryHint = "";
-  for (const [key, value] of Object.entries(industryDesign)) {
-    if (normalizedIndustry.includes(key.replace("_", " ")) || normalizedIndustry.includes(key)) {
-      industryHint = value;
+  
+  // Find matching industry style
+  let industryStyle = INDUSTRY_LOGO_STYLES["consulting"];
+  for (const [key, value] of Object.entries(INDUSTRY_LOGO_STYLES)) {
+    if (normalizedIndustry.includes(key)) {
+      industryStyle = value;
       break;
     }
   }
@@ -135,21 +139,72 @@ async function generateLogo(options: {
     ? `Brand colors: ${options.colors.slice(0, 3).join(", ")}. Use these colors prominently.` 
     : "";
 
-  const prompt = `Design a stunning, professional logo ICON/SYMBOL for "${options.businessName}".
+  // Generate COMBINATION LOGO with business name
+  const prompt = `Create a COMBINATION LOGO for "${options.businessName}" - a ${options.industry} business.
 
-Industry: ${options.industry}
-${industryHint ? `Design Inspiration: ${industryHint}` : ""}
-Style: ${styleDescriptions[options.style]}
+DESIGN REQUIREMENTS:
+1. LEFT SIDE: A creative icon/symbol inspired by: ${industryStyle.symbols}
+2. RIGHT SIDE: The business name "${options.businessName}" in stylish typography
+3. The icon and text should be perfectly balanced as one unified mark
+
+STYLE DIRECTION:
+- Overall mood: ${industryStyle.mood}
+- Visual style: ${styleDescriptions[options.style]}
+- Icon style: ${industryStyle.style}
 ${colorPart}
 
 CRITICAL REQUIREMENTS:
-- Pure ICON/SYMBOL only - absolutely NO text, NO letters, NO words
-- Simple enough to work as a favicon (16px) yet striking at any size
-- Memorable, unique, balanced composition
-- Think Apple, Nike, or Twitter-level iconic simplicity
+- The name "${options.businessName}" MUST be spelled correctly and clearly readable
+- Icon should work as standalone favicon (simple, recognizable at 16px)
 - Clean white background, perfectly centered
-- Professional quality suitable for Fortune 500 company
-- Vector-quality sharp edges and perfect proportions`;
+- Professional quality suitable for premium brand
+- Vector-quality sharp edges
+- NO gradients, NO 3D effects, NO complex details`;
+
+  return generateImage({
+    prompt,
+    size: "1024x1024",
+    quality: "hd",
+    style: "natural",
+  });
+}
+
+async function generateFavicon(options: {
+  businessName: string;
+  industry: string;
+  colors?: string[];
+}): Promise<ConnectorResult<ImageGenerationResult>> {
+  const normalizedIndustry = options.industry.toLowerCase();
+  
+  let industryStyle = INDUSTRY_LOGO_STYLES["consulting"];
+  for (const [key, value] of Object.entries(INDUSTRY_LOGO_STYLES)) {
+    if (normalizedIndustry.includes(key)) {
+      industryStyle = value;
+      break;
+    }
+  }
+  
+  const colorPart = options.colors?.length 
+    ? `Use color: ${options.colors[0]}` 
+    : "Use bold, saturated color";
+
+  const prompt = `Create a FAVICON ICON for "${options.businessName}" (${options.industry} business).
+
+DESIGN:
+- Simple, bold icon inspired by: ${industryStyle.symbols}
+- MUST work at 16x16 pixels - keep it EXTREMELY simple
+- Strong silhouette with clear shape recognition
+
+STYLE:
+- ${colorPart}
+- NO text, NO letters, pure symbol/icon only
+- Thick lines, simple shapes, high contrast
+- Clean white background, perfectly centered
+- Think Apple/Nike level iconic simplicity
+
+FORBIDDEN:
+- NO gradients, NO shadows, NO 3D effects
+- NO tiny details that disappear at small sizes`;
 
   return generateImage({
     prompt,
@@ -205,6 +260,14 @@ export const dalleConnector = defineConnector({
           businessName: input.businessName,
           industry: input.industry,
           style: input.style,
+          colors: input.colors,
+          includeText: input.includeText,
+        }) as Promise<ConnectorResult<O>>;
+
+      case "generate_favicon":
+        return generateFavicon({
+          businessName: input.businessName,
+          industry: input.industry,
           colors: input.colors,
         }) as Promise<ConnectorResult<O>>;
 

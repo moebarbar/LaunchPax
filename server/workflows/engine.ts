@@ -542,7 +542,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
       },
     },
     {
-      name: "Generating hero image and logo",
+      name: "Generating hero image, logo, and favicon",
       execute: async (ctx) => {
         const namingResult = await storage.getNamingResult(ctx.projectId);
         const brandKit = await storage.getBrandKit(ctx.projectId);
@@ -551,6 +551,9 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const businessName = namingResult?.selectedDomain?.replace(/\.[^.]+$/, "") || ctx.project.name;
         const brandColors = brandKit?.colorPalette?.map(c => c.hex) || [];
         const primaryColor = brandColors[0] || websiteContent?.siteSettings?.primaryColor || "#4F46E5";
+        const industry = ctx.project.industry || "technology";
+        
+        console.log(`[Logo Generation] Creating combination logo for "${businessName}" (${industry})`);
         
         // Generate hero image - prefer Google Studio for stunning AI graphics
         console.log("[Multi-AI] Using Google Studio for hero image generation");
@@ -560,22 +563,36 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           {
             businessName,
             businessIdea: ctx.project.businessIdea || "A new business",
-            industry: ctx.project.industry || "technology",
+            industry,
             style: "cinematic professional",
             brandColors: { primary: primaryColor },
           },
           { preferredConnector: "nanobanana" }
         );
         
-        // Generate logo - prefer Google Studio for excellent text rendering
-        console.log("[Multi-AI] Using Google Studio for logo generation");
+        // Generate COMBINATION LOGO (icon + business name text)
+        console.log("[Multi-AI] Generating combination logo with business name");
         const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
           "image_generation",
           "generate_logo",
           {
             businessName,
-            industry: ctx.project.industry || "technology",
-            style: "minimal modern",
+            industry,
+            style: "minimal",
+            brandColors: { primary: primaryColor },
+            includeText: true, // Request logo WITH business name
+          },
+          { preferredConnector: "nanobanana" }
+        );
+        
+        // Generate FAVICON ICON (simple symbol for small sizes)
+        console.log("[Multi-AI] Generating favicon icon for small sizes");
+        const faviconResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
+          "image_generation",
+          "generate_favicon",
+          {
+            businessName,
+            industry,
             brandColors: { primary: primaryColor },
           },
           { preferredConnector: "nanobanana" }
@@ -585,15 +602,18 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         let heroImageB64 = heroResult.success ? heroResult.data?.b64_json : undefined;
         let heroImageUrl: string | undefined = undefined;
         const logoImageB64 = logoResult.success ? logoResult.data?.b64_json : undefined;
+        const faviconImageB64 = faviconResult.success ? faviconResult.data?.b64_json : undefined;
+        
+        console.log(`[Logo Generation] Results: logo=${logoResult.success}, favicon=${faviconResult.success}`);
         
         // Fallback to stock photos if AI generation failed
         if (!heroImageB64) {
-          console.log(`[Workflow] AI hero image failed, falling back to stock photos for ${ctx.project.industry || "business"}`);
+          console.log(`[Workflow] AI hero image failed, falling back to stock photos for ${industry}`);
           const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
             "stock_photos",
             "get_photo_for_industry",
             {
-              industry: ctx.project.industry || "business",
+              industry,
               type: "hero",
               businessIdea: ctx.project.businessIdea || "",
             }
@@ -605,7 +625,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           }
         }
         
-        if (websiteContent && (heroImageB64 || heroImageUrl || logoImageB64)) {
+        if (websiteContent && (heroImageB64 || heroImageUrl || logoImageB64 || faviconImageB64)) {
           const updatedPages = websiteContent.pages?.map((page: any) => {
             if (page.slug === "home") {
               return {
@@ -637,10 +657,15 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             return page;
           });
           
+          // Store both combination logo AND favicon icon
           const updatedGlobalContent = {
             ...websiteContent.globalContent,
+            businessName, // Store for frontend text rendering if needed
             ...(logoImageB64 && {
-              logoB64: logoImageB64,
+              logoB64: logoImageB64, // Full combination logo (icon + text)
+            }),
+            ...(faviconImageB64 && {
+              faviconB64: faviconImageB64, // Icon only for favicon
             }),
           };
           
@@ -653,12 +678,15 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             providerUsed: heroResult.provider || logoResult.provider || "stock",
             status: "completed",
           });
+          
+          console.log(`[Logo Generation] Saved: logo=${!!logoImageB64}, favicon=${!!faviconImageB64}, businessName="${businessName}"`);
         }
         
         return { 
           heroGenerated: heroResult.success, 
           heroStockPhoto: !!heroImageUrl, 
-          logoGenerated: logoResult.success 
+          logoGenerated: logoResult.success,
+          faviconGenerated: faviconResult.success,
         };
       },
     },

@@ -141,6 +141,19 @@ Preferred communication style: Simple, everyday language.
   - `[Logo Generation] Brand kit updated, logoUrl saved: <url>`
 - **Testing Verified**: DALL-E 3 logo generation successfully creates and saves logos to brand kit
 
+### Enhanced Logo Generation System (Feb 2026)
+- **Issue**: Generic icon-only logos without business name
+- **Solution**: Enhanced logo generation to create combination marks (icon + business name)
+- **Two-Asset System**:
+  - `logoB64`: Full combination logo with business name + creative icon
+  - `faviconB64`: Simple icon-only for favicon/small sizes (16-32px)
+- **Industry-Specific Design**: 25+ industry mappings with specific symbols, styles, and moods
+  - Healthcare → medical cross/heart, Dental → tooth/smile, Tech → hexagon/circuit
+  - Food → chef hat/utensils, Beauty → flower/curves, Finance → arrow/shield
+- **Improved Prompts**: Clear instructions for combination logos with proper text rendering
+- **Workflow Integration**: Now generates both assets in parallel during website build
+- **Key Files**: `server/connectors/ai/nanobanana.ts`, `server/connectors/ai/dalle.ts`, `server/workflows/engine.ts`
+
 ### Website Content Quality Improvements (Feb 2026)
 - **Smart Icon Assignment**: Added intelligent icon selection based on content keywords across 20+ icon categories
   - Keywords mapped to semantic icons (e.g., "secure" → shield, "fast" → zap, "care" → heart)
