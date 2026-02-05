@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { startWorkflowCleanupJob } from "./services/workflow-recovery";
 
 const app = express();
 const httpServer = createServer(app);
@@ -89,6 +90,9 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
+  // Start workflow cleanup job for stuck workflows
+  startWorkflowCleanupJob();
+  
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {

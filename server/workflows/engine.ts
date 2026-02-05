@@ -3,12 +3,23 @@
  * 
  * Orchestrates multi-step workflows using the connector abstraction layer.
  * Workflows are provider-agnostic - they use capabilities, not specific APIs.
+ * 
+ * Optimizations:
+ * - Smart AI routing for cost efficiency
+ * - Content caching to reduce API calls
+ * - Self-healing with automatic fallbacks
+ * - Workflow recovery for stuck jobs
+ * - Creativity checklist validation
  */
 
 import { connectorRegistry } from "../connectors/registry";
 import { storage } from "../storage";
 import type { Project, ConnectorResult } from "@shared/schema";
 import { evaluateWebsiteQuality, runMultiPassRefinement, type QualityReport } from "./quality-engine";
+import { aiRouter } from "../services/ai-router";
+import { contentCache } from "../services/content-cache";
+import { workflowRecovery } from "../services/workflow-recovery";
+import { runCreativityChecklist, consolidateFonts } from "../services/creativity-checklist";
 
 /**
  * Get the correct hero archetype for an industry
@@ -92,13 +103,15 @@ export interface WorkflowStep {
 }
 
 /**
- * Execute a workflow with progress tracking
+ * Execute a workflow with progress tracking, recovery, and self-healing
  */
 async function executeWorkflow(
   ctx: WorkflowContext,
   steps: WorkflowStep[],
   workflowType: string
 ): Promise<void> {
+  workflowRecovery.startWorkflow(ctx.jobId, ctx.projectId, workflowType, steps.length);
+  
   try {
     let prevResult: unknown;
     
@@ -106,24 +119,52 @@ async function executeWorkflow(
       const step = steps[i];
       const progress = Math.round(((i + 1) / steps.length) * 100);
       
-      // Update job progress
+      workflowRecovery.updateProgress(ctx.jobId, i, step.name);
+      
       await storage.updateWorkflowJob(ctx.jobId, {
         status: "running",
         progress,
       });
       
-      // Log activity
       await storage.createActivityLog({
         projectId: ctx.projectId,
         action: `${workflowType}: ${step.name}`,
         status: "running",
       });
       
-      // Execute step
-      prevResult = await step.execute(ctx, prevResult);
+      let stepResult: unknown;
+      let stepError: Error | null = null;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          stepResult = await step.execute(ctx, prevResult);
+          stepError = null;
+          break;
+        } catch (error) {
+          stepError = error instanceof Error ? error : new Error(String(error));
+          retryCount++;
+          
+          if (retryCount < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 10000);
+            console.log(`[Workflow] Step "${step.name}" failed, retry ${retryCount}/${maxRetries} in ${delay}ms`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      }
+      
+      if (stepError) {
+        workflowRecovery.markFailed(ctx.jobId, stepError.message);
+        throw stepError;
+      }
+      
+      workflowRecovery.updateProgress(ctx.jobId, i, step.name, stepResult);
+      prevResult = stepResult;
     }
     
-    // Mark completed
+    workflowRecovery.markCompleted(ctx.jobId);
+    
     await storage.updateWorkflowJob(ctx.jobId, {
       status: "completed",
       progress: 100,
@@ -405,18 +446,43 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         // Enforce correct hero archetype based on industry (server-side override)
         const enforcedPages = enforceHeroArchetype(result.data.pages, ctx.project.industry || "");
         
-        // Save results including SEO data
-        await storage.upsertWebsiteContent({
-          projectId: ctx.projectId,
+        // Build preliminary content for validation
+        let websiteData = {
           pages: enforcedPages,
           globalContent: result.data.globalContent,
           siteSettings,
           seo: result.data.seo,
+        };
+        
+        // Run creativity checklist with auto-fix enabled
+        const checklistReport = runCreativityChecklist(websiteData, ctx.project.industry || "", true);
+        console.log(`[Workflow] Creativity checklist: score=${checklistReport.score}%, passed=${checklistReport.passed}`);
+        if (checklistReport.fixes.length > 0) {
+          console.log(`[Workflow] Auto-fixes applied: ${checklistReport.fixes.join(", ")}`);
+        }
+        
+        // Consolidate fonts to max 6 for performance
+        const { content: fontOptimized, removed: removedFonts } = consolidateFonts(websiteData, 6);
+        if (removedFonts.length > 0) {
+          console.log(`[Workflow] Removed ${removedFonts.length} excess fonts for performance: ${removedFonts.join(", ")}`);
+        }
+        websiteData = fontOptimized;
+        
+        // Save results including SEO data
+        await storage.upsertWebsiteContent({
+          projectId: ctx.projectId,
+          pages: websiteData.pages,
+          globalContent: websiteData.globalContent,
+          siteSettings: websiteData.siteSettings,
+          seo: websiteData.seo,
           providerUsed: result.provider,
           status: "completed",
         });
         
-        return { ...result.data, pages: enforcedPages };
+        // Cache the result for future reference
+        contentCache.setWebsiteContent(ctx.projectId, ctx.project, websiteData);
+        
+        return { ...result.data, pages: websiteData.pages, checklistReport };
       },
     },
     {
