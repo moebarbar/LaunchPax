@@ -19,11 +19,11 @@ Preferred communication style: Simple, everyday language.
 - **UI Components**: shadcn/ui (based on Radix UI)
 - **Styling**: Tailwind CSS with CSS variables (light/dark mode)
 - **UI/UX Decisions**:
-    - **Global Style Editor**: Manages colors, typography (font pairing, heading/body fonts), and style presets.
+    - **Global Style Editor**: Manages colors, typography, and style presets.
     - **Editable Sections Panel**: Allows drag-based reordering, adding, deleting, and duplicating of website sections.
-    - **Website Templates**: Offers 12 diverse section types with premium styling and Framer Motion animations.
+    - **Website Templates**: Offers 12 diverse section types with premium styling and animations.
     - **Responsive Design**: Mobile-first approach with progressive text scaling and responsive layouts.
-    - **Signature Visual Moments**: Utilizes components like LargeTypography, ParallaxDivider, and AnimatedGradientBg for enhanced engagement.
+    - **Signature Visual Moments**: Utilizes components like LargeTypography, ParallaxDivider, and AnimatedGradientBg.
     - **Techy Build Progress**: Displays terminal-style animated progress visualization for workflows.
 
 ### Backend
@@ -33,25 +33,31 @@ Preferred communication style: Simple, everyday language.
 - **Authentication**: Replit Auth (OpenID Connect) with PostgreSQL session storage
 
 ### Core Systems
-- **Connector System**: A registry pattern for abstracting external API integrations. Connectors provide capability-based lookup and automatically fall back to mock connectors if primary AI services fail.
-- **Creative Theme Engine**: Automatically selects dramatic visual themes based on industry and tone. 8 unique themes (Dark Neon, Editorial Luxury, Soft Gradient, etc.) with complete design systems including colors, typography, hero archetypes, and photography direction.
-- **Image Management System**: Handles user uploads, auto-generates SEO-optimized alt text, integrates with stock photo services (Pexels, Unsplash), and enforces visual completeness with auto-filling missing images and optimization via Cloudinary.
+- **Connector System**: Registry pattern for abstracting external API integrations with capability-based lookup and mock fallbacks.
+- **Creative Theme Engine**: Automatically selects dramatic visual themes (8 unique themes) based on industry and tone, including design systems for colors, typography, hero archetypes, and photography.
+- **Image Management System**: Handles user uploads, auto-generates SEO-optimized alt text, integrates with stock photo services, and optimizes images via Cloudinary.
 - **Section Transitions**: Implements smooth visual transitions (gradient-fade, overlap, soft-merge, blur-blend) between website sections.
-- **Workflow Engine**: Orchestrates multi-step generation processes (naming, brand, website, graphics) with self-healing capabilities (automatic retries, workflow recovery).
-- **Smart AI Router**: Intelligently routes AI tasks to appropriate models (e.g., OpenAI for naming, DeepSeek for long-form content, DALL-E for images) with automatic fallback chains and retry logic.
-- **Content Cache System**: Reduces API calls by caching generated content (naming, brand kits, website content) with hash-based invalidation.
-- **Workflow Recovery**: Ensures workflows complete by tracking progress, auto-cleaning stuck jobs, and enforcing maximum workflow times.
-- **Creativity Checklist**: Validates premium website elements, verifies hero archetypes, visual signatures, section variety, SEO fields, and font limits.
-- **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions (e.g., overall, layout, typography) and performs up to 3 refinement passes to improve weak sections. It enforces premium quality thresholds and detects generic patterns and repetitive layouts.
-- **Long-Form Page Blueprints**: Defines sophisticated section layouts for common page types (HOME, ABOUT, SERVICES, CONTACT) requiring 8-12+ sections.
-- **Project Architecture**: Each project is an independent business configuration with isolated content (JSON) and build states (draft, building, ready, error).
+- **Workflow Engine**: Orchestrates multi-step generation processes with self-healing capabilities (automatic retries, workflow recovery).
+- **Smart AI Router**: Intelligently routes AI tasks to appropriate models (e.g., OpenAI, DeepSeek, DALL-E) with automatic fallback chains and retry logic.
+- **Content Cache System**: Reduces API calls by caching generated content with hash-based invalidation.
+- **Workflow Recovery**: Ensures workflow completion by tracking progress, auto-cleaning stuck jobs, and enforcing maximum workflow times.
+- **Creativity Checklist**: Validates premium website elements, hero archetypes, visual signatures, section variety, SEO fields, and font limits.
+- **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions and performs refinement passes to improve weak sections, enforcing premium quality thresholds and detecting generic patterns.
+- **Long-Form Page Blueprints**: Defines sophisticated section layouts for common page types (HOME, ABOUT, SERVICES, CONTACT).
+- **Project Architecture**: Each project is an independent business configuration with isolated content and build states.
 - **Website Publishing System**: Supports publishing to live URLs and secure previews.
-- **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts with section-type-aware guidance.
-- **Website Enhancement Service**: Orchestrates integrations for premium website features, including AI hero images, multi-source stock photos, CDN optimization, analytics injection, maps integration, payment processing, contact forms, and animations.
-
-### White-Label Requirements
-- No Replit branding is exposed to end-users.
-- Hosting/build layers are designed for future provider flexibility.
+- **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts.
+- **Website Enhancement Service**: Orchestrates integrations for premium website features, including AI hero images, multi-source stock photos, CDN optimization, analytics injection, maps, payment processing, contact forms, and animations.
+- **Premium Design Standards System (v2.0.0)**: Central module (`server/services/premium-design-standards.ts`) enforcing agency-level quality via:
+  - **Navigation**: Floating-pill style with glass morphism, hover animations, gradient CTA with shine effect
+  - **Hero Sections**: 90vh minimum height, animated gradient orbs, pill-style badges, scroll indicators
+  - **Cards**: 1.5rem border radius, 8px hover lift, premium shadows (0 20px 40px)
+  - **Typography**: font-weight 800 for h1, -0.035em letter-spacing, antialiased rendering
+  - **Colors**: Conditional application preserving valid dark colors, falling back to #0f172a/#64748b/#94a3b8
+  - **Quality Thresholds**: Overall 90, hero 95, home page 10 sections, about/services 8 sections
+  - **Validation**: 13-point premium compliance check integrated into quality gate (requires 80% score)
+- **White-Label Requirements**: No Replit branding exposed; hosting/build layers designed for future provider flexibility.
+- **Website Content Quality**: Includes smart icon assignment based on keywords, comprehensive image population for all sections, and industry-specific logo prompts for combination marks.
 
 ## External Dependencies
 
@@ -73,10 +79,10 @@ Preferred communication style: Simple, everyday language.
 - **Unsplash**: For premium stock photography.
 
 ### Payment Processing
-- **Stripe**: For e-commerce functionality (checkout, payment intents, subscriptions).
+- **Stripe**: For e-commerce functionality.
 
 ### Email Services
-- **SendGrid**: For email delivery (contact forms, notifications).
+- **SendGrid**: For email delivery.
 
 ### SMS Services
 - **Twilio**: For SMS notifications and business alerts.
@@ -99,73 +105,3 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication
 - **Replit Auth**: For OpenID Connect-based authentication.
-
-## Recent Changes
-
-### Creative Theme Engine Integration (Feb 2026)
-- **Purpose**: Generate unique, award-winning websites with dramatic visual personalities instead of generic templates
-- **8 Creative Themes**: Dark Neon, Editorial Luxury, Soft Gradient, Bold Modern, Minimal Clean, Urban Gritty, Vibrant Pop, Classic Elegant
-- **Theme Components**: Each theme includes colors, typography pairings, hero archetype preferences, layout preferences, and photography direction
-- **Industry Mapping**: 50+ business types mapped to optimal themes (e.g., Technology → Soft Gradient/Dark Neon, Food → Urban Gritty, Healthcare → Classic Elegant)
-- **Workflow Integration**: Automatic theme selection based on industry + tone, applies theme settings to siteSettings, hero archetypes, and typography
-- **Key Files**: `server/services/creative-theme-engine.ts`, `client/src/lib/creative-themes.ts`
-- **siteSettings Enhancement**: Added `creativeThemeId` field to track which theme was selected for frontend rendering
-
-### Color Contrast Enforcement System (Feb 2026)
-- **Issue**: Light text on light backgrounds causing poor readability across website sections
-- **Solution**: Implemented comprehensive solid color enforcement system
-- **Schema Updates**: Added `headingColor` and `cardBackground` properties to SiteSettings interface
-- **Professional Color Palettes**: Enhanced quality-engine with 7 industry-specific palettes (healthcare, dental, technology, professional, creative, food, default) including heading, text, and muted colors
-- **Engine Integration**: Updated workflow engine to apply palette colors for headingColor, textColor, mutedTextColor, and cardBackground
-- **Global CSS Enforcement**: Changed website-renderer to use `.website-renderer` class for global CSS that enforces solid colors on all h1-h6, paragraphs, and cards
-- **Section Updates**: Updated section-features and section-services to use solid white backgrounds with inline CSS variable styles
-- **Verified Colors**: headingColor=#0f172a, textColor=#1e293b, mutedTextColor=#475569, cardBackground=#ffffff, surfaceColor=#ffffff
-- **Testing Verified**: All 4 tested previews (Healthcare, Food industries) passed with correct card backgrounds (rgb(255,255,255)) and text contrast
-
-### Hero Image Rendering Fix (Feb 2026)
-- **Issue**: Healthcare/dental websites were using "minimal" hero archetype which doesn't display images
-- **Fix**: Updated hero archetype selection to use "split" for healthcare/dental/medical industries (image-supporting archetype)
-- **Enhancement**: Updated hero-minimal to support images with dark overlay and white text when image is available
-- **Contrast Fix**: Updated hero-split to use explicit dark text colors (text-gray-900, text-gray-600) instead of CSS variables to ensure readability on light backgrounds
-
-### AI Logo Generation Fix (Feb 2026)
-- **Issue**: Logo generation was failing silently - server started generation but logoUrl never saved
-- **Root Cause**: OpenAI connector was using invalid model name "gpt-image-1" instead of "dall-e-3"
-- **Fix**: Changed model to "dall-e-3" with quality="hd" and style="natural" for professional logo output
-- **Response Handling**: Fixed upsertBrandKit to explicitly pass only valid fields (avoiding extra DB fields like id, createdAt)
-- **Error Handling**: Added proper error response when logo URL is missing from AI provider response
-- **Logging**: Enhanced logging throughout logo generation flow for debugging:
-  - `[Logo Generation] Starting for project X, style: Y, model: Z`
-  - `[Logo Generation] Result: {JSON}`
-  - `[Logo Generation] Logo URL: <url>`
-  - `[Logo Generation] Brand kit updated, logoUrl saved: <url>`
-- **Testing Verified**: DALL-E 3 logo generation successfully creates and saves logos to brand kit
-
-### Enhanced Logo Generation System (Feb 2026)
-- **Issue**: Generic icon-only logos without business name
-- **Solution**: Enhanced logo generation to create combination marks (icon + business name)
-- **Two-Asset System**:
-  - `logoB64`: Full combination logo with business name + creative icon
-  - `faviconB64`: Simple icon-only for favicon/small sizes (16-32px)
-- **Industry-Specific Design**: 25+ industry mappings with specific symbols, styles, and moods
-  - Healthcare → medical cross/heart, Dental → tooth/smile, Tech → hexagon/circuit
-  - Food → chef hat/utensils, Beauty → flower/curves, Finance → arrow/shield
-- **Improved Prompts**: Clear instructions for combination logos with proper text rendering
-- **Workflow Integration**: Now generates both assets in parallel during website build
-- **Key Files**: `server/connectors/ai/nanobanana.ts`, `server/connectors/ai/dalle.ts`, `server/workflows/engine.ts`
-
-### Website Content Quality Improvements (Feb 2026)
-- **Smart Icon Assignment**: Added intelligent icon selection based on content keywords across 20+ icon categories
-  - Keywords mapped to semantic icons (e.g., "secure" → shield, "fast" → zap, "care" → heart)
-  - Industry-specific icon preferences (healthcare, dental, tech, food, fitness, beauty, etc.)
-  - Automatic variety enforcement - no icon repetition within sections
-  - Conditional assignment - only replaces missing or generic icons, preserves curated choices
-- **Comprehensive Image Population**: Enhanced fillItemImages() function with:
-  - Placeholder detection helper (`isPlaceholderImage()`) that identifies filenames without URLs (e.g., "john.jpg")
-  - Full coverage for all sections: team, testimonials, services (no cap), case-studies, gallery, features, benefits
-  - Business-specific stock photo queries for each section type
-- **Industry-Specific Logo Prompts**: Enhanced DALL-E 3 prompts with:
-  - 15+ industry mappings to appropriate symbols, styles, and moods
-  - Healthcare → medical cross/heart, Dental → tooth/smile, Tech → circuit/hexagon
-  - Emphasis on "no text, icon only" for clean logos
-  - Brand color integration from approved palette

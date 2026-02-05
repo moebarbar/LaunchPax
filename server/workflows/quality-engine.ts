@@ -7,12 +7,15 @@
  * - Visual depth and creativity
  * - Hero/header impact
  * - Generic pattern detection
+ * - Premium design standards compliance
  * 
  * This engine ensures no low-quality output is surfaced to users.
+ * PREMIUM STANDARDS: Enforces agency-level, $50k-$100k website quality.
  */
 
 import OpenAI from "openai";
 import type { WebsiteContent, SectionContent, PageContent } from "@shared/schema";
+import { validatePremiumCompliance, PREMIUM_DESIGN_STANDARDS } from "../services/premium-design-standards";
 
 function getClient() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -66,10 +69,10 @@ export interface ImprovementAction {
 }
 
 const QUALITY_THRESHOLDS = {
-  minimum: 85,      // Minimum overall score to pass quality gate - RAISED for premium output
-  heroMinimum: 90,  // Hero sections need highest standards - RAISED for jaw-dropping impact
-  excellent: 95,    // Excellent quality threshold
-  good: 88,         // Good quality threshold
+  minimum: 90,      // Minimum overall score to pass quality gate - PREMIUM STANDARD
+  heroMinimum: 95,  // Hero sections need highest standards - PREMIUM jaw-dropping impact
+  excellent: 98,    // Excellent quality threshold - near perfection
+  good: 92,         // Good quality threshold - agency-level quality
 };
 
 // Comprehensive list of generic patterns that indicate template-like content
@@ -184,17 +187,52 @@ const GENERIC_PATTERNS = [
 
 // Layout patterns that indicate generic/template design
 const LAYOUT_ISSUES = {
-  // Minimum sections per page for premium websites
-  minSectionsHome: 8,
-  minSectionsAbout: 6,
-  minSectionsServices: 6,
-  minSectionsOther: 4,
+  // Minimum sections per page for PREMIUM websites - RAISED for agency-level quality
+  minSectionsHome: 10,
+  minSectionsAbout: 8,
+  minSectionsServices: 8,
+  minSectionsOther: 5,
   
   // Section types that indicate "breathing room"
-  breathingRoomSections: ['stats', 'trust-signals', 'text', 'story'],
+  breathingRoomSections: ['stats', 'trust-signals', 'text', 'story', 'brand-story'],
   
   // Section types that are content-dense (need breathing room between them)
-  denseSections: ['features', 'services', 'pricing', 'team', 'testimonials'],
+  denseSections: ['features', 'services', 'pricing', 'team', 'testimonials', 'gallery'],
+};
+
+// Premium design requirements - MUST be present for agency-level websites
+const PREMIUM_DESIGN_REQUIREMENTS = {
+  // Navigation MUST use floating-pill style
+  requiredNavigationStyle: 'floating-pill',
+  
+  // Hero MUST have these elements
+  heroRequirements: {
+    minHeight: '90vh',
+    hasAnimatedElements: true,
+    hasBadge: true,
+    hasScrollIndicator: true,
+  },
+  
+  // Cards MUST have premium styling
+  cardRequirements: {
+    borderRadius: '1.5rem',
+    hasHoverEffects: true,
+    hasShadowOnHover: true,
+  },
+  
+  // Typography MUST follow these rules
+  typographyRequirements: {
+    h1Weight: 800,
+    h1LetterSpacing: '-0.035em',
+    bodyLineHeight: 1.7,
+  },
+  
+  // Section requirements
+  sectionRequirements: {
+    verticalPaddingMin: '6rem',
+    hasSubtlePatterns: true,
+    hasAnimations: true,
+  },
 };
 
 /**
@@ -662,19 +700,33 @@ export async function evaluateWebsiteQuality(
   // Determine overall verdict
   const overallVerdict = determineVerdict(scores);
   
-  // Check if passes quality gate (including layout score)
+  // PREMIUM STANDARDS: Validate premium design compliance
+  const premiumCompliance = validatePremiumCompliance(websiteContent);
+  if (!premiumCompliance.compliant) {
+    console.log(`[Quality Engine] Premium compliance violations: ${premiumCompliance.violations.join(", ")}`);
+    // Apply penalty for premium violations
+    scores.overall = Math.max(0, scores.overall - (100 - premiumCompliance.score) / 2);
+  }
+  
+  // Add premium violations to issues list
+  const allIssuesWithPremium = [...allIssues, ...premiumCompliance.violations.map(v => `[PREMIUM] ${v}`)];
+  
+  // Check if passes quality gate (including layout score AND premium compliance)
   const passesQualityGate = 
     scores.overall >= QUALITY_THRESHOLDS.minimum &&
     scores.heroImpact >= QUALITY_THRESHOLDS.heroMinimum &&
     layoutAnalysis.score >= 70 && // Layout must be at least 70
+    premiumCompliance.score >= 80 && // PREMIUM: Must meet 80% of premium standards
     weakSections.filter(s => s.priority === 'critical').length === 0;
+  
+  console.log(`[Quality Engine] Premium standards v${PREMIUM_DESIGN_STANDARDS.version}: compliance=${premiumCompliance.score}%, passesGate=${passesQualityGate}`);
   
   return {
     timestamp: new Date(),
     scores,
     sectionAnalyses,
     weakSections,
-    genericPatterns: allIssues,
+    genericPatterns: allIssuesWithPremium,
     overallVerdict,
     improvementPlan,
     passesQualityGate,

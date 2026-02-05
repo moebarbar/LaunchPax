@@ -21,6 +21,7 @@ import { contentCache } from "../services/content-cache";
 import { workflowRecovery } from "../services/workflow-recovery";
 import { runCreativityChecklist, consolidateFonts } from "../services/creativity-checklist";
 import { selectCreativeTheme, applyThemeToSiteSettings, type CreativeThemeConfig } from "../services/creative-theme-engine";
+import { applyPremiumStandardsToSiteSettings, PREMIUM_DESIGN_STANDARDS, getPremiumHeroConfig, getPremiumNavigationConfig } from "../services/premium-design-standards";
 
 /**
  * Get the correct hero archetype for an industry
@@ -475,7 +476,11 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const finalHeadingFont = brandKit?.fontPairings?.[0]?.heading || themeSettings.headingFont || creativeTheme.headingFont;
         const finalBodyFont = brandKit?.fontPairings?.[0]?.body || themeSettings.fontFamily || creativeTheme.bodyFont;
         
-        const siteSettings = {
+        // Get premium configuration based on industry
+        const premiumHeroConfig = getPremiumHeroConfig(ctx.project.industry || "");
+        const premiumNavConfig = getPremiumNavigationConfig();
+        
+        const baseSiteSettings = {
           ...result.data.siteSettings,
           // Apply creative theme as base
           style: themeSettings.style,
@@ -495,8 +500,22 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           headingFont: finalHeadingFont,
           // Store theme info for frontend rendering
           creativeThemeId: creativeTheme.id,
+          // Premium hero configuration
+          heroArchetype: premiumHeroConfig.archetype,
+          heroHasAnimatedOrbs: premiumHeroConfig.hasAnimatedOrbs,
+          heroHasScrollIndicator: premiumHeroConfig.hasScrollIndicator,
+          heroBadgeStyle: premiumHeroConfig.badgeStyle,
+          // Premium navigation configuration
+          navigationStyle: premiumNavConfig.style,
+          navigationCtaGradient: premiumNavConfig.ctaGradient,
+          navigationHoverEffects: premiumNavConfig.hoverEffects,
+          navigationScrollTransformation: premiumNavConfig.scrollTransformation,
         };
         
+        // Apply premium design standards to site settings
+        const siteSettings = applyPremiumStandardsToSiteSettings(baseSiteSettings);
+        
+        console.log(`[Premium Standards] Applied v${PREMIUM_DESIGN_STANDARDS.version}: navigation="${premiumNavConfig.style}", hero="${premiumHeroConfig.archetype}"`);
         console.log(`[Creative Theme] Applied: theme="${creativeTheme.name}", heading=${finalHeadingColor}, text=${finalTextColor}, headingFont="${finalHeadingFont}", bodyFont="${finalBodyFont}"`);
         
         // Enforce correct hero archetype based on industry and creative theme (server-side override)
