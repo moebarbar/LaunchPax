@@ -59,57 +59,58 @@ export default function SectionFeatures({ section }: { section: SectionContent }
   
   const getBentoSize = (index: number, total: number) => {
     if (total <= 3) return "col-span-1";
-    if (total === 4) {
-      return index < 2 ? "lg:col-span-1" : "lg:col-span-1";
-    }
-    if (total === 5) {
-      return index < 2 ? "lg:col-span-1" : "lg:col-span-1";
-    }
+    if (total === 4) return "lg:col-span-1";
+    if (total === 5) return index < 2 ? "lg:col-span-1" : "lg:col-span-1";
     if (index === 0) return "lg:col-span-2 lg:row-span-2";
     if (index === 3) return "lg:col-span-2";
     return "lg:col-span-1";
   };
 
-  const getCardStyle = (index: number, total: number) => {
-    const isLarge = total > 5 && index === 0;
-    return isLarge;
-  };
+  const getCardStyle = (index: number, total: number) => total > 5 && index === 0;
   
   return (
     <section 
-      className="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden" 
-      style={{ backgroundColor: "var(--brand-background, #f8fafc)" }}
+      className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden" 
+      style={{ backgroundColor: "var(--brand-background, #fafafa)" }}
     >
+      <div className="absolute inset-0 opacity-[0.02]" style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, var(--brand-text, #000) 1px, transparent 0)`,
+        backgroundSize: "40px 40px",
+      }} />
       
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16 sm:mb-20"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center mb-20 sm:mb-24"
           >
             <motion.span
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-6"
+              transition={{ delay: 0.1 }}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-8 uppercase tracking-wider"
               style={{ 
-                backgroundColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)",
+                backgroundColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.08)",
                 color: "var(--brand-primary, hsl(var(--primary)))"
               }}
             >
               Why choose us
             </motion.span>
             <h2 
-              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight"
-              style={{ color: "var(--brand-heading, var(--brand-text, #0f172a))" }}
+              className="text-4xl sm:text-5xl md:text-6xl font-bold mb-8 tracking-tight leading-[1.1]"
+              style={{ 
+                color: "var(--brand-heading, var(--brand-text, #0f172a))",
+                letterSpacing: "-0.03em",
+              }}
             >{data.headline}</h2>
             {data.subheadline && (
               <p 
-                className="text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed px-4 sm:px-0"
-                style={{ color: "var(--brand-muted, #475569)" }}
+                className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed px-4 sm:px-0 font-light"
+                style={{ color: "var(--brand-muted, #64748b)" }}
               >{data.subheadline}</p>
             )}
           </motion.div>
@@ -119,8 +120,8 @@ export default function SectionFeatures({ section }: { section: SectionContent }
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
         >
           {items.map((item, index) => {
             const IconComponent = iconMap[item.icon?.toLowerCase() || "star"] || Star;
@@ -130,33 +131,46 @@ export default function SectionFeatures({ section }: { section: SectionContent }
               <motion.div 
                 key={index} 
                 variants={itemVariants}
-                className={`group relative p-6 sm:p-8 rounded-2xl border transition-all duration-500 ${getBentoSize(index, items.length)}`}
+                whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                className={`group relative rounded-3xl transition-all duration-500 ${getBentoSize(index, items.length)}`}
                 style={{
-                  backgroundColor: "var(--brand-card-bg, var(--brand-surface, #ffffff))",
-                  borderColor: "var(--brand-border, #e2e8f0)"
+                  backgroundColor: "#ffffff",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
                 }}
               >
-                <div className="relative z-10">
+                <div 
+                  className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{
+                    boxShadow: "0 20px 40px -12px rgba(0,0,0,0.12), 0 8px 20px -8px rgba(0,0,0,0.08)",
+                  }}
+                />
+                <div 
+                  className="absolute inset-0 rounded-3xl border transition-colors duration-300"
+                  style={{ borderColor: "rgba(0,0,0,0.06)" }}
+                />
+                <div className={`relative z-10 ${isLarge ? 'p-10' : 'p-8'}`}>
                   <div 
-                    className={`${isLarge ? 'w-16 h-16' : 'w-12 h-12'} rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 group-hover:scale-105`}
+                    className={`${isLarge ? 'w-16 h-16' : 'w-14 h-14'} rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
                     style={{ 
-                      backgroundColor: "var(--brand-surface, #ffffff)",
-                      border: "1px solid var(--brand-border, #e2e8f0)"
+                      background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.1) 0%, hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`,
                     }}
                   >
                     <IconComponent 
-                      className={`${isLarge ? 'w-8 h-8' : 'w-6 h-6'}`}
+                      className={`${isLarge ? 'w-8 h-8' : 'w-7 h-7'}`}
                       style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
                     />
                   </div>
                   
                   <h3 
-                    className={`${isLarge ? 'text-2xl' : 'text-xl'} font-semibold mb-3 tracking-tight`}
-                    style={{ color: "var(--brand-heading, var(--brand-text, #0f172a))" }}
+                    className={`${isLarge ? 'text-2xl' : 'text-xl'} font-bold mb-4 tracking-tight`}
+                    style={{ 
+                      color: "#0f172a",
+                      letterSpacing: "-0.02em",
+                    }}
                   >{item.title}</h3>
                   <p 
-                    className={`${isLarge ? 'text-base' : 'text-sm'} leading-relaxed`}
-                    style={{ color: "var(--brand-muted, #475569)" }}
+                    className={`${isLarge ? 'text-base' : 'text-[15px]'} leading-relaxed`}
+                    style={{ color: "#64748b" }}
                   >{item.description}</p>
                 </div>
               </motion.div>

@@ -276,13 +276,13 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
   
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled 
-          ? "bg-background/80 backdrop-blur-xl border-b shadow-sm" 
+          ? "bg-white/90 backdrop-blur-2xl border-b border-gray-200/50 shadow-[0_1px_3px_rgba(0,0,0,0.05)]" 
           : "bg-transparent"
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-6 py-4">
+      <nav className="max-w-7xl mx-auto px-6 sm:px-8 py-5">
         <div className="flex items-center justify-between">
           <a 
             href="/" 
@@ -331,7 +331,7 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                   <a
                     key={index}
                     href={sanitizeHref(item.href)}
-                    className="px-4 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
+                    className="px-4 py-2.5 rounded-lg text-[15px] font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 transition-all duration-200"
                     onClick={(e) => handleNavClick(e, item.href)}
                   >
                     {item.label}
@@ -339,11 +339,11 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                 ))}
                 <a
                   href="#contact"
-                  className="ml-2 px-5 py-2 rounded-full text-sm font-medium text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                  className="ml-3 px-6 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                   style={{ 
                     background: `linear-gradient(135deg, 
-                      var(--brand-primary, hsl(var(--primary))) 0%, 
-                      var(--brand-secondary, hsl(var(--primary))) 100%)`
+                      var(--brand-primary, #3b82f6) 0%, 
+                      var(--brand-secondary, var(--brand-primary, #2563eb)) 100%)`
                   }}
                 >
                   Get Started
@@ -687,7 +687,7 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   return (
     <div className="min-h-screen website-renderer" style={combinedStyles}>
       <style>{`
-        /* GLOBAL: Apply brand CSS variables to all website content */
+        /* GLOBAL: Premium website styling */
         .website-renderer {
           --background: var(--brand-background-hsl, var(--background));
           --foreground: var(--brand-text-hsl, var(--foreground));
@@ -696,21 +696,82 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
           --secondary: var(--brand-secondary-hsl, var(--secondary));
           --muted-foreground: var(--brand-muted-hsl, var(--muted-foreground));
           --border: var(--brand-border-hsl, var(--border));
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
         }
-        /* CRITICAL: Enforce solid heading colors for maximum contrast - GLOBAL */
+        
+        /* Premium heading typography */
         .website-renderer h1, .website-renderer h2, .website-renderer h3, 
         .website-renderer h4, .website-renderer h5, .website-renderer h6 {
           font-family: var(--font-heading, "Inter", sans-serif);
-          color: var(--brand-heading, var(--brand-text, #0f172a)) !important;
+          color: #0f172a !important;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
         }
-        /* Enforce solid muted text color - no translucent or low-contrast colors - GLOBAL */
-        .website-renderer .text-muted-foreground,
+        
+        .website-renderer h1 {
+          font-weight: 800;
+          letter-spacing: -0.035em;
+        }
+        
+        /* Premium body text */
         .website-renderer p {
-          color: var(--brand-muted, #475569) !important;
+          color: #64748b !important;
+          line-height: 1.7;
+          font-family: var(--font-body, "Inter", sans-serif);
         }
-        /* Solid card backgrounds - no gradients or transparency - GLOBAL */
+        
+        .website-renderer .text-muted-foreground {
+          color: #64748b !important;
+        }
+        
+        /* Premium card styling */
         .website-renderer .bg-card, .website-renderer [class*="bg-muted"] {
-          background-color: var(--brand-card-bg, var(--brand-surface, #ffffff)) !important;
+          background-color: #ffffff !important;
+        }
+        
+        /* Smooth scroll behavior */
+        .website-renderer {
+          scroll-behavior: smooth;
+        }
+        
+        /* Premium button hover effects */
+        .website-renderer button, .website-renderer a[role="button"] {
+          transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        
+        /* Premium selection color */
+        .website-renderer ::selection {
+          background-color: var(--brand-primary, #3b82f6);
+          color: white;
+        }
+        
+        /* Smooth image loading */
+        .website-renderer img {
+          transition: opacity 0.4s ease;
+        }
+        
+        /* Premium focus styles */
+        .website-renderer :focus-visible {
+          outline: 2px solid var(--brand-primary, #3b82f6);
+          outline-offset: 2px;
+        }
+        
+        /* Subtle scrollbar styling */
+        .website-renderer::-webkit-scrollbar {
+          width: 10px;
+        }
+        .website-renderer::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .website-renderer::-webkit-scrollbar-thumb {
+          background: rgba(0,0,0,0.15);
+          border-radius: 5px;
+        }
+        .website-renderer::-webkit-scrollbar-thumb:hover {
+          background: rgba(0,0,0,0.25);
         }
       `}</style>
       <WebsiteHeader globalContent={globalContent || undefined} onNavigate={onNavigate} siteSettings={siteSettings} />
