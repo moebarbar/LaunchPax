@@ -76,17 +76,10 @@ export default function SectionFeatures({ section }: { section: SectionContent }
   };
   
   return (
-    <section className="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden" style={{ backgroundColor: "var(--brand-surface, hsl(var(--muted)))" }}>
-      <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, var(--brand-surface, hsl(var(--muted))) 0%, var(--brand-background, hsl(var(--background))) 50%, var(--brand-surface, hsl(var(--muted))) 100%)` }} />
-      
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-[150px] opacity-20" 
-          style={{ background: "var(--brand-primary, hsl(var(--primary)))" }} 
-        />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full blur-[120px] opacity-15" 
-          style={{ background: "var(--brand-accent, hsl(var(--primary)))" }} 
-        />
-      </div>
+    <section 
+      className="py-20 sm:py-28 px-4 sm:px-6 relative overflow-hidden" 
+      style={{ backgroundColor: "var(--brand-background, #f8fafc)" }}
+    >
       
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -109,9 +102,15 @@ export default function SectionFeatures({ section }: { section: SectionContent }
             >
               Why choose us
             </motion.span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight">{data.headline}</h2>
+            <h2 
+              className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight"
+              style={{ color: "var(--brand-heading, var(--brand-text, #0f172a))" }}
+            >{data.headline}</h2>
             {data.subheadline && (
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">{data.subheadline}</p>
+              <p 
+                className="text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed px-4 sm:px-0"
+                style={{ color: "var(--brand-muted, #475569)" }}
+              >{data.subheadline}</p>
             )}
           </motion.div>
         )}
@@ -131,34 +130,18 @@ export default function SectionFeatures({ section }: { section: SectionContent }
               <motion.div 
                 key={index} 
                 variants={itemVariants}
-                className={`group relative p-6 sm:p-8 rounded-2xl border backdrop-blur-sm transition-all duration-500 ${getBentoSize(index, items.length)}`}
+                className={`group relative p-6 sm:p-8 rounded-2xl border transition-all duration-500 ${getBentoSize(index, items.length)}`}
                 style={{
-                  background: `linear-gradient(135deg, 
-                    hsl(var(--background)) 0%, 
-                    hsl(var(--muted) / 0.5) 100%)`,
-                  borderColor: "hsl(var(--border) / 0.5)"
+                  backgroundColor: "var(--brand-card-bg, var(--brand-surface, #ffffff))",
+                  borderColor: "var(--brand-border, #e2e8f0)"
                 }}
               >
-                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: `linear-gradient(135deg, 
-                      hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 0%, 
-                      transparent 50%)`
-                  }}
-                />
-
-                <div className="absolute top-0 right-0 w-32 h-32 opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-bl-full"
-                  style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                />
-                
                 <div className="relative z-10">
                   <div 
-                    className={`${isLarge ? 'w-16 h-16' : 'w-12 h-12'} rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg`}
+                    className={`${isLarge ? 'w-16 h-16' : 'w-12 h-12'} rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 group-hover:scale-105`}
                     style={{ 
-                      background: `linear-gradient(135deg, 
-                        hsl(var(--brand-primary-hsl, var(--primary)) / 0.15) 0%, 
-                        hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`,
-                      boxShadow: "0 4px 20px hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)"
+                      backgroundColor: "var(--brand-surface, #f1f5f9)",
+                      border: "1px solid var(--brand-border, #e2e8f0)"
                     }}
                   >
                     <IconComponent 
@@ -167,8 +150,14 @@ export default function SectionFeatures({ section }: { section: SectionContent }
                     />
                   </div>
                   
-                  <h3 className={`${isLarge ? 'text-2xl' : 'text-xl'} font-semibold mb-3 tracking-tight`}>{item.title}</h3>
-                  <p className={`${isLarge ? 'text-base' : 'text-sm'} text-muted-foreground leading-relaxed`}>{item.description}</p>
+                  <h3 
+                    className={`${isLarge ? 'text-2xl' : 'text-xl'} font-semibold mb-3 tracking-tight`}
+                    style={{ color: "var(--brand-heading, var(--brand-text, #0f172a))" }}
+                  >{item.title}</h3>
+                  <p 
+                    className={`${isLarge ? 'text-base' : 'text-sm'} leading-relaxed`}
+                    style={{ color: "var(--brand-muted, #475569)" }}
+                  >{item.description}</p>
                 </div>
               </motion.div>
             );

@@ -355,6 +355,8 @@ export interface SiteSettings {
   surfaceColor?: string;
   textColor?: string;
   mutedTextColor?: string;
+  headingColor?: string;      // High-contrast heading text color
+  cardBackground?: string;    // Solid card/surface background
   borderColor?: string;
   fontFamily?: string;
   headingFont?: string;

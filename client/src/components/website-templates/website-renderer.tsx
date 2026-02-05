@@ -581,7 +581,7 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
     styles["--brand-surface-hsl"] = hexToHSL(surfaceColor);
   }
   
-  // Text colors
+  // Text colors - CRITICAL: Use solid colors for readability
   if (textColor) {
     styles["--brand-text"] = textColor;
     styles["--brand-text-hsl"] = hexToHSL(textColor);
@@ -590,6 +590,20 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
   if (mutedTextColor) {
     styles["--brand-muted"] = mutedTextColor;
     styles["--brand-muted-hsl"] = hexToHSL(mutedTextColor);
+  }
+  
+  // Heading color - should always be high contrast
+  const headingColor = siteSettings?.headingColor;
+  if (headingColor) {
+    styles["--brand-heading"] = headingColor;
+    styles["--brand-heading-hsl"] = hexToHSL(headingColor);
+  }
+  
+  // Card/surface background - solid colors only
+  const cardBackground = siteSettings?.cardBackground;
+  if (cardBackground) {
+    styles["--brand-card-bg"] = cardBackground;
+    styles["--brand-card-bg-hsl"] = hexToHSL(cardBackground);
   }
   
   // Border color
@@ -671,9 +685,10 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   };
 
   return (
-    <div className={`min-h-screen ${isPreview ? "preview-mode" : ""}`} style={combinedStyles}>
+    <div className="min-h-screen website-renderer" style={combinedStyles}>
       <style>{`
-        .preview-mode {
+        /* GLOBAL: Apply brand CSS variables to all website content */
+        .website-renderer {
           --background: var(--brand-background-hsl, var(--background));
           --foreground: var(--brand-text-hsl, var(--foreground));
           --card: var(--brand-surface-hsl, var(--card));
@@ -682,8 +697,20 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
           --muted-foreground: var(--brand-muted-hsl, var(--muted-foreground));
           --border: var(--brand-border-hsl, var(--border));
         }
-        .preview-mode h1, .preview-mode h2, .preview-mode h3, .preview-mode h4, .preview-mode h5, .preview-mode h6 {
+        /* CRITICAL: Enforce solid heading colors for maximum contrast - GLOBAL */
+        .website-renderer h1, .website-renderer h2, .website-renderer h3, 
+        .website-renderer h4, .website-renderer h5, .website-renderer h6 {
           font-family: var(--font-heading, "Inter", sans-serif);
+          color: var(--brand-heading, var(--brand-text, #0f172a)) !important;
+        }
+        /* Enforce solid muted text color - no translucent or low-contrast colors - GLOBAL */
+        .website-renderer .text-muted-foreground,
+        .website-renderer p {
+          color: var(--brand-muted, #475569) !important;
+        }
+        /* Solid card backgrounds - no gradients or transparency - GLOBAL */
+        .website-renderer .bg-card, .website-renderer [class*="bg-muted"] {
+          background-color: var(--brand-card-bg, var(--brand-surface, #ffffff)) !important;
         }
       `}</style>
       <WebsiteHeader globalContent={globalContent || undefined} onNavigate={onNavigate} siteSettings={siteSettings} />

@@ -58,8 +58,10 @@ export default function SectionServices({ section }: { section: SectionContent }
   const items = data.items || [];
   
   return (
-    <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/50" />
+    <section 
+      className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden"
+      style={{ backgroundColor: "var(--brand-background, #f8fafc)" }}
+    >
       
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -86,7 +88,11 @@ export default function SectionServices({ section }: { section: SectionContent }
               {data.headline}
             </h2>
             {data.subheadline && (
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-services-subheadline">
+              <p 
+                className="text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed" 
+                style={{ color: "var(--brand-muted, #475569)" }}
+                data-testid="text-services-subheadline"
+              >
                 {data.subheadline}
               </p>
             )}
@@ -110,29 +116,17 @@ export default function SectionServices({ section }: { section: SectionContent }
                 data-testid={`card-service-${index}`}
               >
                 <div 
-                  className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl -z-10"
-                  style={{ 
-                    background: `linear-gradient(135deg, 
-                      hsl(var(--brand-primary-hsl, var(--primary)) / 0.2) 0%, 
-                      transparent 70%)`
-                  }}
-                />
-                
-                <div 
-                  className="relative h-full p-8 sm:p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 group-hover:border-primary/20 group-hover:shadow-2xl group-hover:-translate-y-1"
+                  className="relative h-full p-8 sm:p-10 rounded-3xl border transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1"
                   style={{
-                    background: `linear-gradient(180deg, 
-                      hsl(var(--card)) 0%, 
-                      hsl(var(--muted) / 0.3) 100%)`,
-                    borderColor: "hsl(var(--border) / 0.5)"
+                    backgroundColor: "var(--brand-card-bg, #ffffff)",
+                    borderColor: "var(--brand-border, #e2e8f0)"
                   }}
                 >
                   <div 
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110"
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-105"
                     style={{ 
-                      background: `linear-gradient(135deg, 
-                        hsl(var(--brand-primary-hsl, var(--primary)) / 0.15) 0%, 
-                        hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`
+                      backgroundColor: "var(--brand-surface, #f1f5f9)",
+                      border: "1px solid var(--brand-border, #e2e8f0)"
                     }}
                   >
                     <IconComponent 
@@ -141,8 +135,14 @@ export default function SectionServices({ section }: { section: SectionContent }
                     />
                   </div>
 
-                  <h3 className="text-xl sm:text-2xl font-semibold mb-3 tracking-tight">{item.title}</h3>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">{item.description}</p>
+                  <h3 
+                    className="text-xl sm:text-2xl font-semibold mb-3 tracking-tight"
+                    style={{ color: "var(--brand-heading, var(--brand-text, #0f172a))" }}
+                  >{item.title}</h3>
+                  <p 
+                    className="mb-6 leading-relaxed"
+                    style={{ color: "var(--brand-muted, #475569)" }}
+                  >{item.description}</p>
 
                   {item.price && (
                     <p 
@@ -156,11 +156,15 @@ export default function SectionServices({ section }: { section: SectionContent }
                   {item.features && item.features.length > 0 && (
                     <ul className="space-y-3 mb-8">
                       {item.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <li 
+                          key={featureIndex} 
+                          className="flex items-center gap-3 text-sm"
+                          style={{ color: "var(--brand-muted, #475569)" }}
+                        >
                           <div 
                             className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
                             style={{ 
-                              backgroundColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)"
+                              backgroundColor: "var(--brand-surface, #f1f5f9)"
                             }}
                           >
                             <Check 

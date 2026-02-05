@@ -15,7 +15,7 @@
 import { connectorRegistry } from "../connectors/registry";
 import { storage } from "../storage";
 import type { Project, ConnectorResult } from "@shared/schema";
-import { evaluateWebsiteQuality, runMultiPassRefinement, type QualityReport } from "./quality-engine";
+import { evaluateWebsiteQuality, runMultiPassRefinement, getProfessionalPalette, fixBrandColors, type QualityReport } from "./quality-engine";
 import { aiRouter } from "../services/ai-router";
 import { contentCache } from "../services/content-cache";
 import { workflowRecovery } from "../services/workflow-recovery";
@@ -435,18 +435,44 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const bgLuminance = backgroundColor ? hexToLuminance(backgroundColor) : 0.5;
         const colorScheme = bgLuminance > 0.5 ? "light" : "dark";
         
+        // Get professional palette for the industry to ensure proper contrast
+        const industry = ctx.project.industry || "";
+        const professionalPalette = getProfessionalPalette(industry);
+        
+        // Fix brand colors if they have contrast issues
+        const fixedColors = fixBrandColors({
+          primary: primaryColor,
+          background: backgroundColor,
+          accent: secondaryColor,
+        }, industry);
+        
+        // Use fixed colors with solid, high-contrast values from professional palette
+        const finalPrimaryColor = fixedColors.primary || primaryColor;
+        const finalBackgroundColor = fixedColors.background || backgroundColor;
+        const finalCardBackground = fixedColors.cardBackground || professionalPalette.cardBg;
+        
+        // CRITICAL: Use professional palette text colors for maximum contrast
+        const finalTextColor = fixedColors.foreground || professionalPalette.text;
+        const finalMutedTextColor = fixedColors.mutedForeground || professionalPalette.muted;
+        const finalHeadingColor = fixedColors.headingColor || professionalPalette.heading;
+        
         const siteSettings = {
           ...result.data.siteSettings,
-          backgroundColor,
-          primaryColor,
+          backgroundColor: finalBackgroundColor,
+          primaryColor: finalPrimaryColor,
           secondaryColor,
           accentColor,
           surfaceColor,
-          textColor: colorScheme === "light" ? primaryColor : "#FFFFFF",
+          textColor: finalTextColor,
+          mutedTextColor: finalMutedTextColor,
+          headingColor: finalHeadingColor,
+          cardBackground: finalCardBackground,
           colorScheme,
           fontFamily: brandKit?.fontPairings?.[0]?.body,
           headingFont: brandKit?.fontPairings?.[0]?.heading,
         };
+        
+        console.log(`[Color Fix] Applied professional palette: heading=${finalHeadingColor}, text=${finalTextColor}, muted=${finalMutedTextColor}, bg=${finalBackgroundColor}, cardBg=${finalCardBackground}`);
         
         // Enforce correct hero archetype based on industry (server-side override)
         const enforcedPages = enforceHeroArchetype(result.data.pages, ctx.project.industry || "");

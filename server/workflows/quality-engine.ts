@@ -198,6 +198,280 @@ const LAYOUT_ISSUES = {
 };
 
 /**
+ * Color Contrast Utilities
+ * Ensures proper contrast between text and backgrounds
+ */
+
+// Convert hex to RGB
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+// Convert HSL to RGB
+function hslToRgb(h: number, s: number, l: number): { r: number; g: number; b: number } {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+  };
+  return { r: Math.round(f(0) * 255), g: Math.round(f(8) * 255), b: Math.round(f(4) * 255) };
+}
+
+// Calculate relative luminance
+function getLuminance(r: number, g: number, b: number): number {
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    c = c / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+// Calculate contrast ratio between two colors
+function getContrastRatio(color1: { r: number; g: number; b: number }, color2: { r: number; g: number; b: number }): number {
+  const lum1 = getLuminance(color1.r, color1.g, color1.b);
+  const lum2 = getLuminance(color2.r, color2.g, color2.b);
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Check if a color is "light" (high luminance)
+function isLightColor(color: { r: number; g: number; b: number }): boolean {
+  const luminance = getLuminance(color.r, color.g, color.b);
+  return luminance > 0.5;
+}
+
+// Parse color from various formats
+function parseColor(colorStr: string): { r: number; g: number; b: number } | null {
+  if (!colorStr) return null;
+  
+  // Handle hex
+  if (colorStr.startsWith('#')) {
+    return hexToRgb(colorStr);
+  }
+  
+  // Handle HSL like "180 50% 80%"
+  const hslMatch = colorStr.match(/(\d+)\s+(\d+)%?\s+(\d+)%?/);
+  if (hslMatch) {
+    return hslToRgb(parseInt(hslMatch[1]), parseInt(hslMatch[2]), parseInt(hslMatch[3]));
+  }
+  
+  // Handle rgb()
+  const rgbMatch = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (rgbMatch) {
+    return { r: parseInt(rgbMatch[1]), g: parseInt(rgbMatch[2]), b: parseInt(rgbMatch[3]) };
+  }
+  
+  return null;
+}
+
+// Color contrast issues detection and fixing
+interface ColorContrastIssue {
+  location: string;
+  issue: string;
+  severity: 'critical' | 'warning';
+  fix?: { property: string; value: string };
+}
+
+/**
+ * Analyze brand colors for contrast issues
+ */
+function analyzeColorContrast(brandColors: any): { issues: ColorContrastIssue[]; needsFix: boolean } {
+  const issues: ColorContrastIssue[] = [];
+  
+  if (!brandColors) {
+    return { issues: [], needsFix: false };
+  }
+  
+  const primary = parseColor(brandColors.primary);
+  const background = parseColor(brandColors.background);
+  const accent = parseColor(brandColors.accent);
+  
+  // Check if primary and background are both light (critical issue)
+  if (primary && background) {
+    const bothLight = isLightColor(primary) && isLightColor(background);
+    const contrastRatio = getContrastRatio(primary, background);
+    
+    if (bothLight && contrastRatio < 3) {
+      issues.push({
+        location: 'brand_colors',
+        issue: 'Primary and background colors are both light - text will be unreadable',
+        severity: 'critical',
+        fix: { property: 'primary', value: '#1a1a2e' } // Dark blue-gray
+      });
+    }
+    
+    if (contrastRatio < 4.5) {
+      issues.push({
+        location: 'brand_colors',
+        issue: `Low contrast ratio (${contrastRatio.toFixed(2)}) between primary and background`,
+        severity: contrastRatio < 3 ? 'critical' : 'warning'
+      });
+    }
+  }
+  
+  // Check accent contrast
+  if (accent && background) {
+    const bothLight = isLightColor(accent) && isLightColor(background);
+    if (bothLight) {
+      issues.push({
+        location: 'brand_colors',
+        issue: 'Accent and background colors are both light',
+        severity: 'warning',
+        fix: { property: 'accent', value: '#2d3748' } // Dark gray
+      });
+    }
+  }
+  
+  return { 
+    issues, 
+    needsFix: issues.some(i => i.severity === 'critical') 
+  };
+}
+
+/**
+ * Professional, high-contrast color palettes for different industries
+ * All palettes have solid colors with strong contrast
+ */
+const PROFESSIONAL_COLOR_PALETTES: Record<string, { 
+  primary: string; 
+  background: string; 
+  accent: string; 
+  cardBg: string;
+  heading: string;
+  text: string;
+  muted: string;
+}> = {
+  healthcare: {
+    primary: '#0c4a6e',       // Dark blue
+    background: '#f8fafc',    // Very light gray (almost white)
+    accent: '#0284c7',        // Medium blue
+    cardBg: '#ffffff',        // Pure white
+    heading: '#0f172a',       // Very dark - max contrast
+    text: '#1e293b',          // Dark slate
+    muted: '#475569',         // Medium slate
+  },
+  dental: {
+    primary: '#0f766e',       // Teal dark
+    background: '#f0fdfa',    // Very light teal (almost white)
+    accent: '#14b8a6',        // Medium teal  
+    cardBg: '#ffffff',        // Pure white
+    heading: '#0f172a',       // Very dark - max contrast
+    text: '#1e293b',          // Dark slate
+    muted: '#475569',         // Medium slate
+  },
+  technology: {
+    primary: '#1e293b',       // Dark slate
+    background: '#f8fafc',    // Very light gray
+    accent: '#3b82f6',        // Blue
+    cardBg: '#ffffff',        // Pure white
+    heading: '#0f172a',       // Very dark - max contrast
+    text: '#1e293b',          // Dark slate
+    muted: '#64748b',         // Slate gray
+  },
+  professional: {
+    primary: '#1f2937',       // Dark gray
+    background: '#ffffff',    // Pure white
+    accent: '#4f46e5',        // Indigo
+    cardBg: '#f9fafb',        // Light gray
+    heading: '#111827',       // Near black
+    text: '#1f2937',          // Dark gray
+    muted: '#6b7280',         // Gray
+  },
+  creative: {
+    primary: '#581c87',       // Purple dark
+    background: '#faf5ff',    // Very light purple
+    accent: '#a855f7',        // Purple medium
+    cardBg: '#ffffff',        // Pure white
+    heading: '#1e1b4b',       // Dark indigo
+    text: '#312e81',          // Indigo dark
+    muted: '#6b7280',         // Gray
+  },
+  food: {
+    primary: '#7c2d12',       // Brown/orange dark
+    background: '#fffbeb',    // Very light yellow
+    accent: '#ea580c',        // Orange
+    cardBg: '#ffffff',        // Pure white
+    heading: '#1c1917',       // Stone dark
+    text: '#292524',          // Stone
+    muted: '#78716c',         // Stone muted
+  },
+  default: {
+    primary: '#0f172a',       // Very dark blue-gray
+    background: '#ffffff',    // Pure white
+    accent: '#3b82f6',        // Blue
+    cardBg: '#f8fafc',        // Light gray
+    heading: '#0f172a',       // Very dark - max contrast
+    text: '#1e293b',          // Dark slate
+    muted: '#64748b',         // Slate gray
+  },
+};
+
+/**
+ * Get a professional color palette based on industry
+ */
+export function getProfessionalPalette(industry: string): typeof PROFESSIONAL_COLOR_PALETTES['default'] {
+  const lowerIndustry = (industry || '').toLowerCase();
+  
+  if (/health|medical|clinic|hospital|doctor|wellness/i.test(lowerIndustry)) {
+    return PROFESSIONAL_COLOR_PALETTES.healthcare;
+  }
+  if (/dental|dentist|orthodont/i.test(lowerIndustry)) {
+    return PROFESSIONAL_COLOR_PALETTES.dental;
+  }
+  if (/tech|software|saas|app|digital|startup/i.test(lowerIndustry)) {
+    return PROFESSIONAL_COLOR_PALETTES.technology;
+  }
+  if (/law|legal|finance|bank|accounting|insurance|consult/i.test(lowerIndustry)) {
+    return PROFESSIONAL_COLOR_PALETTES.professional;
+  }
+  if (/design|art|creative|media|photo|video|music/i.test(lowerIndustry)) {
+    return PROFESSIONAL_COLOR_PALETTES.creative;
+  }
+  if (/food|restaurant|cafe|bakery|catering/i.test(lowerIndustry)) {
+    return PROFESSIONAL_COLOR_PALETTES.food;
+  }
+  
+  return PROFESSIONAL_COLOR_PALETTES.default;
+}
+
+/**
+ * Fix brand colors to ensure proper contrast
+ * Returns SOLID colors only - no translucent or low-contrast colors
+ */
+export function fixBrandColors(brandColors: any, industry: string): any {
+  const analysis = analyzeColorContrast(brandColors);
+  
+  if (!analysis.needsFix) {
+    return brandColors;
+  }
+  
+  console.log('[Quality Engine] Fixing brand colors for proper contrast');
+  
+  // Get a professional palette as fallback
+  const professionalPalette = getProfessionalPalette(industry);
+  
+  return {
+    ...brandColors,
+    primary: professionalPalette.primary,
+    background: professionalPalette.background,
+    accent: brandColors.accent || professionalPalette.accent,
+    cardBackground: professionalPalette.cardBg,
+    // CRITICAL: Use solid text colors from palette for maximum contrast
+    headingColor: professionalPalette.heading,
+    foreground: professionalPalette.text,
+    mutedForeground: professionalPalette.muted,
+  };
+}
+
+/**
  * Analyze layout sophistication and visual variety
  */
 function analyzeLayoutSophistication(pages: any[]): { score: number; issues: string[] } {

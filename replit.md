@@ -101,6 +101,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Color Contrast Enforcement System (Feb 2026)
+- **Issue**: Light text on light backgrounds causing poor readability across website sections
+- **Solution**: Implemented comprehensive solid color enforcement system
+- **Schema Updates**: Added `headingColor` and `cardBackground` properties to SiteSettings interface
+- **Professional Color Palettes**: Enhanced quality-engine with industry-specific palettes (healthcare, dental, technology, professional, creative, food) including heading, text, and muted colors
+- **Engine Integration**: Updated workflow engine to apply palette colors for headingColor, textColor, mutedTextColor, and cardBackground
+- **Global CSS Enforcement**: Changed website-renderer to use `.website-renderer` class (not preview-mode) for global CSS that enforces solid colors on all h1-h6, paragraphs, and cards
+- **Section Updates**: Updated section-features and section-services to use solid backgrounds and inline styles with CSS variables
+- **Verified Colors**: headingColor=#0f172a, textColor=#1e293b, mutedTextColor=#475569, cardBackground=#ffffff
+
 ### Hero Image Rendering Fix (Feb 2026)
 - **Issue**: Healthcare/dental websites were using "minimal" hero archetype which doesn't display images
 - **Fix**: Updated hero archetype selection to use "split" for healthcare/dental/medical industries (image-supporting archetype)
