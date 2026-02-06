@@ -21,9 +21,42 @@ import { SectionBrandStory } from "./section-brand-story";
 import { NoiseTexture, ScrollProgressBar, GlowLine } from "./visuals";
 import { getSectionLayoutConfig, getSectionEntrance, getSectionDividerConfig, getBackgroundClasses } from "@/lib/layout-intelligence";
 import { Menu, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component } from "react";
+import type { ReactNode, ErrorInfo } from "react";
 import { motion } from "framer-motion";
 import { DesignPersonalityProvider, useDesignPersonality } from "./design-personality";
+
+interface SectionErrorBoundaryProps {
+  children: ReactNode;
+  sectionType: string;
+  sectionId: string;
+}
+
+interface SectionErrorBoundaryState {
+  hasError: boolean;
+}
+
+class SectionErrorBoundary extends Component<SectionErrorBoundaryProps, SectionErrorBoundaryState> {
+  constructor(props: SectionErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): SectionErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error(`[WebsiteRenderer] Section "${this.props.sectionType}" (${this.props.sectionId}) crashed:`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
 
 function useSeoMeta(
   siteName?: string, 
@@ -1163,38 +1196,40 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
                   )}
                 </div>
               )}
-              {isHero ? (
-                <SectionRenderer section={section} globalContent={globalContent || undefined} />
-              ) : (
-                <motion.div
-                  initial={entrance.initial}
-                  whileInView={entrance.animate}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={entrance.transition}
-                  className={`relative ${layoutConfig.paddingY} ${bgClasses}`}
-                >
-                  {layoutConfig.hasFloatingDecor && (
-                    <div 
-                      className="absolute inset-0 pointer-events-none overflow-hidden"
-                      aria-hidden="true"
-                    >
-                      <div 
-                        className="absolute rounded-full blur-3xl opacity-[0.04]"
-                        style={{
-                          width: "40%",
-                          height: "60%",
-                          background: "var(--brand-primary, hsl(var(--primary)))",
-                          top: layoutConfig.decorVariant % 2 === 0 ? "10%" : "auto",
-                          bottom: layoutConfig.decorVariant % 2 !== 0 ? "10%" : "auto",
-                          left: layoutConfig.decorVariant < 3 ? "-10%" : "auto",
-                          right: layoutConfig.decorVariant >= 3 ? "-10%" : "auto",
-                        }}
-                      />
-                    </div>
-                  )}
+              <SectionErrorBoundary sectionType={section.type} sectionId={section.id}>
+                {isHero ? (
                   <SectionRenderer section={section} globalContent={globalContent || undefined} />
-                </motion.div>
-              )}
+                ) : (
+                  <motion.div
+                    initial={entrance.initial}
+                    whileInView={entrance.animate}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={entrance.transition}
+                    className={`relative ${layoutConfig.paddingY} ${bgClasses}`}
+                  >
+                    {layoutConfig.hasFloatingDecor && (
+                      <div 
+                        className="absolute inset-0 pointer-events-none overflow-hidden"
+                        aria-hidden="true"
+                      >
+                        <div 
+                          className="absolute rounded-full blur-3xl opacity-[0.04]"
+                          style={{
+                            width: "40%",
+                            height: "60%",
+                            background: "var(--brand-primary, hsl(var(--primary)))",
+                            top: layoutConfig.decorVariant % 2 === 0 ? "10%" : "auto",
+                            bottom: layoutConfig.decorVariant % 2 !== 0 ? "10%" : "auto",
+                            left: layoutConfig.decorVariant < 3 ? "-10%" : "auto",
+                            right: layoutConfig.decorVariant >= 3 ? "-10%" : "auto",
+                          }}
+                        />
+                      </div>
+                    )}
+                    <SectionRenderer section={section} globalContent={globalContent || undefined} />
+                  </motion.div>
+                )}
+              </SectionErrorBoundary>
             </div>
           );
         })}
