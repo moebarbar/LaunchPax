@@ -1,6 +1,7 @@
 import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
+import { FloatingOrb, DotGrid } from "./visuals/floating-elements";
 
 interface StoryData {
   headline?: string;
@@ -25,7 +26,11 @@ export default function SectionStory({ section }: { section: SectionContent }) {
   if (layout === "editorial") {
     return (
       <section className="py-24 sm:py-32 lg:py-40 px-4 sm:px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
+        <div className="absolute inset-0 pointer-events-none">
+          <FloatingOrb size={400} x="5%" y="30%" opacity={0.04} />
+          <FloatingOrb size={300} x="90%" y="60%" opacity={0.03} delay={3} />
+          <DotGrid opacity={0.01} />
+        </div>
         
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-20">
@@ -37,7 +42,8 @@ export default function SectionStory({ section }: { section: SectionContent }) {
               className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start"
             >
               {data.headline && (
-                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+                <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6"
+                  style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>
                   {data.headline.split(' ').map((word, i, arr) => (
                     <span key={i}>
                       {i === arr.length - 1 ? (
@@ -58,13 +64,15 @@ export default function SectionStory({ section }: { section: SectionContent }) {
               )}
               
               {data.subheadline && (
-                <p className="text-xl text-muted-foreground leading-relaxed">
+                <p className="text-xl leading-relaxed"
+                  style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>
                   {data.subheadline}
                 </p>
               )}
 
               {data.stats && data.stats.length > 0 && (
-                <div className="grid grid-cols-2 gap-6 mt-10 pt-10 border-t border-border/50">
+                <div className="grid grid-cols-2 gap-6 mt-10 pt-10"
+                  style={{ borderTop: "1px solid var(--brand-border, hsl(var(--border)))" }}>
                   {data.stats.map((stat, i) => (
                     <motion.div
                       key={i}
@@ -73,13 +81,14 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.1, duration: themeMotion.duration }}
                     >
-                      <p 
-                        className="text-4xl font-bold tracking-tight"
-                        style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
-                      >
+                      <p className="text-4xl font-bold tracking-tight"
+                        style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}>
                         {stat.value}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+                      <p className="text-sm mt-1"
+                        style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>
+                        {stat.label}
+                      </p>
                     </motion.div>
                   ))}
                 </div>
@@ -94,17 +103,15 @@ export default function SectionStory({ section }: { section: SectionContent }) {
               className="lg:col-span-7 space-y-8"
             >
               {hasImage && (
-                <div className="relative rounded-3xl overflow-hidden mb-12">
-                  <div 
-                    className="absolute -inset-4 rounded-3xl blur-2xl opacity-20"
-                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                  />
-                  <img
-                    src={imageUrl}
-                    alt=""
-                    className="relative w-full aspect-[16/10] object-cover rounded-3xl"
-                  />
-                </div>
+                <motion.div
+                  className="relative rounded-3xl overflow-hidden mb-12"
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="absolute -inset-4 rounded-3xl blur-2xl opacity-20"
+                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }} />
+                  <img src={imageUrl} alt="" className="relative w-full aspect-[16/10] object-cover rounded-3xl" />
+                </motion.div>
               )}
 
               {paragraphs.map((paragraph, i) => (
@@ -114,7 +121,8 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1, duration: themeMotion.duration }}
-                  className={`text-lg ${i === 0 ? 'text-2xl font-light leading-relaxed' : 'text-muted-foreground leading-relaxed'}`}
+                  className={`text-lg ${i === 0 ? 'text-2xl font-light leading-relaxed' : 'leading-relaxed'}`}
+                  style={{ color: i === 0 ? "var(--brand-text, hsl(var(--foreground)))" : "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}
                 >
                   {paragraph}
                 </motion.p>
@@ -126,15 +134,18 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: themeMotion.duration }}
-                  className="relative pl-8 py-4 border-l-4 mt-12"
-                  style={{ borderColor: "var(--brand-primary, hsl(var(--primary)))" }}
+                  className="relative pl-8 py-4 mt-12"
                 >
-                  <p className="text-2xl font-medium italic leading-relaxed">
+                  <div className="absolute left-0 top-0 bottom-0 w-1 rounded-full"
+                    style={{ background: `linear-gradient(to bottom, var(--brand-primary, hsl(var(--primary))), transparent)` }} />
+                  <p className="text-2xl font-medium italic leading-relaxed"
+                    style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>
                     "{data.quote}"
                   </p>
                   {data.quoteAuthor && (
-                    <footer className="mt-4 text-muted-foreground">
-                      — {data.quoteAuthor}
+                    <footer className="mt-4"
+                      style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>
+                      - {data.quoteAuthor}
                     </footer>
                   )}
                 </motion.blockquote>
@@ -148,7 +159,10 @@ export default function SectionStory({ section }: { section: SectionContent }) {
 
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/10 to-background" />
+      <div className="absolute inset-0 pointer-events-none">
+        <FloatingOrb size={350} x="50%" y="30%" opacity={0.04} />
+        <DotGrid opacity={0.01} />
+      </div>
       
       <div className="max-w-4xl mx-auto relative z-10 text-center">
         <motion.div
@@ -158,13 +172,15 @@ export default function SectionStory({ section }: { section: SectionContent }) {
           transition={{ duration: themeMotion.durationSlow }}
         >
           {data.headline && (
-            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-8">
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-8"
+              style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>
               {data.headline}
             </h2>
           )}
           
           {data.subheadline && (
-            <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed mb-12">
+            <p className="text-xl sm:text-2xl leading-relaxed mb-12"
+              style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>
               {data.subheadline}
             </p>
           )}
@@ -177,7 +193,8 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: themeMotion.duration }}
-                className="text-lg text-muted-foreground leading-relaxed"
+                className="text-lg leading-relaxed"
+                style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}
               >
                 {paragraph}
               </motion.p>

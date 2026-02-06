@@ -43,8 +43,12 @@ export function MetricCard({ label, value, change, icon, delay = 0, color }: Met
           <motion.span
             className="text-xs font-medium px-1.5 py-0.5 rounded-md mb-0.5"
             style={{
-              backgroundColor: change.startsWith("+") ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
-              color: change.startsWith("+") ? "#22c55e" : "#ef4444",
+              backgroundColor: change.startsWith("+")
+                ? "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)"
+                : "var(--brand-muted, hsl(var(--muted)))",
+              color: change.startsWith("+")
+                ? "var(--brand-primary, hsl(var(--primary)))"
+                : "var(--brand-muted-text, hsl(var(--muted-foreground)))",
             }}
             initial={{ opacity: 0, x: -5 }}
             whileInView={{ opacity: 1, x: 0 }}

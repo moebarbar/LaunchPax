@@ -32,9 +32,9 @@ export function BrowserMockup({ url = "yoursite.com", children, className = "", 
         style={{ borderColor: "var(--brand-border, hsl(var(--border)))" }}
       >
         <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-red-400/80" />
-          <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
-          <div className="w-3 h-3 rounded-full bg-green-400/80" />
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--brand-muted, hsl(var(--muted)))", opacity: 0.8 }} />
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--brand-muted, hsl(var(--muted)))", opacity: 0.6 }} />
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "var(--brand-muted, hsl(var(--muted)))", opacity: 0.4 }} />
         </div>
         <div
           className="flex-1 mx-4 px-3 py-1 rounded-md text-xs truncate"
