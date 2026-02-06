@@ -18,6 +18,7 @@ import ConnectorsPage from "@/pages/connectors";
 import SettingsPage from "@/pages/settings";
 import WebsitePreview from "@/pages/website-preview";
 import PublishedSite from "@/pages/published-site";
+import VisualEditorPage from "@/pages/visual-editor";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
@@ -83,6 +84,7 @@ function AppRouter() {
       {/* Public routes - accessible without auth */}
       <Route path="/preview/:token" component={WebsitePreview} />
       <Route path="/site/:projectId" component={PublishedSite} />
+      <Route path="/project/:id/editor" component={VisualEditorPage} />
       {/* Auth-gated routes */}
       <Route component={AuthenticatedRoutes} />
     </Switch>

@@ -13,6 +13,7 @@ import {
   Image,
   Activity,
   Settings,
+  PenTool,
 } from "lucide-react";
 import type { Project } from "@shared/schema";
 import ProjectOverview from "@/components/project/project-overview";
@@ -87,6 +88,12 @@ export default function ProjectDetailPage() {
             </p>
           </div>
         </div>
+        <Link href={`/project/${projectId}/editor`}>
+          <Button variant="default" className="gap-2" data-testid="button-visual-editor">
+            <PenTool className="w-4 h-4" />
+            Visual Editor
+          </Button>
+        </Link>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">

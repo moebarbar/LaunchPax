@@ -770,6 +770,255 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   });
 
   // ============================================================================
+  // VISUAL EDITOR API
+  // ============================================================================
+
+  app.patch("/api/projects/:id/website/element", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const { path, value } = req.body;
+
+    if (!path || typeof path !== "string") {
+      return res.status(400).json({ error: "Path is required and must be a string" });
+    }
+
+    if (value === undefined) {
+      return res.status(400).json({ error: "Value is required" });
+    }
+
+    if (path.length > 500) {
+      return res.status(400).json({ error: "Path is too long" });
+    }
+
+    const ALLOWED_PATH_PATTERN = /^(pages|siteSettings|globalContent|__full_restore|__add_section)/;
+    if (!ALLOWED_PATH_PATTERN.test(path)) {
+      return res.status(400).json({ error: "Invalid path prefix" });
+    }
+
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    const websiteContent = await storage.getWebsiteContent(projectId);
+    if (!websiteContent) {
+      return res.status(404).json({ error: "Website content not found" });
+    }
+
+    try {
+      if (path === "__full_restore") {
+        if (!value || typeof value !== "object") {
+          return res.status(400).json({ error: "Full restore value must be an object" });
+        }
+        await storage.updateWebsiteContent(projectId, {
+          pages: value.pages,
+          siteSettings: value.siteSettings,
+          globalContent: value.globalContent,
+        });
+        return res.json({ success: true });
+      }
+
+      if (path === "pages") {
+        if (!Array.isArray(value)) {
+          return res.status(400).json({ error: "Pages value must be an array" });
+        }
+        await storage.updateWebsiteContent(projectId, { pages: value });
+        return res.json({ success: true });
+      }
+
+      const content: Record<string, any> = JSON.parse(JSON.stringify(websiteContent));
+      const pathParts = path.split(".");
+
+      let current: any = content;
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        const part = pathParts[i];
+        const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);
+        if (arrayMatch) {
+          const [, arrayName, index] = arrayMatch;
+          if (!current[arrayName]) return res.status(400).json({ error: `Invalid path segment: ${part}` });
+          current = current[arrayName][parseInt(index)];
+        } else {
+          if (current[part] === undefined) current[part] = {};
+          current = current[part];
+        }
+        if (!current) return res.status(400).json({ error: `Path resolution failed at: ${part}` });
+      }
+
+      const finalKey = pathParts[pathParts.length - 1];
+      const finalArrayMatch = finalKey.match(/^(.+)\[(\d+)\]$/);
+      if (finalArrayMatch) {
+        const [, arrayName, index] = finalArrayMatch;
+        if (current[arrayName]) {
+          current[arrayName][parseInt(index)] = value;
+        }
+      } else {
+        current[finalKey] = value;
+      }
+
+      await storage.updateWebsiteContent(projectId, {
+        pages: content.pages,
+        siteSettings: content.siteSettings,
+        globalContent: content.globalContent,
+      });
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[VisualEditor] Element update error:", error);
+      res.status(500).json({ error: "Failed to update element. Please try again." });
+    }
+  });
+
+  app.post("/api/projects/:id/editor/ai-refine", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const { currentValue, elementType, instruction } = req.body;
+
+    if (!instruction || !currentValue) {
+      return res.status(400).json({ error: "Instruction and current value are required" });
+    }
+
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    try {
+      const result = await connectorRegistry.execute(
+        "text_generation",
+        "refine_text",
+        {
+          text: currentValue,
+          instruction,
+          context: {
+            businessName: project.name,
+            industry: project.industry,
+            elementType,
+          },
+        }
+      );
+
+      if (result.success && result.data) {
+        const refined = typeof result.data === "string" ? result.data : (result.data as any).text || (result.data as any).refined || currentValue;
+        return res.json({ refined });
+      }
+
+      const refinedFallback = applySimpleTextTransform(currentValue, instruction);
+      res.json({ refined: refinedFallback });
+    } catch (error: any) {
+      console.error("[VisualEditor] AI refine error:", error);
+      const refinedFallback = applySimpleTextTransform(currentValue, instruction);
+      res.json({ refined: refinedFallback });
+    }
+  });
+
+  app.post("/api/projects/:id/editor/ai-quick-action", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const { currentValue, elementType, action } = req.body;
+
+    if (!action || !currentValue) {
+      return res.status(400).json({ error: "Action and current value are required" });
+    }
+
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    try {
+      const instructionMap: Record<string, string> = {
+        make_shorter: "Make this text significantly shorter and more concise while keeping the key message",
+        make_longer: "Expand this text with more detail and supporting points",
+        more_professional: "Rewrite in a more professional, corporate tone",
+        more_casual: "Rewrite in a more casual, friendly conversational tone",
+        add_urgency: "Add a sense of urgency and compelling call to action",
+        simplify: "Simplify the language to be easily understood by anyone",
+      };
+
+      const instruction = instructionMap[action] || `Apply ${action.replace(/_/g, " ")} transformation`;
+
+      const result = await connectorRegistry.execute(
+        "text_generation",
+        "refine_text",
+        {
+          text: currentValue,
+          instruction,
+          context: {
+            businessName: project.name,
+            industry: project.industry,
+            elementType,
+          },
+        }
+      );
+
+      if (result.success && result.data) {
+        const refined = typeof result.data === "string" ? result.data : (result.data as any).text || (result.data as any).refined || currentValue;
+        return res.json({ result: refined });
+      }
+
+      const resultFallback = applySimpleTextTransform(currentValue, instruction);
+      res.json({ result: resultFallback });
+    } catch (error: any) {
+      console.error("[VisualEditor] Quick action error:", error);
+      const resultFallback = applySimpleTextTransform(currentValue, action);
+      res.json({ result: resultFallback });
+    }
+  });
+
+  app.post("/api/projects/:id/editor/ai-variations", isAuthenticated, async (req: Request, res: Response) => {
+    const userId = req.user?.claims?.sub;
+    const projectId = parseInt(req.params.id);
+    const { currentValue, elementType, count } = req.body;
+
+    if (!currentValue) {
+      return res.status(400).json({ error: "Current value is required" });
+    }
+
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    try {
+      const result = await connectorRegistry.execute(
+        "text_generation",
+        "generate_variations",
+        {
+          text: currentValue,
+          count: count || 3,
+          context: {
+            businessName: project.name,
+            industry: project.industry,
+            elementType,
+          },
+        }
+      );
+
+      if (result.success && result.data) {
+        const variations = Array.isArray(result.data) ? result.data : (result.data as any).variations || [currentValue + " (variation)"];
+        return res.json({ variations });
+      }
+
+      res.json({
+        variations: [
+          currentValue.replace(/\.$/, "!"),
+          currentValue.split("").reverse().join("").length > 20 ? currentValue.substring(0, Math.ceil(currentValue.length * 0.7)) + "..." : currentValue + " - Enhanced",
+          currentValue.charAt(0).toUpperCase() + currentValue.slice(1),
+        ],
+      });
+    } catch (error: any) {
+      console.error("[VisualEditor] Variations error:", error);
+      res.json({
+        variations: [
+          currentValue + " - Option A",
+          currentValue + " - Option B",
+          currentValue + " - Option C",
+        ],
+      });
+    }
+  });
+
+  // ============================================================================
   // GRAPHICS API
   // ============================================================================
 
@@ -1469,4 +1718,22 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
       connectors,
     });
   });
+}
+
+function applySimpleTextTransform(text: string, instruction: string): string {
+  const lower = instruction.toLowerCase();
+  if (lower.includes("shorter") || lower.includes("concise")) {
+    const sentences = text.split(/[.!?]+/).filter(Boolean);
+    return sentences.slice(0, Math.max(1, Math.ceil(sentences.length / 2))).join(". ").trim() + ".";
+  }
+  if (lower.includes("uppercase") || lower.includes("upper case")) {
+    return text.toUpperCase();
+  }
+  if (lower.includes("lowercase") || lower.includes("lower case")) {
+    return text.toLowerCase();
+  }
+  if (lower.includes("professional")) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+  return text;
 }

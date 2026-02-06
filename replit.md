@@ -25,6 +25,7 @@ Preferred communication style: Simple, everyday language.
     - **Responsive Design**: Mobile-first approach with progressive text scaling and responsive layouts.
     - **Signature Visual Moments**: Utilizes components like LargeTypography, ParallaxDivider, and AnimatedGradientBg.
     - **Techy Build Progress**: Displays terminal-style animated progress visualization for workflows.
+    - **Visual Editor**: Full-page split-screen editor (60% preview, 40% editor panel) at `/project/:id/editor`. Click-to-edit for text, images, sections. Features: undo/redo (Ctrl+Z/Ctrl+Shift+Z), desktop/mobile preview toggle, section toolbar (move/duplicate/delete), add section panel, AI refinement with quick actions and variations. Components in `client/src/components/editor/`.
 
 ### Backend
 - **Framework**: Express.js with TypeScript
