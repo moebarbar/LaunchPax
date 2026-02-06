@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SectionContent } from "@shared/schema";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, GradientMesh, DotGrid, ShineEffect } from "./visuals/floating-elements";
 import { ChecklistPanel } from "./visuals/checklist-panel";
+import { getIcon } from "./icon-map";
 
 interface Benefit {
   title: string;
   description: string;
   highlights?: string[];
   image?: string;
+  icon?: string;
 }
 
 interface BenefitsData {
@@ -58,7 +60,9 @@ export function SectionBenefits({ section }: { section: SectionContent }) {
         </motion.div>
         
         <div className="space-y-24">
-          {benefits.map((benefit, index) => (
+          {benefits.map((benefit, index) => {
+            const BenefitIcon = benefit.icon ? getIcon(benefit.icon, Star) : null;
+            return (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 50 }}
@@ -76,7 +80,7 @@ export function SectionBenefits({ section }: { section: SectionContent }) {
                   }}
                   whileHover={{ scale: 1.05, rotate: 5 }}
                 >
-                  {String(index + 1).padStart(2, '0')}
+                  {BenefitIcon ? <BenefitIcon className="w-6 h-6" /> : String(index + 1).padStart(2, '0')}
                 </motion.div>
 
                 <h3 className="text-3xl sm:text-4xl font-bold mb-6"
@@ -148,7 +152,8 @@ export function SectionBenefits({ section }: { section: SectionContent }) {
                 )}
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
         
         {data.ctaText && (

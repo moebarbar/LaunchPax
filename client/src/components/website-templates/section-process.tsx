@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
+import { CircleDot } from "lucide-react";
 import type { SectionContent } from "@shared/schema";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, DotGrid } from "./visuals/floating-elements";
+import { getIcon } from "./icon-map";
 
 interface ProcessData {
   headline?: string;
@@ -64,7 +66,9 @@ export function SectionProcess({ section }: { section: SectionContent }) {
             style={{ background: `linear-gradient(to bottom, transparent, var(--brand-primary, hsl(var(--primary))), transparent)`, opacity: 0.2 }} />
           
           <div className="space-y-12 lg:space-y-0">
-            {steps.map((step, index) => (
+            {steps.map((step, index) => {
+              const StepIcon = step.icon ? getIcon(step.icon, CircleDot) : null;
+              return (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 40 }}
@@ -86,7 +90,7 @@ export function SectionProcess({ section }: { section: SectionContent }) {
                     viewport={{ once: true }}
                     transition={{ delay: 0.2 + index * 0.15, type: "spring", stiffness: 300 }}
                   >
-                    {step.number || index + 1}
+                    {StepIcon ? <StepIcon className="w-7 h-7" /> : (step.number || index + 1)}
                   </motion.div>
                 </div>
                 
@@ -104,7 +108,7 @@ export function SectionProcess({ section }: { section: SectionContent }) {
                         className="w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold text-white"
                         style={{ background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)` }}
                       >
-                        {step.number || index + 1}
+                        {StepIcon ? <StepIcon className="w-5 h-5" /> : (step.number || index + 1)}
                       </div>
                       <h3 className="text-xl font-bold" style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))" }}>{step.title}</h3>
                     </div>
@@ -130,7 +134,8 @@ export function SectionProcess({ section }: { section: SectionContent }) {
                 
                 <div className="hidden lg:block lg:w-[calc(50%-4rem)]" />
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

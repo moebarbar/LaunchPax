@@ -1,10 +1,11 @@
 import type { SectionContent } from "@shared/schema";
-import { Star, Shield, Zap, Heart, Target, Users, Clock, Check, Award, Globe, Briefcase, Settings, Wrench, Lightbulb, TrendingUp, Rocket, Lock, Cpu, BarChart3, MessageSquare } from "lucide-react";
+import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, DotGrid } from "./visuals/floating-elements";
 import { HoverTilt, GeometricPattern } from "./visuals";
 import { useDesignPersonality } from "./design-personality";
+import { getIcon } from "./icon-map";
 
 interface FeatureItem {
   title: string;
@@ -17,13 +18,6 @@ interface FeaturesData {
   subheadline?: string;
   items?: FeatureItem[];
 }
-
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  star: Star, shield: Shield, zap: Zap, heart: Heart, target: Target, users: Users,
-  clock: Clock, check: Check, award: Award, globe: Globe, briefcase: Briefcase,
-  settings: Settings, wrench: Wrench, lightbulb: Lightbulb, trending: TrendingUp,
-  rocket: Rocket, lock: Lock, cpu: Cpu, chart: BarChart3, message: MessageSquare,
-};
 
 const containerVariants = {
   hidden: {},
@@ -143,7 +137,7 @@ export default function SectionFeatures({ section }: { section: SectionContent }
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"
         >
           {items.map((item, index) => {
-            const IconComponent = iconMap[item.icon?.toLowerCase() || "star"] || Star;
+            const IconComponent = getIcon(item.icon, Star);
             const large = isLargeCard(index, items.length);
             const miniVisual = miniVisuals[index % miniVisuals.length];
             

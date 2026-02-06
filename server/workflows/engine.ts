@@ -1000,6 +1000,17 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         
         console.log(`[Image Auto-Fill] Processing ALL sections for ${industry} business...`);
         
+        const isPlaceholderImage = (value: unknown): boolean => {
+          if (!value || typeof value !== "string") return true;
+          const v = value.trim().toLowerCase();
+          if (v.length === 0) return true;
+          if (v.startsWith("http://") || v.startsWith("https://") || v.startsWith("data:")) return false;
+          if (v.startsWith("/") || v.startsWith("./") || v.includes("/assets/")) return false;
+          if (v.match(/^avatar\d/i) || v.match(/^placeholder/i) || v.match(/^default/i) || v.match(/^sample/i) || v.match(/^image\d/i)) return true;
+          if (v.match(/^[a-z0-9_-]+\.(jpg|jpeg|png|gif|webp|svg)$/i)) return true;
+          return false;
+        };
+        
         // Extract business-specific keywords for highly targeted image searches
         const extractBusinessKeywords = (): string[] => {
           const keywords: string[] = [];
@@ -1253,10 +1264,10 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           const updatedSections = await Promise.all(page.sections.map(async (section: any) => {
             // Check if section needs an image
             const sectionType = section.type;
-            const hasImage = section.data?.backgroundImage || 
-                             section.data?.backgroundImageB64 || 
-                             section.data?.image || 
-                             section.data?.imageUrl;
+            const hasImage = !isPlaceholderImage(section.data?.backgroundImage) || 
+                             !isPlaceholderImage(section.data?.backgroundImageB64) || 
+                             !isPlaceholderImage(section.data?.image) || 
+                             !isPlaceholderImage(section.data?.imageUrl);
             
             // Helper to get a random query from a query function
             const getRandomQuery = (queryFn: (ind: string, keywords: string[]) => string[]): string => {
@@ -1299,7 +1310,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             // Testimonials sections need avatar photos
             if (sectionType === "testimonials" && section.data?.items) {
               const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
-                if (!item.avatar && !item.image) {
+                if (isPlaceholderImage(item.avatar) && isPlaceholderImage(item.image)) {
                   const query = getRandomQuery(sectionImageQueries.testimonials);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
@@ -1326,7 +1337,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             // Services sections can have images
             if (sectionType === "services" && section.data?.items) {
               const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
-                if (!item.image && !item.imageUrl) {
+                if (isPlaceholderImage(item.image) && isPlaceholderImage(item.imageUrl)) {
                   const query = getRandomQuery(sectionImageQueries.services);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
@@ -1399,7 +1410,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             // Gallery sections need images
             if (sectionType === "gallery" && section.data?.items) {
               const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
-                if (!item.image && !item.imageUrl) {
+                if (isPlaceholderImage(item.image) && isPlaceholderImage(item.imageUrl)) {
                   const query = getRandomQuery(sectionImageQueries.gallery);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
@@ -1422,7 +1433,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             // Team sections need member photos
             if (sectionType === "team" && section.data?.members) {
               const updatedMembers = await Promise.all(section.data.members.map(async (member: any, idx: number) => {
-                if (!member.image && !member.avatar) {
+                if (isPlaceholderImage(member.image) && isPlaceholderImage(member.avatar)) {
                   const query = getRandomQuery(sectionImageQueries.team);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
@@ -1445,7 +1456,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             // Case studies need images
             if (sectionType === "case-studies" && section.data?.items) {
               const updatedItems = await Promise.all(section.data.items.map(async (item: any, idx: number) => {
-                if (!item.image && !item.imageUrl) {
+                if (isPlaceholderImage(item.image) && isPlaceholderImage(item.imageUrl)) {
                   const query = getRandomQuery(sectionImageQueries["case-studies"]);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
@@ -1469,7 +1480,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             if (sectionType === "process" && section.data?.steps) {
               let stepsWithImages = 0;
               const updatedSteps = await Promise.all(section.data.steps.map(async (step: any, idx: number) => {
-                if (!step.image) {
+                if (isPlaceholderImage(step.image)) {
                   const query = getRandomQuery(sectionImageQueries.process);
                   
                   const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(

@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { Shield, Award, Clock, CheckCircle, Star, Users, Zap, Lock } from "lucide-react";
+import { Shield, CheckCircle } from "lucide-react";
 import type { SectionContent } from "@shared/schema";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, GradientMesh, DotGrid } from "./visuals/floating-elements";
 import { ProgressRing } from "./visuals/metrics-display";
+import { getIcon } from "./icon-map";
 
 interface TrustSignal {
   icon?: string;
@@ -19,17 +20,6 @@ interface TrustSignalsData {
   certifications?: string[];
   stats?: { value: string; label: string }[];
 }
-
-const iconMap: Record<string, typeof Shield> = {
-  shield: Shield,
-  award: Award,
-  clock: Clock,
-  check: CheckCircle,
-  star: Star,
-  users: Users,
-  zap: Zap,
-  lock: Lock,
-};
 
 export function SectionTrustSignals({ section }: { section: SectionContent }) {
   const themeMotion = useThemeMotion();
@@ -74,7 +64,7 @@ export function SectionTrustSignals({ section }: { section: SectionContent }) {
         {signals.length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {signals.map((signal, index) => {
-              const Icon = iconMap[signal.icon || "check"] || CheckCircle;
+              const Icon = getIcon(signal.icon, CheckCircle);
               return (
                 <motion.div
                   key={index}

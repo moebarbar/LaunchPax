@@ -1,10 +1,11 @@
 import type { SectionContent } from "@shared/schema";
-import { Star, Shield, Zap, Heart, Target, Users, Clock, Check, Award, Globe, Briefcase, Settings, Wrench, Lightbulb, TrendingUp, Rocket, Lock, ArrowRight } from "lucide-react";
+import { Briefcase, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, GridLines, AbstractBlob, GlowLine } from "./visuals";
 import { useDesignPersonality } from "./design-personality";
+import { getIcon } from "./icon-map";
 
 interface ServiceItem {
   title: string;
@@ -19,13 +20,6 @@ interface ServicesData {
   subheadline?: string;
   items?: ServiceItem[];
 }
-
-const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  star: Star, shield: Shield, zap: Zap, heart: Heart, target: Target, users: Users,
-  clock: Clock, check: Check, award: Award, globe: Globe, briefcase: Briefcase,
-  settings: Settings, wrench: Wrench, lightbulb: Lightbulb, trending: TrendingUp,
-  rocket: Rocket, lock: Lock,
-};
 
 export default function SectionServices({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as ServicesData;
@@ -85,7 +79,7 @@ export default function SectionServices({ section }: { section: SectionContent }
 
         <div className="space-y-8">
           {items.map((item, index) => {
-            const IconComponent = iconMap[item.icon?.toLowerCase() || "briefcase"] || Briefcase;
+            const IconComponent = getIcon(item.icon, Briefcase);
             const isEven = index % 2 === 0;
             
             return (
