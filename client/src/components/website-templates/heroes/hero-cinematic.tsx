@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
+import { ShineEffect } from "../visuals/floating-elements";
 
 interface HeroData {
   headline?: string;
@@ -39,29 +40,19 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           </>
         ) : (
           <>
-            <div 
-              className="w-full h-full"
-              style={{
-                background: `radial-gradient(ellipse at center, 
-                  hsl(240 30% 8%) 0%, 
-                  hsl(0 0% 0%) 100%)`
-              }}
-            />
+            <div className="w-full h-full"
+              style={{ background: `radial-gradient(ellipse at center, hsl(240 30% 8%) 0%, hsl(0 0% 0%) 100%)` }} />
             <motion.div 
               className="absolute inset-0"
-              style={{
-                background: `radial-gradient(ellipse 80% 50% at 50% 50%, 
-                  hsl(var(--brand-primary-hsl, 240 70% 50%) / 0.15) 0%, 
-                  transparent 70%)`
-              }}
-              animate={{ 
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{ 
-                duration: 6, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
+              style={{ background: `radial-gradient(ellipse 80% 50% at 50% 50%, hsl(var(--brand-primary-hsl, 240 70% 50%) / 0.15) 0%, transparent 70%)` }}
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute inset-0"
+              style={{ background: `radial-gradient(ellipse 40% 60% at 70% 60%, hsl(var(--brand-primary-hsl, 240 70% 50%) / 0.08) 0%, transparent 70%)` }}
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
             />
           </>
         )}
@@ -72,20 +63,19 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           <motion.div
             key={i}
             className="absolute w-px bg-gradient-to-b from-transparent via-white/20 to-transparent"
-            style={{
-              left: `${25 + i * 25}%`,
-              height: "100%",
-            }}
+            style={{ left: `${25 + i * 25}%`, height: "100%" }}
             initial={{ opacity: 0, y: "-100%" }}
             animate={{ opacity: [0, 0.5, 0], y: "100%" }}
-            transition={{
-              duration: 4,
-              delay: i * 1.5,
-              repeat: Infinity,
-              ease: "linear",
-            }}
+            transition={{ duration: 4, delay: i * 1.5, repeat: Infinity, ease: "linear" }}
           />
         ))}
+
+        <div className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)`,
+            backgroundSize: "60px 60px",
+          }}
+        />
       </div>
 
       <div className="relative z-10 text-center px-4 sm:px-6 max-w-6xl mx-auto">
@@ -96,7 +86,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
             transition={{ duration: themeMotion.durationSlow }}
             className="mb-10"
           >
-            <span className="inline-block px-6 py-2 text-xs font-semibold tracking-[0.3em] uppercase text-white/70 border border-white/20">
+            <span className="inline-block px-6 py-2 text-xs font-semibold tracking-[0.3em] uppercase text-white/70 border border-white/20 backdrop-blur-sm">
               {data.badge}
             </span>
           </motion.div>
@@ -107,10 +97,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: themeMotion.durationVerySlow, delay: 0.2 }}
           className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white leading-[0.9]"
-          style={{ 
-            letterSpacing: "-0.04em",
-            textShadow: "0 0 80px rgba(0,0,0,0.5)"
-          }}
+          style={{ letterSpacing: "-0.04em", textShadow: "0 0 80px rgba(0,0,0,0.5)" }}
         >
           {data.headline?.split(' ').map((word, i) => (
             <motion.span
@@ -144,26 +131,25 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           className="mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6"
         >
           {data.ctaText && (
-            <Button
-              asChild
-              size="lg"
-              className="w-full sm:w-auto rounded-none bg-white text-black"
-              data-testid="button-hero-cta"
-            >
-              <a href={data.ctaLink || "#contact"}>
-                <span className="relative z-10 flex items-center">
-                  {data.ctaText}
-                  <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
-                </span>
-              </a>
-            </Button>
+            <ShineEffect>
+              <Button
+                asChild size="lg"
+                className="w-full sm:w-auto rounded-none bg-white text-black shadow-2xl"
+                data-testid="button-hero-cta"
+              >
+                <a href={data.ctaLink || "#contact"}>
+                  <span className="relative z-10 flex items-center">
+                    {data.ctaText}
+                    <ArrowRight className="ml-3 w-5 h-5" />
+                  </span>
+                </a>
+              </Button>
+            </ShineEffect>
           )}
           {data.secondaryCtaText && (
             <Button
-              asChild
-              size="lg"
-              variant="ghost"
-              className="w-full sm:w-auto h-16 px-12 text-lg rounded-none text-white hover:bg-white/10 border border-white/30 group"
+              asChild size="lg" variant="ghost"
+              className="w-full sm:w-auto h-16 px-12 text-lg rounded-none text-white border border-white/30 group backdrop-blur-sm"
             >
               <a href={data.secondaryCtaLink || "#"}>
                 <Play className="mr-3 w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -176,10 +162,27 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
 
       <motion.div 
         className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
-        style={{
-          background: "linear-gradient(to top, black, transparent)"
-        }}
+        style={{ background: "linear-gradient(to top, black, transparent)" }}
       />
+
+      <motion.div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2"
+        >
+          <motion.div 
+            className="w-1.5 h-1.5 rounded-full bg-white/50"
+            animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.div>
+      </motion.div>
     </section>
   );
 }

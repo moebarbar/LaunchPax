@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
+import { FloatingOrb, DotGrid, ShineEffect } from "../visuals/floating-elements";
+import { PhoneMockup } from "../visuals/browser-mockup";
 
 interface HeroData {
   headline?: string;
@@ -20,34 +22,19 @@ interface HeroData {
 export default function HeroEditorial({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
   const themeMotion = useThemeMotion();
+  const hasImage = data.image || data.imageB64;
 
   return (
     <section className="relative min-h-[90vh] flex items-end overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
       <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom right, var(--brand-background, hsl(var(--background))), var(--brand-surface, hsl(var(--muted))) 70%)` }} />
       
-      <motion.div 
-        className="absolute top-20 right-0 w-[60%] h-[80%] opacity-10"
-        animate={{ 
-          rotate: [0, 2, 0, -2, 0],
-          scale: [1, 1.02, 1],
-        }}
-        transition={{ 
-          duration: 20, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
-        }}
-        style={{
-          background: `radial-gradient(ellipse at center, var(--brand-primary, hsl(var(--primary))) 0%, transparent 70%)`
-        }}
-      />
-
-      <div className="absolute top-1/4 left-[10%] w-32 h-32 rounded-full blur-3xl opacity-20"
-        style={{ background: "var(--brand-accent, hsl(var(--primary)))" }}
-      />
+      <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={500} x="75%" y="30%" opacity={0.08} blur={100} />
+      <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={200} x="15%" y="45%" delay={5} opacity={0.06} blur={60} />
+      <DotGrid opacity={0.015} spacing={50} />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-32">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end">
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-7 space-y-8">
             {data.badge && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -99,7 +86,8 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: themeMotion.durationSlow, delay: 0.2 }}
-                className="text-xl sm:text-2xl md:text-3xl font-light text-muted-foreground max-w-3xl leading-relaxed"
+                className="text-xl sm:text-2xl md:text-3xl font-light max-w-3xl leading-relaxed"
+                style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}
               >
                 {data.statement}
               </motion.p>
@@ -110,7 +98,8 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: themeMotion.duration, delay: 0.3 }}
-                className="text-lg text-muted-foreground max-w-2xl"
+                className="text-lg max-w-2xl"
+                style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}
               >
                 {data.subheadline}
               </motion.p>
@@ -123,20 +112,22 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
             >
               {data.ctaText && (
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full sm:w-auto rounded-full shadow-xl group"
-                  style={{ 
-                    background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
-                  }}
-                  data-testid="button-hero-cta"
-                >
-                  <a href={data.ctaLink || "#contact"}>
-                    {data.ctaText}
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </a>
-                </Button>
+                <ShineEffect>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full sm:w-auto rounded-full shadow-xl group"
+                    style={{ 
+                      background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
+                    }}
+                    data-testid="button-hero-cta"
+                  >
+                    <a href={data.ctaLink || "#contact"}>
+                      {data.ctaText}
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </a>
+                  </Button>
+                </ShineEffect>
               )}
               {data.secondaryCtaText && (
                 <Button
@@ -159,32 +150,25 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
             initial={{ opacity: 0, scale: 0.9, x: 40 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: themeMotion.durationVerySlow, delay: 0.3 }}
-            className="hidden lg:block lg:col-span-4"
+            className="hidden lg:flex lg:col-span-5 justify-center"
           >
-            <div className="relative">
-              <div 
-                className="absolute -inset-4 rounded-3xl blur-2xl opacity-30"
-                style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-              />
-              <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border shadow-2xl">
-                {(data.imageB64 || data.image) ? (
+            {hasImage ? (
+              <div className="relative w-full">
+                <div 
+                  className="absolute -inset-4 rounded-3xl blur-2xl opacity-20"
+                  style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                />
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border shadow-2xl">
                   <img
                     src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
                     alt=""
                     className="w-full h-full object-cover"
                   />
-                ) : (
-                  <div 
-                    className="w-full h-full"
-                    style={{
-                      background: `linear-gradient(135deg, 
-                        hsl(var(--brand-primary-hsl, var(--primary)) / 0.1) 0%, 
-                        hsl(var(--brand-accent-hsl, var(--primary)) / 0.05) 100%)`
-                    }}
-                  />
-                )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <PhoneMockup />
+            )}
           </motion.div>
         </div>
       </div>

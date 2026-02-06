@@ -21,9 +21,17 @@ Preferred communication style: Simple, everyday language.
 - **UI/UX Decisions**:
     - **Global Style Editor**: Manages colors, typography, and style presets.
     - **Editable Sections Panel**: Allows drag-based reordering, adding, deleting, and duplicating of website sections.
-    - **Website Templates**: Offers 12 diverse section types with premium styling and animations.
+    - **Website Templates**: 20 section types with premium styling, code-built visuals, and animations.
     - **Responsive Design**: Mobile-first approach with progressive text scaling and responsive layouts.
     - **Visual Editor**: Full-page split-screen editor (60% preview, 40% editor panel) for intuitive content editing.
+    - **Code-Built Visual Elements Library** (`client/src/components/website-templates/visuals/`):
+        - `floating-elements.tsx`: FloatingOrb, GradientMesh, DotGrid, GridLines, FloatingShapes, SectionDivider, ShineEffect - all theme-aware via CSS variables.
+        - `browser-mockup.tsx`: BrowserMockup (animated dashboard preview), PhoneMockup (mobile app preview) - used as hero visual panels.
+        - `checklist-panel.tsx`: ChecklistPanel, StepIndicator - animated status/progress displays.
+        - `metrics-display.tsx`: MetricsDisplay, MetricsGrid, ProgressRing - animated counters with IntersectionObserver.
+    - **Design Bible v1.0 Compliance**: 90vh heroes, 64-96px headlines (weight 800+), 3+ background layers (FloatingOrb, GradientMesh, DotGrid), gradient overlays, 8px grid spacing, Bento Grid layouts, premium hover effects (8px lift + shadow), animated counters, glass-morphism effects.
+    - **Hero Variants**: 6 variants (split, bold, editorial, minimal, cinematic, immersive) with split layouts, visual panels, animated gradient meshes, floating decorative shapes, CTA shine effects, code-built mockups.
+    - **Section Templates**: Features (Bento Grid, mini visuals), Services (alternating split layouts, rotating icons), Testimonials (featured + grid), Pricing (animated gradient borders, shine), CTA (split layout with mockup), Process (animated timeline with progress bars), Stats (animated counters with progress), Contact (split layout with shine), FAQ (sidebar + numbered), Team (animated avatars with rotating borders).
 
 ### Backend
 - **Framework**: Express.js with TypeScript

@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
+import { BrowserMockup } from "../visuals/browser-mockup";
+import { ChecklistPanel } from "../visuals/checklist-panel";
+import { FloatingOrb, DotGrid, ShineEffect } from "../visuals/floating-elements";
 
 interface HeroData {
   headline?: string;
@@ -22,11 +25,16 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
   const data = (section.data || {}) as HeroData;
   const features = data.features || [];
   const themeMotion = useThemeMotion();
+  const hasImage = data.image || data.imageB64;
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
       <div className="absolute inset-0" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }} />
       
+      <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={600} x="70%" y="30%" opacity={0.08} blur={120} />
+      <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={400} x="20%" y="70%" delay={4} opacity={0.06} blur={100} />
+      <DotGrid opacity={0.02} spacing={50} />
+
       <div className="relative z-10 w-full">
         <div className="grid lg:grid-cols-2 min-h-screen">
           <div className="flex items-center px-6 sm:px-12 lg:px-16 xl:px-24 py-20 lg:py-0">
@@ -44,6 +52,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                       color: "var(--brand-primary, hsl(var(--primary)))"
                     }}
                   >
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--brand-primary, hsl(var(--primary)))" }} />
                     {data.badge}
                   </span>
                 </motion.div>
@@ -79,18 +88,21 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                   className="space-y-3"
                 >
                   {features.slice(0, 4).map((feature, i) => (
-                    <li key={i} className="flex items-center gap-3">
+                    <motion.li 
+                      key={i} 
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + i * 0.08, duration: 0.4 }}
+                    >
                       <div 
-                        className="w-5 h-5 rounded-full flex items-center justify-center"
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
                         style={{ backgroundColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)" }}
                       >
-                        <Check 
-                          className="w-3 h-3" 
-                          style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
-                        />
+                        <Check className="w-3.5 h-3.5" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }} />
                       </div>
-                      <span className="text-muted-foreground">{feature}</span>
-                    </li>
+                      <span style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>{feature}</span>
+                    </motion.li>
                   ))}
                 </motion.ul>
               )}
@@ -102,20 +114,22 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
               >
                 {data.ctaText && (
-                  <Button
-                    asChild
-                    size="lg"
-                    className="w-full sm:w-auto rounded-xl shadow-lg"
-                    style={{ 
-                      background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
-                    }}
-                    data-testid="button-hero-cta"
-                  >
-                    <a href={data.ctaLink || "#contact"}>
-                      {data.ctaText}
-                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </a>
-                  </Button>
+                  <ShineEffect>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full sm:w-auto rounded-xl shadow-lg"
+                      style={{ 
+                        background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
+                      }}
+                      data-testid="button-hero-cta"
+                    >
+                      <a href={data.ctaLink || "#contact"}>
+                        {data.ctaText}
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </a>
+                    </Button>
+                  </ShineEffect>
                 )}
                 {data.secondaryCtaText && (
                   <Button
@@ -137,48 +151,68 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: themeMotion.durationVerySlow, delay: 0.2 }}
-            className="relative hidden lg:block"
+            className="relative hidden lg:flex items-center justify-center p-8 xl:p-12"
           >
-            <div className="absolute inset-0">
-              {(data.imageB64 || data.image) ? (
+            {hasImage ? (
+              <div className="relative w-full h-full">
                 <img
                   src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
                   alt=""
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-2xl shadow-2xl"
                 />
-              ) : (
-                <div 
-                  className="w-full h-full"
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent" />
+                <motion.div
+                  className="absolute bottom-6 left-6 right-6 p-6 rounded-xl backdrop-blur-xl border shadow-2xl"
                   style={{
-                    background: `linear-gradient(135deg, 
-                      var(--brand-primary, hsl(var(--primary))) 0%, 
-                      var(--brand-secondary, hsl(var(--primary))) 50%,
-                      var(--brand-accent, hsl(var(--primary))) 100%)`
+                    backgroundColor: "var(--brand-card-bg, hsl(var(--card) / 0.9))",
+                    borderColor: "var(--brand-border, hsl(var(--border)))",
                   }}
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent" />
-            </div>
-
-            <motion.div
-              className="absolute bottom-12 left-12 right-12 p-8 rounded-2xl backdrop-blur-xl bg-background/80 border shadow-2xl"
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: themeMotion.durationSlow, delay: 0.6 }}
-            >
-              <div className="flex items-center gap-4">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold"
-                  style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: themeMotion.durationSlow, delay: 0.8 }}
                 >
-                  {siteName?.charAt(0) || "✓"}
-                </div>
-                <div>
-                  <p className="font-semibold">{siteName || "Trusted by thousands"}</p>
-                  <p className="text-sm text-muted-foreground">Join the growing community</p>
+                  <div className="flex items-center gap-4">
+                    <div 
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                      style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                    >
+                      {siteName?.charAt(0) || "L"}
+                    </div>
+                    <div>
+                      <p className="font-semibold" style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>{siteName || "Trusted by thousands"}</p>
+                      <p className="text-sm" style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>Join the growing community</p>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            ) : (
+              <div className="w-full max-w-lg space-y-4">
+                <BrowserMockup url={`${siteName?.toLowerCase().replace(/\s/g, '') || 'yoursite'}.com`} />
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: "Active Users", val: "2,847", change: "+24%" },
+                    { label: "Revenue", val: "$48.2k", change: "+18%" },
+                  ].map((stat, i) => (
+                    <motion.div
+                      key={i}
+                      className="p-3 rounded-xl border backdrop-blur-sm"
+                      style={{
+                        backgroundColor: "var(--brand-card-bg, hsl(var(--card)))",
+                        borderColor: "var(--brand-border, hsl(var(--border)))",
+                      }}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.8 + i * 0.15 }}
+                    >
+                      <p className="text-xs" style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>{stat.label}</p>
+                      <p className="text-lg font-bold" style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>{stat.val}</p>
+                      <span className="text-xs font-medium" style={{ color: "#22c55e" }}>{stat.change}</span>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-            </motion.div>
+            )}
           </motion.div>
         </div>
       </div>

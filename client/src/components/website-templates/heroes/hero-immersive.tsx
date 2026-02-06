@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import { ShineEffect, FloatingShapes } from "../visuals/floating-elements";
 
 interface HeroData {
   headline?: string;
@@ -35,31 +36,35 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
           </>
         ) : (
-          <div 
-            className="w-full h-full"
-            style={{
-              background: `linear-gradient(135deg, 
-                hsl(220 60% 10%) 0%, 
-                hsl(240 50% 15%) 50%,
-                hsl(280 40% 12%) 100%)`
-            }}
-          />
+          <>
+            <div className="w-full h-full"
+              style={{
+                background: `linear-gradient(135deg, hsl(220 60% 10%) 0%, hsl(240 50% 15%) 50%, hsl(280 40% 12%) 100%)`
+              }}
+            />
+            <FloatingShapes />
+          </>
         )}
       </div>
 
       <motion.div 
         className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] rounded-full blur-[200px] opacity-20"
-        animate={{ 
-          scale: [1, 1.2, 1],
-          opacity: [0.2, 0.3, 0.2],
-        }}
-        transition={{ 
-          duration: 8, 
-          repeat: Infinity, 
-          ease: "easeInOut" 
-        }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
       />
+
+      <motion.div 
+        className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] rounded-full blur-[150px] opacity-10"
+        animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.15, 0.1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+        style={{ background: "var(--brand-accent, hsl(var(--primary)))" }}
+      />
+
+      <div className="absolute inset-0 opacity-[0.02]" style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)`,
+        backgroundSize: "50px 50px",
+      }} />
 
       <div className="relative z-10 text-center px-4 sm:px-6 max-w-5xl mx-auto">
         {data.badge && (
@@ -70,6 +75,7 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
             className="mb-8"
           >
             <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium border border-white/20 bg-white/10 backdrop-blur-sm text-white">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
               {data.badge}
             </span>
           </motion.div>
@@ -80,7 +86,7 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
           className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-white leading-[0.95]"
-          style={{ letterSpacing: "-0.03em" }}
+          style={{ letterSpacing: "-0.03em", textShadow: "0 4px 40px rgba(0,0,0,0.4)" }}
         >
           {data.headline}
         </motion.h1>
@@ -103,24 +109,23 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
           className="mt-12 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
-            <Button
-              asChild
-              size="lg"
-              className="w-full sm:w-auto rounded-full bg-white text-black shadow-2xl"
-              data-testid="button-hero-cta"
-            >
-              <a href={data.ctaLink || "#contact"}>
-                {data.ctaText}
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
-            </Button>
+            <ShineEffect>
+              <Button
+                asChild size="lg"
+                className="w-full sm:w-auto rounded-full bg-white text-black shadow-2xl"
+                data-testid="button-hero-cta"
+              >
+                <a href={data.ctaLink || "#contact"}>
+                  {data.ctaText}
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </a>
+              </Button>
+            </ShineEffect>
           )}
           {data.secondaryCtaText && (
             <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="w-full sm:w-auto h-14 px-10 text-lg rounded-full border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+              asChild size="lg" variant="outline"
+              className="w-full sm:w-auto h-14 px-10 text-lg rounded-full border-white/30 text-white backdrop-blur-sm"
             >
               <a href={data.secondaryCtaLink || "#"}>
                 {data.secondaryCtaText}
@@ -138,9 +143,14 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2"
         >
-          <ChevronDown className="w-8 h-8 text-white/50" />
+          <motion.div 
+            className="w-1.5 h-1.5 rounded-full bg-white/50"
+            animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
         </motion.div>
       </motion.div>
     </section>
