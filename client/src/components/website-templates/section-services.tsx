@@ -1,5 +1,5 @@
 import type { SectionContent } from "@shared/schema";
-import { Briefcase, ArrowRight } from "lucide-react";
+import { Briefcase, ArrowRight, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useThemeMotion } from "./motion-wrapper";
