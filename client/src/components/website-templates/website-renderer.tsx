@@ -261,7 +261,9 @@ function sanitizeHref(href: string): string {
 }
 
 function SectionRenderer({ section, globalContent }: { section: SectionContent; globalContent?: GlobalContent }) {
-  switch (section.type) {
+  const normalizedType = section.type.replace(/-/g, "_");
+  
+  switch (normalizedType) {
     case "hero":
       return <SectionHero section={section} siteName={globalContent?.siteName} />;
     case "features":
@@ -301,6 +303,7 @@ function SectionRenderer({ section, globalContent }: { section: SectionContent; 
     case "brand_story":
       return <SectionBrandStory section={section} />;
     default:
+      console.warn(`[WebsiteRenderer] Unknown section type: "${section.type}" (id: ${section.id})`);
       return null;
   }
 }
@@ -1196,7 +1199,7 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
                   )}
                 </div>
               )}
-              <SectionErrorBoundary sectionType={section.type} sectionId={section.id}>
+              <SectionErrorBoundary key={`eb-${section.id}-${section.type}`} sectionType={section.type} sectionId={section.id}>
                 {isHero ? (
                   <SectionRenderer section={section} globalContent={globalContent || undefined} />
                 ) : (
