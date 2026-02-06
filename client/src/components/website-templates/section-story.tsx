@@ -1,5 +1,6 @@
 import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface StoryData {
   headline?: string;
@@ -19,6 +20,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
   const layout = data.layout || "editorial";
   const hasImage = data.image || data.imageB64;
   const imageUrl = data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image;
+  const themeMotion = useThemeMotion();
 
   if (layout === "editorial") {
     return (
@@ -31,7 +33,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, x: -40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: themeMotion.durationSlow }}
               className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start"
             >
               {data.headline && (
@@ -69,7 +71,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: i * 0.1, duration: 0.5 }}
+                      transition={{ delay: i * 0.1, duration: themeMotion.duration }}
                     >
                       <p 
                         className="text-4xl font-bold tracking-tight"
@@ -88,7 +90,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: themeMotion.durationSlow, delay: 0.2 }}
               className="lg:col-span-7 space-y-8"
             >
               {hasImage && (
@@ -111,7 +113,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  transition={{ delay: i * 0.1, duration: themeMotion.duration }}
                   className={`text-lg ${i === 0 ? 'text-2xl font-light leading-relaxed' : 'text-muted-foreground leading-relaxed'}`}
                 >
                   {paragraph}
@@ -123,7 +125,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: themeMotion.duration }}
                   className="relative pl-8 py-4 border-l-4 mt-12"
                   style={{ borderColor: "var(--brand-primary, hsl(var(--primary)))" }}
                 >
@@ -153,7 +155,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
+          transition={{ duration: themeMotion.durationSlow }}
         >
           {data.headline && (
             <h2 className="text-4xl sm:text-5xl font-bold tracking-tight mb-8">
@@ -174,7 +176,7 @@ export default function SectionStory({ section }: { section: SectionContent }) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
+                transition={{ delay: i * 0.1, duration: themeMotion.duration }}
                 className="text-lg text-muted-foreground leading-relaxed"
               >
                 {paragraph}

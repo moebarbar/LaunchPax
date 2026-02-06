@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface ContactData {
   headline?: string;
@@ -17,6 +18,7 @@ interface ContactData {
 
 export default function SectionContact({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as ContactData;
+  const themeMotion = useThemeMotion();
   
   return (
     <section id="contact" className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -33,7 +35,7 @@ export default function SectionContact({ section }: { section: SectionContent })
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: themeMotion.duration }}
           className="text-center mb-16 sm:mb-20"
         >
           <motion.span
@@ -69,7 +71,7 @@ export default function SectionContact({ section }: { section: SectionContent })
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+            transition={{ duration: themeMotion.duration, delay: 0.1 }}
             className="space-y-6"
           >
             {data.email && (
@@ -182,8 +184,8 @@ export default function SectionContact({ section }: { section: SectionContent })
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="p-8 sm:p-10 rounded-3xl border backdrop-blur-sm space-y-6"
+              transition={{ duration: themeMotion.duration, delay: 0.2 }}
+              className="themed-card p-8 sm:p-10 rounded-3xl border backdrop-blur-sm space-y-6"
               style={{
                 background: `linear-gradient(180deg, 
                   hsl(var(--card)) 0%, 

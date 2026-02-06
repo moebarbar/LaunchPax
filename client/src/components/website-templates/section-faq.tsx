@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
 import { HelpCircle } from "lucide-react";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface FaqItem {
   question: string;
@@ -22,6 +23,7 @@ interface FaqData {
 export default function SectionFaq({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as FaqData;
   const items = data.items || [];
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -33,7 +35,7 @@ export default function SectionFaq({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: themeMotion.duration }}
             className="text-center mb-16 sm:mb-20"
           >
             <motion.span
@@ -73,11 +75,11 @@ export default function SectionFaq({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.05 }}
+              transition={{ duration: themeMotion.duration, delay: index * 0.05 }}
             >
               <AccordionItem 
                 value={`item-${index}`}
-                className="rounded-2xl border backdrop-blur-sm transition-all duration-300 data-[state=open]:shadow-lg overflow-hidden"
+                className="themed-card rounded-2xl border backdrop-blur-sm transition-all duration-300 data-[state=open]:shadow-lg overflow-hidden"
                 data-testid={`faq-item-${index}`}
                 style={{
                   background: `linear-gradient(180deg, 

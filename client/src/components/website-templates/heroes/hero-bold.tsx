@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useThemeMotion } from "../motion-wrapper";
 
 interface HeroData {
   headline?: string;
@@ -18,6 +19,7 @@ interface HeroData {
 
 export default function HeroBold({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
+  const themeMotion = useThemeMotion();
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
@@ -61,7 +63,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: themeMotion.duration }}
             >
               <span 
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold"
@@ -79,7 +81,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
           <motion.h1
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.1 }}
+            transition={{ duration: themeMotion.durationVerySlow, delay: 0.1 }}
             className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-[9rem] font-black tracking-tighter leading-[0.85]"
           >
             {data.headline?.split(' ').slice(0, 2).join(' ')}
@@ -97,7 +99,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: themeMotion.durationSlow, delay: 0.3 }}
             className="max-w-2xl"
           >
             {(data.statement || data.subheadline) && (
@@ -110,7 +112,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+            transition={{ duration: themeMotion.duration, delay: 0.5 }}
             className="flex flex-col sm:flex-row flex-wrap gap-4 pt-6"
           >
             {data.ctaText && (
@@ -149,7 +151,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 60 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.4 }}
+            transition={{ duration: themeMotion.durationVerySlow, delay: 0.4 }}
             className="absolute bottom-0 right-0 w-1/2 h-[70%] hidden xl:block"
           >
             <div 

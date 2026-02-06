@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { Check, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface PricingPlan {
   name: string;
@@ -27,18 +28,19 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }
-  }
-};
-
 export default function SectionPricing({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as PricingData;
   const plans = data.plans || [];
+  const themeMotion = useThemeMotion();
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: themeMotion.duration, ease: themeMotion.easing }
+    }
+  };
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -59,7 +61,7 @@ export default function SectionPricing({ section }: { section: SectionContent })
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: themeMotion.duration }}
             className="text-center mb-16 sm:mb-20"
           >
             <motion.span

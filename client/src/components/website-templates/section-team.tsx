@@ -1,6 +1,7 @@
 import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Linkedin, Twitter } from "lucide-react";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface TeamMember {
   name: string;
@@ -22,19 +23,20 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }
-  }
-};
-
 export default function SectionTeam({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as TeamData;
   const members = data.members || [];
+  const themeMotion = useThemeMotion();
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: { duration: themeMotion.duration, ease: themeMotion.easing }
+    }
+  };
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -55,7 +57,7 @@ export default function SectionTeam({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: themeMotion.duration }}
             className="text-center mb-16 sm:mb-20"
           >
             <motion.span
@@ -105,7 +107,7 @@ export default function SectionTeam({ section }: { section: SectionContent }) {
               />
               
               <div 
-                className="relative p-6 sm:p-8 rounded-3xl border backdrop-blur-sm text-center transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1"
+                className="themed-card relative p-6 sm:p-8 rounded-3xl border backdrop-blur-sm text-center transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1"
                 style={{
                   background: `linear-gradient(180deg, 
                     hsl(var(--card)) 0%, 

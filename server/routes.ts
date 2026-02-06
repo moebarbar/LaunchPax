@@ -501,10 +501,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     if (!completeness.isComplete) {
       if (autoFill) {
         // Auto-fill missing images before publishing
+        const siteSettings = content.siteSettings as Record<string, any> || {};
         const fillResult = await autoFillMissingImages(content, {
           businessName: project.name,
           industry: project.industry || "business",
           businessIdea: project.businessIdea || undefined,
+          photographyStyle: siteSettings.photographyStyle,
+          photographyMood: siteSettings.photographyMood,
+          photographyKeywords: siteSettings.photographyKeywords,
         });
         
         if (fillResult.filledCount > 0) {
@@ -1212,10 +1216,14 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
     }
 
     const { autoFillMissingImages } = await import("./services/image-manager");
+    const imgSettings = websiteContent.siteSettings as Record<string, any> || {};
     const result = await autoFillMissingImages(websiteContent, {
       businessName: project.name,
       industry: project.industry || "business",
       businessIdea: project.businessIdea || undefined,
+      photographyStyle: imgSettings.photographyStyle,
+      photographyMood: imgSettings.photographyMood,
+      photographyKeywords: imgSettings.photographyKeywords,
     });
 
     if (result.filledCount > 0) {

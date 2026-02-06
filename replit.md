@@ -69,12 +69,26 @@ Preferred communication style: Simple, everyday language.
 - **Website Publishing System**: Supports publishing to live URLs and secure previews.
 - **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts.
 - **Website Enhancement Service**: Orchestrates integrations for premium website features, including AI hero images, multi-source stock photos, CDN optimization, analytics injection, maps, payment processing, contact forms, and animations.
+- **Theme Color Integration (Complete)**: Full pipeline from backend theme data to frontend CSS variables:
+  - **generateBrandStyles**: Maps 30+ theme settings to CSS custom properties (colors, gradients, card configs, motion tokens, effects, typography weights)
+  - **CSS Variable Cascade**: Global CSS overrides use `var(--brand-heading, var(--brand-text, hsl(var(--foreground))))` pattern for graceful fallback
+  - **Dark Theme Support**: All section templates, navigation, and footer use CSS variables instead of hardcoded light-mode colors
+  - **Theme-Aware Navigation**: Adapts background, text, border, shadow, and pill colors based on `colorScheme` (dark/light) and `navigationStyle` (floating-pill/minimal/solid/transparent)
+  - **Themed Cards**: `.themed-card` CSS class applies `--brand-card-radius`, `--brand-card-shadow`, `--brand-card-hover-lift`, `--brand-card-hover-shadow` with motion-aware transitions
+  - **Motion Tokens (Complete)**: Theme-specific motion system with `useThemeMotion()` hook in `motion-wrapper.tsx`:
+    - 8 CSS variables: `--brand-motion-fast`, `--brand-motion-duration`, `--brand-motion-slow`, `--brand-motion-very-slow`, `--brand-motion-easing`, `--brand-motion-easing-out`, `--brand-motion-easing-bounce`, `--brand-motion-easing-smooth`
+    - `useThemeMotion()` hook reads CSS variables and provides JS values (duration, durationFast, durationSlow, durationVerySlow, easing, easingOut) for Framer Motion
+    - All 15 section templates + 5 hero templates use `themeMotion.*` instead of hardcoded duration/easing values
+    - `FadeIn`, `StaggerItem`, `ScaleIn` wrappers in motion-wrapper.tsx also use theme tokens internally
+    - CSS `.hover-card` and `.themed-card` classes use motion tokens for transition timing
+  - **Visual Effects System**: CSS utility classes for glass-morphism, gradient-overlay, animated-gradient injected in website-renderer.tsx scoped styles when theme enables them via `enableGlassMorphism`/`enableGradientOverlays`/`enableAnimatedGradients` flags
+  - **Photography Direction Integration**: Stock photo searches receive `photographyStyle`, `photographyMood`, `photographyKeywords` from theme config via siteSettings, threaded through `autoFillMissingImages` → `findStockImage`
 - **Premium Design Standards System (v2.0.0)**: Central module (`server/services/premium-design-standards.ts`) enforcing agency-level quality via:
   - **Navigation**: Floating-pill style with glass morphism, hover animations, gradient CTA with shine effect
   - **Hero Sections**: 90vh minimum height, animated gradient orbs, pill-style badges, scroll indicators
   - **Cards**: 1.5rem border radius, 8px hover lift, premium shadows (0 20px 40px)
   - **Typography**: font-weight 800 for h1, -0.035em letter-spacing, antialiased rendering
-  - **Colors**: Conditional application preserving valid dark colors, falling back to #0f172a/#64748b/#94a3b8
+  - **Colors**: Theme-driven via CSS variables; no hardcoded light-mode colors in section templates
   - **Quality Thresholds**: Overall 90, hero 95, home page 10 sections, about/services 8 sections
   - **Validation**: 13-point premium compliance check integrated into quality gate (requires 80% score)
 - **White-Label Requirements**: No Replit branding exposed; hosting/build layers designed for future provider flexibility.

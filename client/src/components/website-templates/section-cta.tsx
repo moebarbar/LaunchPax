@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface CtaData {
   headline?: string;
@@ -13,6 +14,7 @@ interface CtaData {
 
 export default function SectionCta({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as CtaData;
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -20,7 +22,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
         initial={{ opacity: 0, scale: 0.95 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        transition={{ duration: 0.8 }}
+        transition={{ duration: themeMotion.durationSlow }}
         className="max-w-6xl mx-auto relative"
       >
         <div 
@@ -82,7 +84,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: themeMotion.duration }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium mb-8"
             >
               <Sparkles className="w-4 h-4" />
@@ -93,7 +95,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: themeMotion.duration, delay: 0.1 }}
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white tracking-tight"
               data-testid="text-cta-headline"
             >
@@ -105,7 +107,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: themeMotion.duration, delay: 0.2 }}
                 className="text-lg sm:text-xl text-white/80 mb-10 sm:mb-12 max-w-2xl mx-auto leading-relaxed"
                 data-testid="text-cta-subheadline"
               >
@@ -118,7 +120,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+                transition={{ duration: themeMotion.duration, delay: 0.3 }}
               >
                 <Button
                   asChild

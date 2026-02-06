@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { SectionContent } from "@shared/schema";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface ProcessData {
   headline?: string;
@@ -15,6 +16,7 @@ interface ProcessData {
 export function SectionProcess({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as ProcessData;
   const steps = data.steps || [];
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32 relative overflow-hidden" data-testid="section-process">
@@ -25,7 +27,7 @@ export function SectionProcess({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: themeMotion.duration }}
           className="text-center mb-16 sm:mb-20"
         >
           {data.headline && (
@@ -50,7 +52,7 @@ export function SectionProcess({ section }: { section: SectionContent }) {
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: index * 0.15 }}
+                transition={{ duration: themeMotion.duration, delay: index * 0.15 }}
                 className={`relative lg:flex lg:items-center lg:gap-12 ${
                   index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
                 }`}
@@ -65,7 +67,7 @@ export function SectionProcess({ section }: { section: SectionContent }) {
                 </div>
                 
                 <div className={`lg:w-[calc(50%-4rem)] ${index % 2 === 0 ? "lg:text-right lg:pr-8" : "lg:text-left lg:pl-8"}`}>
-                  <div className="bg-card border border-border rounded-2xl p-8 shadow-lg hover-elevate">
+                  <div className="themed-card bg-card border border-border rounded-2xl p-8 shadow-lg hover-elevate">
                     <div className="lg:hidden flex items-center gap-4 mb-4">
                       <div
                         className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white"

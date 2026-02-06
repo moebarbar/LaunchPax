@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Check, X, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SectionContent } from "@shared/schema";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface ComparisonItem {
   feature: string;
@@ -23,6 +24,7 @@ export function SectionComparison({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as ComparisonData;
   const items = data.items || [];
   const competitorNames = data.competitorNames || ["Others"];
+  const themeMotion = useThemeMotion();
   
   const renderValue = (value: boolean | string | undefined, isUs: boolean = false) => {
     if (typeof value === "boolean") {
@@ -60,7 +62,7 @@ export function SectionComparison({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: themeMotion.duration }}
           className="text-center mb-12"
         >
           {data.headline && (
@@ -79,8 +81,8 @@ export function SectionComparison({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl"
+          transition={{ duration: themeMotion.duration, delay: 0.2 }}
+          className="themed-card bg-card border border-border rounded-2xl overflow-hidden shadow-xl"
         >
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -135,7 +137,7 @@ export function SectionComparison({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: themeMotion.duration, delay: 0.4 }}
             className="mt-12 text-center"
           >
             <Button

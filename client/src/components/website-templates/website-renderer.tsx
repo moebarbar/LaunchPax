@@ -258,6 +258,9 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const navigation = globalContent?.navigation || [];
   
+  const isDark = (siteSettings as any)?.colorScheme === "dark";
+  const navStyle = (siteSettings as any)?.navigationStyle || "floating-pill";
+  
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -274,24 +277,65 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
       setMobileMenuOpen(false);
     }
   };
+
+  const bgColor = siteSettings?.backgroundColor || (isDark ? '#0f172a' : '#ffffff');
+  const textColor = siteSettings?.textColor || (isDark ? '#e2e8f0' : '#374151');
+  const mutedColor = siteSettings?.mutedTextColor || (isDark ? '#94a3b8' : '#9ca3af');
+  const borderClr = siteSettings?.borderColor || (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)');
+  const surfaceClr = siteSettings?.surfaceColor || bgColor;
+
+  const navBgScrolled = `color-mix(in srgb, ${surfaceClr} 95%, transparent)`;
+  const navBgUnscrolled = `color-mix(in srgb, ${surfaceClr} 88%, transparent)`;
+  const navShadow = isDark 
+    ? '0 8px 32px rgba(0,0,0,0.4)' 
+    : '0 8px 32px rgba(0,0,0,0.12)';
+  const textDefault = textColor;
+  const textMuted = mutedColor;
+  const pillBg = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)';
+  const pillBgScrolled = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)';
+  const hoverPillBg = isDark ? 'rgba(255,255,255,0.12)' : `color-mix(in srgb, ${surfaceClr} 100%, white)`;
+  const hoverPillShadow = isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.08)';
+  const mobileBg = `color-mix(in srgb, ${bgColor} 98%, transparent)`;
+  const mobileHoverBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+  
+  const isTransparent = navStyle === "transparent";
+  const isMinimal = navStyle === "minimal";
+  const isSolid = navStyle === "solid";
+
+  const getNavScrolledStyle = (): React.CSSProperties => {
+    if (isTransparent) {
+      return { background: navBgScrolled, backdropFilter: 'blur(24px)', borderRadius: '1rem', border: `1px solid ${borderClr}`, boxShadow: navShadow };
+    }
+    if (isSolid) {
+      return { background: surfaceClr, borderRadius: '1rem', border: `1px solid ${borderClr}`, boxShadow: navShadow };
+    }
+    if (isMinimal) {
+      return { borderBottom: `1px solid ${borderClr}` };
+    }
+    return { background: navBgScrolled, backdropFilter: 'blur(24px)', borderRadius: '1rem', border: `1px solid ${borderClr}`, boxShadow: navShadow };
+  };
+
+  const getNavUnscrolledStyle = (): React.CSSProperties => {
+    if (isTransparent || isMinimal) return {};
+    if (isSolid) {
+      return { background: navBgUnscrolled, backdropFilter: 'blur(24px)', borderRadius: '9999px', border: `1px solid ${borderClr}`, boxShadow: '0 4px 16px rgba(0,0,0,0.06)' };
+    }
+    return { background: navBgUnscrolled, backdropFilter: 'blur(24px)', borderRadius: '9999px', border: `1px solid ${borderClr}`, boxShadow: '0 4px 16px rgba(0,0,0,0.06)' };
+  };
   
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
-      {/* Floating navigation container */}
+    <header className="fixed top-0 left-0 right-0 z-50" data-testid="website-header">
       <div className={`transition-all duration-700 ease-out ${scrolled ? 'pt-3 px-4' : 'pt-6 px-6'}`}>
         <nav 
-          className={`max-w-6xl mx-auto transition-all duration-500 ${
-            scrolled 
-              ? 'bg-white/95 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-2xl border border-white/20' 
-              : 'bg-transparent'
-          }`}
+          className={`max-w-6xl mx-auto transition-all duration-500`}
+          style={scrolled ? getNavScrolledStyle() : getNavUnscrolledStyle()}
         >
           <div className={`flex items-center justify-between transition-all duration-500 ${scrolled ? 'px-6 py-3' : 'px-2 py-4'}`}>
-            {/* Logo */}
             <a 
               href="/" 
               className="font-bold text-xl flex items-center gap-3 group relative"
               onClick={(e) => handleNavClick(e, "/")}
+              data-testid="link-logo"
             >
               {(globalContent as any)?.logoB64 ? (
                 <div className="relative">
@@ -325,20 +369,18 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                 </div>
               )}
               <div className="hidden sm:flex flex-col">
-                <span className="tracking-tight font-semibold text-gray-900 text-lg leading-tight">
+                <span className="tracking-tight font-semibold text-lg leading-tight" style={{ color: textDefault }}>
                   {globalContent?.siteName || "Website"}
                 </span>
               </div>
             </a>
             
-            {/* Center Navigation - Floating Pill */}
             {navigation.length > 0 && (
               <>
                 <div className="hidden lg:flex items-center">
                   <div 
-                    className={`flex items-center gap-1 p-1.5 rounded-full transition-all duration-500 ${
-                      scrolled ? 'bg-gray-100/80' : 'bg-white/90 backdrop-blur-xl shadow-lg border border-gray-200/50'
-                    }`}
+                    className="flex items-center gap-1 p-1.5 rounded-full transition-all duration-500"
+                    style={{ background: scrolled ? pillBgScrolled : pillBg }}
                   >
                     {navigation.map((item, index) => (
                       <a
@@ -349,20 +391,19 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                         onMouseEnter={() => setHoveredIndex(index)}
                         onMouseLeave={() => setHoveredIndex(null)}
                         style={{ 
-                          color: hoveredIndex === index ? 'var(--brand-primary, #3b82f6)' : '#374151'
+                          color: hoveredIndex === index ? 'var(--brand-primary, #3b82f6)' : textDefault
                         }}
+                        data-testid={`link-nav-${index}`}
                       >
-                        {/* Animated background pill */}
                         <span 
                           className={`absolute inset-0 rounded-full transition-all duration-300 ${
                             hoveredIndex === index ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                           }`}
                           style={{ 
-                            background: 'white',
-                            boxShadow: hoveredIndex === index ? '0 2px 12px rgba(0,0,0,0.08)' : 'none'
+                            background: hoverPillBg,
+                            boxShadow: hoveredIndex === index ? hoverPillShadow : 'none'
                           }}
                         />
-                        {/* Text with animated underline dot */}
                         <span className="relative z-10 flex items-center gap-1">
                           {item.label}
                           <span 
@@ -377,7 +418,6 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                   </div>
                 </div>
 
-                {/* CTA Button */}
                 <div className="hidden lg:flex items-center gap-3">
                   <a
                     href="#contact"
@@ -388,8 +428,8 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                         var(--brand-secondary, var(--brand-primary, #1d4ed8)) 100%)`,
                       boxShadow: '0 4px 20px -4px var(--brand-primary, rgba(59, 130, 246, 0.5))'
                     }}
+                    data-testid="button-nav-cta"
                   >
-                    {/* Shine effect */}
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                     <span className="relative flex items-center gap-2">
                       Get Started
@@ -400,10 +440,11 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                   </a>
                 </div>
               
-                {/* Mobile menu button */}
                 <button
-                  className="lg:hidden p-3 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="lg:hidden p-3 rounded-xl transition-colors"
+                  style={{ background: pillBg, color: textDefault }}
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  data-testid="button-mobile-menu"
                 >
                   {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
@@ -413,19 +454,22 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
         </nav>
       </div>
       
-      {/* Mobile Menu - Full screen overlay */}
       {mobileMenuOpen && navigation.length > 0 && (
-        <div className="lg:hidden fixed inset-0 top-20 bg-white/98 backdrop-blur-xl z-40">
+        <div className="lg:hidden fixed inset-0 top-20 backdrop-blur-xl z-40" style={{ background: mobileBg }}>
           <div className="flex flex-col p-6 space-y-2">
             {navigation.map((item, index) => (
               <a
                 key={index}
                 href={sanitizeHref(item.href)}
-                className="py-4 px-6 text-xl font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-2xl transition-all flex items-center justify-between group"
+                className="py-4 px-6 text-xl font-medium rounded-2xl transition-all flex items-center justify-between group"
+                style={{ color: textDefault }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = mobileHoverBg; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 onClick={(e) => handleNavClick(e, item.href)}
+                data-testid={`link-mobile-nav-${index}`}
               >
                 {item.label}
-                <svg className="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-all" style={{ color: textMuted }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </a>
@@ -440,6 +484,7 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                     var(--brand-secondary, hsl(var(--primary))) 100%)`,
                   boxShadow: '0 8px 24px -8px var(--brand-primary, rgba(59, 130, 246, 0.5))'
                 }}
+                data-testid="button-mobile-cta"
               >
                 Get Started
                 <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -619,7 +664,6 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
   
   const styles: Record<string, string> = {};
   
-  // Core brand colors
   if (primaryColor) {
     styles["--brand-primary"] = primaryColor;
     styles["--brand-primary-hsl"] = hexToHSL(primaryColor);
@@ -633,19 +677,32 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
     styles["--brand-accent-hsl"] = hexToHSL(accentColor);
   }
   
-  // Background and surface colors - these are critical for the overall look
+  const primaryColorLight = (siteSettings as any)?.primaryColorLight;
+  if (primaryColorLight) {
+    styles["--brand-primary-light"] = primaryColorLight;
+    styles["--brand-primary-light-hsl"] = hexToHSL(primaryColorLight);
+  }
+  const primaryColorDark = (siteSettings as any)?.primaryColorDark;
+  if (primaryColorDark) {
+    styles["--brand-primary-dark"] = primaryColorDark;
+    styles["--brand-primary-dark-hsl"] = hexToHSL(primaryColorDark);
+  }
+  
   if (backgroundColor) {
     styles["--brand-background"] = backgroundColor;
     styles["--brand-background-hsl"] = hexToHSL(backgroundColor);
-    // Override Tailwind background
     styles["backgroundColor"] = backgroundColor;
   }
   if (surfaceColor) {
     styles["--brand-surface"] = surfaceColor;
     styles["--brand-surface-hsl"] = hexToHSL(surfaceColor);
   }
+  const backgroundAltColor = (siteSettings as any)?.backgroundAltColor;
+  if (backgroundAltColor) {
+    styles["--brand-background-alt"] = backgroundAltColor;
+    styles["--brand-background-alt-hsl"] = hexToHSL(backgroundAltColor);
+  }
   
-  // Text colors - CRITICAL: Use solid colors for readability
   if (textColor) {
     styles["--brand-text"] = textColor;
     styles["--brand-text-hsl"] = hexToHSL(textColor);
@@ -655,39 +712,161 @@ function generateBrandStyles(siteSettings: WebsiteContent["siteSettings"]): Reac
     styles["--brand-muted"] = mutedTextColor;
     styles["--brand-muted-hsl"] = hexToHSL(mutedTextColor);
   }
+  const textSecondaryColor = (siteSettings as any)?.textSecondaryColor;
+  if (textSecondaryColor) {
+    styles["--brand-text-secondary"] = textSecondaryColor;
+    styles["--brand-text-secondary-hsl"] = hexToHSL(textSecondaryColor);
+  }
   
-  // Heading color - should always be high contrast
   const headingColor = siteSettings?.headingColor;
   if (headingColor) {
     styles["--brand-heading"] = headingColor;
     styles["--brand-heading-hsl"] = hexToHSL(headingColor);
   }
   
-  // Card/surface background - solid colors only
   const cardBackground = siteSettings?.cardBackground;
   if (cardBackground) {
     styles["--brand-card-bg"] = cardBackground;
     styles["--brand-card-bg-hsl"] = hexToHSL(cardBackground);
   }
   
-  // Border color
   if (borderColor) {
     styles["--brand-border"] = borderColor;
     styles["--brand-border-hsl"] = hexToHSL(borderColor);
   }
   
-  // Color scheme indicator
   if (colorScheme) {
     styles["--color-scheme"] = colorScheme;
   }
   
-  // Font settings
+  const heroGradient = (siteSettings as any)?.heroGradient;
+  if (heroGradient) {
+    styles["--brand-hero-gradient"] = heroGradient;
+  }
+  const accentGradient = (siteSettings as any)?.accentGradient;
+  if (accentGradient) {
+    styles["--brand-accent-gradient"] = accentGradient;
+  }
+  
+  const cardBorderRadius = (siteSettings as any)?.cardBorderRadius;
+  if (cardBorderRadius) {
+    styles["--brand-card-radius"] = cardBorderRadius;
+  }
+  const cardShadow = (siteSettings as any)?.cardShadow;
+  if (cardShadow) {
+    styles["--brand-card-shadow"] = cardShadow;
+  }
+  const cardHoverLift = (siteSettings as any)?.cardHoverLift;
+  if (cardHoverLift) {
+    styles["--brand-card-hover-lift"] = cardHoverLift;
+  }
+  const cardHoverShadow = (siteSettings as any)?.cardHoverShadow;
+  if (cardHoverShadow) {
+    styles["--brand-card-hover-shadow"] = cardHoverShadow;
+  }
+  
+  const navStyle = (siteSettings as any)?.navigationStyle;
+  if (navStyle) {
+    styles["--brand-nav-style"] = navStyle;
+  }
+  
+  const motionDurationFast = (siteSettings as any)?.motionDurationFast;
+  if (motionDurationFast) {
+    styles["--brand-motion-fast"] = motionDurationFast;
+  }
+  const motionDuration = (siteSettings as any)?.motionDuration;
+  if (motionDuration) {
+    styles["--brand-motion-duration"] = motionDuration;
+  }
+  const motionDurationSlow = (siteSettings as any)?.motionDurationSlow;
+  if (motionDurationSlow) {
+    styles["--brand-motion-slow"] = motionDurationSlow;
+  }
+  const motionDurationVerySlow = (siteSettings as any)?.motionDurationVerySlow;
+  if (motionDurationVerySlow) {
+    styles["--brand-motion-very-slow"] = motionDurationVerySlow;
+  }
+  const motionEasing = (siteSettings as any)?.motionEasing;
+  if (motionEasing) {
+    styles["--brand-motion-easing"] = motionEasing;
+  }
+  const motionEasingOut = (siteSettings as any)?.motionEasingOut;
+  if (motionEasingOut) {
+    styles["--brand-motion-easing-out"] = motionEasingOut;
+  }
+  const motionEasingBounce = (siteSettings as any)?.motionEasingBounce;
+  if (motionEasingBounce) {
+    styles["--brand-motion-easing-bounce"] = motionEasingBounce;
+  }
+  const motionEasingSmooth = (siteSettings as any)?.motionEasingSmooth;
+  if (motionEasingSmooth) {
+    styles["--brand-motion-easing-smooth"] = motionEasingSmooth;
+  }
+  const hoverScale = (siteSettings as any)?.hoverScale;
+  if (hoverScale) {
+    styles["--brand-hover-scale"] = String(hoverScale);
+  }
+  const hoverLift = (siteSettings as any)?.hoverLift;
+  if (hoverLift) {
+    styles["--brand-hover-lift"] = hoverLift;
+  }
+  const clickScale = (siteSettings as any)?.clickScale;
+  if (clickScale) {
+    styles["--brand-click-scale"] = String(clickScale);
+  }
+  const scrollReveal = (siteSettings as any)?.scrollReveal;
+  if (scrollReveal) {
+    styles["--brand-scroll-reveal"] = scrollReveal;
+  }
+  
+  const headingWeight = (siteSettings as any)?.headingWeight;
+  if (headingWeight) {
+    styles["--brand-heading-weight"] = String(headingWeight);
+  }
+  const headingStyle = (siteSettings as any)?.headingStyle;
+  if (headingStyle) {
+    styles["--brand-heading-style"] = headingStyle;
+  }
+  
   const pairing = style ? popularFontPairings[style] : undefined;
   const resolvedHeadingFont = headingFont || (pairing && typeof pairing === "object" ? pairing.heading : null) || "Inter";
   const resolvedBodyFont = fontFamily || (pairing && typeof pairing === "object" ? pairing.body : null) || "Inter";
   
   styles["--font-heading"] = `"${resolvedHeadingFont}", sans-serif`;
   styles["--font-body"] = `"${resolvedBodyFont}", sans-serif`;
+  
+  const accentFont = (siteSettings as any)?.accentFont;
+  if (accentFont) {
+    styles["--font-accent"] = `"${accentFont}", sans-serif`;
+  }
+  
+  const enableGlassMorphism = (siteSettings as any)?.enableGlassMorphism;
+  if (enableGlassMorphism) {
+    styles["--brand-glass"] = "1";
+    styles["--brand-glass-bg"] = "rgba(255,255,255,0.08)";
+    styles["--brand-glass-border"] = "rgba(255,255,255,0.12)";
+    styles["--brand-glass-blur"] = "blur(16px)";
+    if ((siteSettings as any)?.navigationGlassMorphism) {
+      const strength = (siteSettings as any)?.glassMorphismStrength || "medium";
+      const blurMap: Record<string, string> = { light: "blur(8px)", medium: "blur(16px)", strong: "blur(24px)" };
+      styles["--brand-glass-blur"] = blurMap[strength] || "blur(16px)";
+    }
+  }
+  
+  const enableGradientOverlays = (siteSettings as any)?.enableGradientOverlays;
+  if (enableGradientOverlays) {
+    styles["--brand-gradient-overlay"] = "1";
+  }
+  
+  const enableAnimatedGradients = (siteSettings as any)?.enableAnimatedGradients;
+  if (enableAnimatedGradients) {
+    styles["--brand-animated-gradients"] = "1";
+  }
+  
+  const enableParallax = (siteSettings as any)?.enableParallax;
+  if (enableParallax) {
+    styles["--brand-parallax"] = "1";
+  }
   
   return styles as React.CSSProperties;
 }
@@ -751,91 +930,132 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   return (
     <div className="min-h-screen website-renderer" style={combinedStyles}>
       <style>{`
-        /* GLOBAL: Premium website styling */
         .website-renderer {
           --background: var(--brand-background-hsl, var(--background));
           --foreground: var(--brand-text-hsl, var(--foreground));
-          --card: var(--brand-surface-hsl, var(--card));
-          --primary: var(--brand-accent-hsl, var(--primary));
+          --card: var(--brand-card-bg-hsl, var(--brand-surface-hsl, var(--card)));
+          --primary: var(--brand-primary-hsl, var(--primary));
           --secondary: var(--brand-secondary-hsl, var(--secondary));
           --muted-foreground: var(--brand-muted-hsl, var(--muted-foreground));
           --border: var(--brand-border-hsl, var(--border));
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           text-rendering: optimizeLegibility;
+          scroll-behavior: smooth;
         }
         
-        /* Premium heading typography */
         .website-renderer h1, .website-renderer h2, .website-renderer h3, 
         .website-renderer h4, .website-renderer h5, .website-renderer h6 {
           font-family: var(--font-heading, "Inter", sans-serif);
-          color: #0f172a !important;
-          font-weight: 700;
+          color: var(--brand-heading, var(--brand-text, hsl(var(--foreground)))) !important;
+          font-weight: var(--brand-heading-weight, 700);
           letter-spacing: -0.02em;
           line-height: 1.1;
+          text-transform: var(--brand-heading-style, none);
         }
         
         .website-renderer h1 {
-          font-weight: 800;
+          font-weight: calc(var(--brand-heading-weight, 700) + 100);
           letter-spacing: -0.035em;
         }
         
-        /* Premium body text */
         .website-renderer p {
-          color: #64748b !important;
+          color: var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground)))) !important;
           line-height: 1.7;
           font-family: var(--font-body, "Inter", sans-serif);
         }
         
         .website-renderer .text-muted-foreground {
-          color: #64748b !important;
+          color: var(--brand-muted, hsl(var(--muted-foreground))) !important;
         }
         
-        /* Premium card styling */
         .website-renderer .bg-card, .website-renderer [class*="bg-muted"] {
-          background-color: #ffffff !important;
+          background-color: var(--brand-card-bg, var(--brand-surface, hsl(var(--card)))) !important;
         }
         
-        /* Smooth scroll behavior */
-        .website-renderer {
-          scroll-behavior: smooth;
+        .website-renderer .themed-card {
+          border-radius: var(--brand-card-radius, 1rem);
+          box-shadow: var(--brand-card-shadow, 0 4px 16px rgba(0,0,0,0.08));
+          transition: transform var(--brand-motion-duration, 0.3s) var(--brand-motion-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+                      box-shadow var(--brand-motion-duration, 0.3s) var(--brand-motion-easing, cubic-bezier(0.22, 1, 0.36, 1));
+        }
+        .website-renderer .themed-card:hover {
+          transform: translateY(calc(-1 * var(--brand-card-hover-lift, 4px)));
+          box-shadow: var(--brand-card-hover-shadow, 0 20px 40px rgba(0,0,0,0.12));
         }
         
-        /* Premium button hover effects */
         .website-renderer button, .website-renderer a[role="button"] {
-          transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          transition: all var(--brand-motion-duration, 0.3s) var(--brand-motion-easing, cubic-bezier(0.22, 1, 0.36, 1));
         }
         
-        /* Premium selection color */
+        .website-renderer .hover-card {
+          transition: transform var(--brand-motion-duration, 0.3s) var(--brand-motion-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+                      box-shadow var(--brand-motion-duration, 0.3s) var(--brand-motion-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+                      background var(--brand-motion-fast, 0.15s) var(--brand-motion-easing, ease);
+        }
+        .website-renderer .hover-card:hover {
+          transform: translateY(var(--brand-hover-lift, -4px)) scale(var(--brand-hover-scale, 1));
+        }
+        
+        .website-renderer section {
+          transition: opacity var(--brand-motion-slow, 0.5s) var(--brand-motion-easing-out, ease-out);
+        }
+        
+        .website-renderer .transition-theme {
+          transition-duration: var(--brand-motion-duration, 0.3s);
+          transition-timing-function: var(--brand-motion-easing, cubic-bezier(0.22, 1, 0.36, 1));
+        }
+        
+        .website-renderer .glass-effect {
+          background: var(--brand-glass-bg, rgba(255,255,255,0.06));
+          backdrop-filter: var(--brand-glass-blur, blur(16px));
+          -webkit-backdrop-filter: var(--brand-glass-blur, blur(16px));
+          border: 1px solid var(--brand-glass-border, rgba(255,255,255,0.1));
+        }
+        
+        .website-renderer .gradient-overlay::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: var(--brand-hero-gradient, linear-gradient(135deg, var(--brand-primary, #3b82f6) 0%, var(--brand-secondary, #8b5cf6) 100%));
+          opacity: 0.08;
+          pointer-events: none;
+          z-index: 0;
+        }
+        
+        @keyframes gradientShift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        .website-renderer .animated-gradient {
+          background-size: 200% 200%;
+          animation: gradientShift 8s ease infinite;
+          animation-duration: calc(var(--brand-motion-very-slow, 800ms) * 10);
+        }
+        
         .website-renderer ::selection {
           background-color: var(--brand-primary, #3b82f6);
           color: white;
         }
         
-        /* Smooth image loading */
         .website-renderer img {
           transition: opacity 0.4s ease;
         }
         
-        /* Premium focus styles */
         .website-renderer :focus-visible {
           outline: 2px solid var(--brand-primary, #3b82f6);
           outline-offset: 2px;
         }
         
-        /* Subtle scrollbar styling */
-        .website-renderer::-webkit-scrollbar {
-          width: 10px;
-        }
-        .website-renderer::-webkit-scrollbar-track {
-          background: transparent;
-        }
+        .website-renderer::-webkit-scrollbar { width: 10px; }
+        .website-renderer::-webkit-scrollbar-track { background: transparent; }
         .website-renderer::-webkit-scrollbar-thumb {
-          background: rgba(0,0,0,0.15);
+          background: var(--brand-border, rgba(0,0,0,0.15));
           border-radius: 5px;
         }
         .website-renderer::-webkit-scrollbar-thumb:hover {
-          background: rgba(0,0,0,0.25);
+          background: var(--brand-muted, rgba(0,0,0,0.25));
         }
       `}</style>
       <WebsiteHeader globalContent={globalContent || undefined} onNavigate={onNavigate} siteSettings={siteSettings} />

@@ -173,6 +173,9 @@ export async function findStockImage(
     industry: string;
     businessIdea?: string;
     mood?: string;
+    photographyStyle?: string;
+    photographyMood?: string;
+    photographyKeywords?: string[];
   }
 ): Promise<ImageWithMetadata | null> {
   const pexelsConnector = connectorRegistry.get("pexels");
@@ -356,6 +359,9 @@ function buildSearchQueries(context: {
   industry: string;
   businessIdea?: string;
   mood?: string;
+  photographyStyle?: string;
+  photographyMood?: string;
+  photographyKeywords?: string[];
 }): string[] {
   const queries: string[] = [];
   
@@ -373,23 +379,30 @@ function buildSearchQueries(context: {
     ecommerce: ["online shopping", "product photography", "retail"],
   };
   
+  if (context.photographyKeywords && context.photographyKeywords.length > 0) {
+    const photoQuery = context.photographyKeywords.slice(0, 3).join(' ');
+    queries.push(`${photoQuery} ${context.industry}`);
+  }
+  
   const industryKey = Object.keys(industryMappings).find(
     key => context.industry.toLowerCase().includes(key)
   );
   
   if (industryKey) {
-    queries.push(...industryMappings[industryKey]);
+    const industryQueries = industryMappings[industryKey];
+    if (context.photographyStyle) {
+      queries.push(`${context.photographyStyle} ${industryQueries[0]}`);
+    } else {
+      queries.push(...industryQueries);
+    }
   }
   
-  queries.push(`${context.industry} ${context.sectionType}`);
+  const moodStr = context.photographyMood || context.mood || "";
+  queries.push(`${moodStr} ${context.industry} ${context.sectionType}`.trim());
   
   if (context.businessIdea) {
     const keywords = context.businessIdea.split(' ').slice(0, 5).join(' ');
     queries.push(keywords);
-  }
-  
-  if (context.mood) {
-    queries.push(`${context.mood} ${context.industry}`);
   }
   
   return queries.slice(0, 3);
@@ -490,6 +503,9 @@ export async function autoFillMissingImages(
     businessName: string;
     industry: string;
     businessIdea?: string;
+    photographyStyle?: string;
+    photographyMood?: string;
+    photographyKeywords?: string[];
   }
 ): Promise<{
   updatedContent: WebsiteContent;
@@ -512,6 +528,9 @@ export async function autoFillMissingImages(
         sectionType: missing.sectionType,
         industry: projectContext.industry,
         businessIdea: projectContext.businessIdea,
+        photographyStyle: projectContext.photographyStyle,
+        photographyMood: projectContext.photographyMood,
+        photographyKeywords: projectContext.photographyKeywords,
       });
       
       if (stockImage) {

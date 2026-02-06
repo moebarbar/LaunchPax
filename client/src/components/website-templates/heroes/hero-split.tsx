@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check } from "lucide-react";
+import { useThemeMotion } from "../motion-wrapper";
 
 interface HeroData {
   headline?: string;
@@ -20,6 +21,7 @@ interface HeroData {
 export default function HeroSplit({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
   const features = data.features || [];
+  const themeMotion = useThemeMotion();
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
@@ -33,7 +35,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: themeMotion.duration }}
                 >
                   <span 
                     className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold"
@@ -50,8 +52,9 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
               <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.1 }}
-                className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1] text-gray-900 dark:text-white"
+                transition={{ duration: themeMotion.durationSlow, delay: 0.1 }}
+                className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]"
+                style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))" }}
               >
                 {data.headline}
               </motion.h1>
@@ -60,8 +63,9 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed"
+                  transition={{ duration: themeMotion.duration, delay: 0.2 }}
+                  className="text-lg sm:text-xl leading-relaxed"
+                  style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
                 >
                   {data.statement || data.subheadline}
                 </motion.p>
@@ -71,7 +75,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 <motion.ul
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.3 }}
+                  transition={{ duration: themeMotion.duration, delay: 0.3 }}
                   className="space-y-3"
                 >
                   {features.slice(0, 4).map((feature, i) => (
@@ -94,7 +98,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                transition={{ duration: themeMotion.duration, delay: 0.4 }}
                 className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
               >
                 {data.ctaText && (
@@ -132,7 +136,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
           <motion.div
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            transition={{ duration: themeMotion.durationVerySlow, delay: 0.2 }}
             className="relative hidden lg:block"
           >
             <div className="absolute inset-0">
@@ -160,7 +164,7 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
               className="absolute bottom-12 left-12 right-12 p-8 rounded-2xl backdrop-blur-xl bg-background/80 border shadow-2xl"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={{ duration: themeMotion.durationSlow, delay: 0.6 }}
             >
               <div className="flex items-center gap-4">
                 <div 

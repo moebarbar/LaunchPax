@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
+import { useThemeMotion } from "../motion-wrapper";
 
 interface HeroData {
   headline?: string;
@@ -18,6 +19,7 @@ interface HeroData {
 
 export default function HeroCinematic({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
+  const themeMotion = useThemeMotion();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
@@ -30,7 +32,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
               className="w-full h-full object-cover opacity-60"
               initial={{ scale: 1.2 }}
               animate={{ scale: 1 }}
-              transition={{ duration: 2, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: themeMotion.durationVerySlow, ease: themeMotion.easing }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
@@ -91,7 +93,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: themeMotion.durationSlow }}
             className="mb-10"
           >
             <span className="inline-block px-6 py-2 text-xs font-semibold tracking-[0.3em] uppercase text-white/70 border border-white/20">
@@ -103,7 +105,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
         <motion.h1
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.2 }}
+          transition={{ duration: themeMotion.durationVerySlow, delay: 0.2 }}
           className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white leading-[0.9]"
           style={{ 
             letterSpacing: "-0.04em",
@@ -116,7 +118,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
               className="inline-block mr-[0.25em]"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 + i * 0.1 }}
+              transition={{ duration: themeMotion.durationSlow, delay: 0.3 + i * 0.1 }}
             >
               {word}
             </motion.span>
@@ -127,7 +129,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.8 }}
+            transition={{ duration: themeMotion.durationVerySlow, delay: 0.8 }}
             className="mt-10 text-xl sm:text-2xl text-white/60 max-w-2xl mx-auto font-light"
             style={{ letterSpacing: "0.02em" }}
           >
@@ -138,7 +140,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
+          transition={{ duration: themeMotion.durationSlow, delay: 1 }}
           className="mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6"
         >
           {data.ctaText && (

@@ -1,6 +1,7 @@
 import type { SectionContent } from "@shared/schema";
 import { Quote, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface TestimonialItem {
   quote: string;
@@ -24,19 +25,20 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }
-  }
-};
-
 export default function SectionTestimonials({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as TestimonialsData;
   const items = data.items || [];
+  const themeMotion = useThemeMotion();
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 40, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: { duration: themeMotion.duration, ease: themeMotion.easing }
+    }
+  };
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -57,7 +59,7 @@ export default function SectionTestimonials({ section }: { section: SectionConte
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: themeMotion.duration }}
             className="text-center mb-16 sm:mb-20"
           >
             <motion.span
@@ -107,7 +109,7 @@ export default function SectionTestimonials({ section }: { section: SectionConte
               />
               
               <div 
-                className="relative h-full p-8 sm:p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 group-hover:border-primary/20 group-hover:shadow-xl"
+                className="themed-card relative h-full p-8 sm:p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500 group-hover:border-primary/20 group-hover:shadow-xl"
                 style={{
                   background: `linear-gradient(180deg, 
                     hsl(var(--card)) 0%, 

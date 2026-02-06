@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { Star, Shield, Zap, Heart, Target, Users, Clock, Check, Award, Globe, Briefcase, Settings, Wrench, Lightbulb, TrendingUp, Rocket, Lock, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface ServiceItem {
   title: string;
@@ -44,23 +45,24 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }
-  }
-};
-
 export default function SectionServices({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as ServicesData;
   const items = data.items || [];
+  const themeMotion = useThemeMotion();
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: themeMotion.duration, ease: themeMotion.easing }
+    }
+  };
   
   return (
     <section 
       className="py-28 sm:py-36 px-4 sm:px-6 relative overflow-hidden"
-      style={{ backgroundColor: "#ffffff" }}
+      style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}
     >
       <div className="absolute inset-0 opacity-[0.4]" style={{
         background: `linear-gradient(180deg, var(--brand-background, #f8fafc) 0%, transparent 30%, transparent 70%, var(--brand-background, #f8fafc) 100%)`,
@@ -72,7 +74,7 @@ export default function SectionServices({ section }: { section: SectionContent }
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: themeMotion.durationSlow, ease: themeMotion.easing }}
             className="text-center mb-20 sm:mb-24"
           >
             <motion.span
@@ -90,7 +92,7 @@ export default function SectionServices({ section }: { section: SectionContent }
             </motion.span>
             <h2 
               className="text-4xl sm:text-5xl md:text-6xl font-bold mb-8 tracking-tight leading-[1.1]" 
-              style={{ letterSpacing: "-0.03em", color: "#0f172a" }}
+              style={{ letterSpacing: "-0.03em", color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))" }}
               data-testid="text-services-headline"
             >
               {data.headline}
@@ -98,7 +100,7 @@ export default function SectionServices({ section }: { section: SectionContent }
             {data.subheadline && (
               <p 
                 className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed font-light" 
-                style={{ color: "#64748b" }}
+                style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
                 data-testid="text-services-subheadline"
               >
                 {data.subheadline}
@@ -120,8 +122,7 @@ export default function SectionServices({ section }: { section: SectionContent }
               <motion.div 
                 key={index} 
                 variants={itemVariants}
-                whileHover={{ y: -10, transition: { duration: 0.3 } }}
-                className="group relative"
+                className="group relative hover-card"
                 data-testid={`card-service-${index}`}
               >
                 <div 
@@ -133,8 +134,8 @@ export default function SectionServices({ section }: { section: SectionContent }
                 <div 
                   className="relative h-full p-10 sm:p-12 rounded-[2rem] border transition-all duration-500 overflow-hidden"
                   style={{
-                    backgroundColor: "#ffffff",
-                    borderColor: "rgba(0,0,0,0.06)",
+                    backgroundColor: "var(--brand-card-bg, var(--brand-surface, hsl(var(--card))))",
+                    borderColor: "var(--brand-border, rgba(0,0,0,0.06))",
                   }}
                 >
                   <div 
@@ -159,11 +160,11 @@ export default function SectionServices({ section }: { section: SectionContent }
 
                   <h3 
                     className="text-2xl font-bold mb-4 tracking-tight"
-                    style={{ color: "#0f172a", letterSpacing: "-0.02em" }}
+                    style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))", letterSpacing: "-0.02em" }}
                   >{item.title}</h3>
                   <p 
                     className="mb-8 leading-relaxed text-[15px]"
-                    style={{ color: "#64748b" }}
+                    style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
                   >{item.description}</p>
 
                   {item.price && (
@@ -181,7 +182,7 @@ export default function SectionServices({ section }: { section: SectionContent }
                         <li 
                           key={featureIndex} 
                           className="flex items-center gap-3 text-[15px]"
-                          style={{ color: "#475569" }}
+                          style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
                         >
                           <div 
                             className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"

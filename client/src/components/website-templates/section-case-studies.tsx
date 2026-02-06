@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SectionContent } from "@shared/schema";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface CaseStudy {
   title: string;
@@ -24,6 +25,7 @@ interface CaseStudiesData {
 export function SectionCaseStudies({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as CaseStudiesData;
   const cases = data.cases || [];
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32 bg-muted/30" data-testid="section-case-studies">
@@ -32,7 +34,7 @@ export function SectionCaseStudies({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: themeMotion.duration }}
           className="text-center mb-16"
         >
           {data.headline && (
@@ -54,8 +56,8 @@ export function SectionCaseStudies({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.7, delay: index * 0.1 }}
-              className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl"
+              transition={{ duration: themeMotion.durationSlow, delay: index * 0.1 }}
+              className="themed-card bg-card border border-border rounded-3xl overflow-hidden shadow-xl"
             >
               <div className="grid lg:grid-cols-2 gap-0">
                 {caseStudy.image && (

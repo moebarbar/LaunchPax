@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Shield, Award, Clock, CheckCircle, Star, Users, Zap, Lock } from "lucide-react";
 import type { SectionContent } from "@shared/schema";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface TrustSignal {
   icon?: string;
@@ -29,6 +30,7 @@ const iconMap: Record<string, typeof Shield> = {
 };
 
 export function SectionTrustSignals({ section }: { section: SectionContent }) {
+  const themeMotion = useThemeMotion();
   const data = (section.data || {}) as TrustSignalsData;
   const signals = data.signals || [];
   const logos = data.logos || [];
@@ -43,7 +45,7 @@ export function SectionTrustSignals({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: themeMotion.duration }}
             className="text-center mb-12"
           >
             {data.headline && (
@@ -69,7 +71,7 @@ export function SectionTrustSignals({ section }: { section: SectionContent }) {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  transition={{ duration: themeMotion.duration, delay: index * 0.1 }}
                   className="flex items-start gap-4 p-6 bg-card border border-border rounded-xl"
                 >
                   <div
@@ -98,7 +100,7 @@ export function SectionTrustSignals({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
+            transition={{ duration: themeMotion.duration, delay: 0.2 }}
             className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12 py-8 border-y border-border"
           >
             {stats.map((stat, index) => (
@@ -120,7 +122,7 @@ export function SectionTrustSignals({ section }: { section: SectionContent }) {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: themeMotion.duration, delay: 0.3 }}
             className="mb-8"
           >
             <p className="text-center text-sm text-muted-foreground mb-6 uppercase tracking-wider">
@@ -154,7 +156,7 @@ export function SectionTrustSignals({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: themeMotion.duration, delay: 0.4 }}
             className="flex flex-wrap justify-center gap-3"
           >
             {certifications.map((cert, index) => (

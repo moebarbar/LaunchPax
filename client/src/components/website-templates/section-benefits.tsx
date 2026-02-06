@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SectionContent } from "@shared/schema";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface Benefit {
   title: string;
@@ -21,6 +22,7 @@ interface BenefitsData {
 export function SectionBenefits({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as BenefitsData;
   const benefits = data.benefits || [];
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32 relative overflow-hidden" data-testid="section-benefits">
@@ -39,7 +41,7 @@ export function SectionBenefits({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: themeMotion.duration }}
           className="text-center mb-16 sm:mb-20"
         >
           {data.headline && (
@@ -61,7 +63,7 @@ export function SectionBenefits({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.7, delay: index * 0.1 }}
+              transition={{ duration: themeMotion.durationSlow, delay: index * 0.1 }}
               className={`grid lg:grid-cols-2 gap-12 items-center ${
                 index % 2 === 1 ? "lg:flex-row-reverse" : ""
               }`}
@@ -132,7 +134,7 @@ export function SectionBenefits({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: themeMotion.duration, delay: 0.3 }}
             className="mt-16 text-center"
           >
             <Button

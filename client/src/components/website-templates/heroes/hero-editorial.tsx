@@ -2,7 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
-import { motionPresets } from "@/lib/design-tokens";
+import { useThemeMotion } from "../motion-wrapper";
 
 interface HeroData {
   headline?: string;
@@ -19,6 +19,7 @@ interface HeroData {
 
 export default function HeroEditorial({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
+  const themeMotion = useThemeMotion();
 
   return (
     <section className="relative min-h-[90vh] flex items-end overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
@@ -51,7 +52,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: themeMotion.duration }}
               >
                 <span 
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border backdrop-blur-sm"
@@ -71,7 +72,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
             <motion.h1
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
+              transition={{ duration: themeMotion.durationSlow, delay: 0.1 }}
               className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[0.9]"
               style={{ letterSpacing: "-0.03em" }}
             >
@@ -97,7 +98,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               <motion.p
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 0.2 }}
+                transition={{ duration: themeMotion.durationSlow, delay: 0.2 }}
                 className="text-xl sm:text-2xl md:text-3xl font-light text-muted-foreground max-w-3xl leading-relaxed"
               >
                 {data.statement}
@@ -108,7 +109,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+                transition={{ duration: themeMotion.duration, delay: 0.3 }}
                 className="text-lg text-muted-foreground max-w-2xl"
               >
                 {data.subheadline}
@@ -118,7 +119,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: themeMotion.duration, delay: 0.4 }}
               className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
             >
               {data.ctaText && (
@@ -157,7 +158,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
           <motion.div
             initial={{ opacity: 0, scale: 0.9, x: 40 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
+            transition={{ duration: themeMotion.durationVerySlow, delay: 0.3 }}
             className="hidden lg:block lg:col-span-4"
           >
             <div className="relative">
@@ -195,7 +196,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
         }}
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
-        transition={{ duration: 1.5, delay: 0.5 }}
+        transition={{ duration: themeMotion.durationVerySlow, delay: 0.5 }}
       />
     </section>
   );

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ReactNode } from "react";
+import { useThemeMotion } from "../motion-wrapper";
 
 interface AsymmetricGridProps {
   children: ReactNode[];
@@ -34,6 +35,7 @@ export default function AsymmetricGrid({
   gap = "gap-6",
   className = ""
 }: AsymmetricGridProps) {
+  const themeMotion = useThemeMotion();
   const gridClass = patterns[pattern];
   const childPatterns = itemPatterns[pattern];
   
@@ -49,7 +51,7 @@ export default function AsymmetricGrid({
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
+              transition={{ delay: i * 0.1, duration: themeMotion.duration }}
             >
               {child}
             </motion.div>
@@ -68,7 +70,7 @@ export default function AsymmetricGrid({
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: i * 0.1, duration: 0.5 }}
+          transition={{ delay: i * 0.1, duration: themeMotion.duration }}
         >
           {child}
         </motion.div>
@@ -102,6 +104,7 @@ interface AlternatingLayoutProps {
 }
 
 export function AlternatingLayout({ items, gap = "space-y-24 md:space-y-32", className = "" }: AlternatingLayoutProps) {
+  const themeMotion = useThemeMotion();
   return (
     <div className={`${gap} ${className}`}>
       {items.map((item, i) => (
@@ -113,7 +116,7 @@ export function AlternatingLayout({ items, gap = "space-y-24 md:space-y-32", cla
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, delay: 0.1 }}
+          transition={{ duration: themeMotion.durationSlow, delay: 0.1 }}
         >
           <div>{item.content}</div>
           {item.media && <div>{item.media}</div>}

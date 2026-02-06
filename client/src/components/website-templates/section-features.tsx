@@ -1,6 +1,7 @@
 import type { SectionContent } from "@shared/schema";
 import { Star, Shield, Zap, Heart, Target, Users, Clock, Check, Award, Globe, Briefcase, Settings, Wrench, Lightbulb, TrendingUp, Rocket, Lock, Cpu, BarChart3, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface FeatureItem {
   title: string;
@@ -44,18 +45,19 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }
-  }
-};
-
 export default function SectionFeatures({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as FeaturesData;
   const items = data.items || [];
+  const themeMotion = useThemeMotion();
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: themeMotion.duration, ease: themeMotion.easing }
+    }
+  };
   
   const getBentoSize = (index: number, total: number) => {
     if (total <= 3) return "col-span-1";
@@ -84,7 +86,7 @@ export default function SectionFeatures({ section }: { section: SectionContent }
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: themeMotion.durationSlow, ease: themeMotion.easing }}
             className="text-center mb-20 sm:mb-24"
           >
             <motion.span
@@ -131,11 +133,11 @@ export default function SectionFeatures({ section }: { section: SectionContent }
               <motion.div 
                 key={index} 
                 variants={itemVariants}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
-                className={`group relative rounded-3xl transition-all duration-500 ${getBentoSize(index, items.length)}`}
+                className={`group relative rounded-3xl themed-card hover-card ${getBentoSize(index, items.length)}`}
                 style={{
-                  backgroundColor: "#ffffff",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+                  backgroundColor: "var(--brand-card-bg, var(--brand-surface, hsl(var(--card))))",
+                  boxShadow: "var(--brand-card-shadow, 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03))",
+                  borderRadius: "var(--brand-card-radius, 1.5rem)",
                 }}
               >
                 <div 
@@ -146,7 +148,7 @@ export default function SectionFeatures({ section }: { section: SectionContent }
                 />
                 <div 
                   className="absolute inset-0 rounded-3xl border transition-colors duration-300"
-                  style={{ borderColor: "rgba(0,0,0,0.06)" }}
+                  style={{ borderColor: "var(--brand-border, rgba(0,0,0,0.06))" }}
                 />
                 <div className={`relative z-10 ${isLarge ? 'p-10' : 'p-8'}`}>
                   <div 
@@ -164,13 +166,13 @@ export default function SectionFeatures({ section }: { section: SectionContent }
                   <h3 
                     className={`${isLarge ? 'text-2xl' : 'text-xl'} font-bold mb-4 tracking-tight`}
                     style={{ 
-                      color: "#0f172a",
+                      color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))",
                       letterSpacing: "-0.02em",
                     }}
                   >{item.title}</h3>
                   <p 
                     className={`${isLarge ? 'text-base' : 'text-[15px]'} leading-relaxed`}
-                    style={{ color: "#64748b" }}
+                    style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
                   >{item.description}</p>
                 </div>
               </motion.div>

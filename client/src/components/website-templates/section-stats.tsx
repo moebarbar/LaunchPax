@@ -1,6 +1,7 @@
 import type { SectionContent } from "@shared/schema";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface StatItem {
   value: string;
@@ -77,6 +78,7 @@ function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: string; pr
 export default function SectionStats({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as StatsData;
   const items = data.items || [];
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -128,7 +130,7 @@ export default function SectionStats({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: themeMotion.duration }}
             className="text-center mb-16 sm:mb-20 text-white"
           >
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 tracking-tight" data-testid="text-stats-headline">
@@ -149,7 +151,7 @@ export default function SectionStats({ section }: { section: SectionContent }) {
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: themeMotion.duration, delay: index * 0.1 }}
               className="text-center group"
               data-testid={`stat-item-${index}`}
             >

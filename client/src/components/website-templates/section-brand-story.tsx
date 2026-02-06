@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
 import type { SectionContent } from "@shared/schema";
+import { useThemeMotion } from "./motion-wrapper";
 
 interface BrandStoryData {
   headline?: string;
@@ -38,6 +39,7 @@ interface BrandStoryData {
 
 export function SectionBrandStory({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as BrandStoryData;
+  const themeMotion = useThemeMotion();
   
   return (
     <section className="py-24 sm:py-32" data-testid="section-brand-story">
@@ -46,7 +48,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: themeMotion.duration }}
           className="text-center mb-16"
         >
           {data.headline && (
@@ -66,7 +68,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: themeMotion.durationSlow }}
             className="grid lg:grid-cols-2 gap-12 items-center mb-20"
           >
             <div>
@@ -92,7 +94,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.1 }}
+            transition={{ duration: themeMotion.durationSlow, delay: 0.1 }}
             className="grid md:grid-cols-2 gap-8 mb-20"
           >
             {data.mission && (
@@ -129,7 +131,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.2 }}
+            transition={{ duration: themeMotion.durationSlow, delay: 0.2 }}
             className="mb-20"
           >
             <h3 className="text-2xl sm:text-3xl font-bold text-center mb-12">Our Values</h3>
@@ -140,7 +142,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.1 * index }}
+                  transition={{ duration: themeMotion.duration, delay: 0.1 * index }}
                   className="text-center p-6"
                 >
                   <div
@@ -162,7 +164,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.3 }}
+            transition={{ duration: themeMotion.durationSlow, delay: 0.3 }}
             className="relative bg-muted/30 rounded-3xl p-8 sm:p-12 mb-20"
           >
             <Quote
@@ -195,7 +197,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.4 }}
+            transition={{ duration: themeMotion.durationSlow, delay: 0.4 }}
           >
             <h3 className="text-2xl sm:text-3xl font-bold text-center mb-12">Our Journey</h3>
             <div className="relative">
@@ -208,7 +210,7 @@ export function SectionBrandStory({ section }: { section: SectionContent }) {
                     initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.1 * index }}
+                    transition={{ duration: themeMotion.duration, delay: 0.1 * index }}
                     className={`relative md:flex md:items-center ${
                       index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                     }`}

@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useThemeMotion } from "../motion-wrapper";
 
 interface HeroData {
   headline?: string;
@@ -20,6 +21,7 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
   const data = (section.data || {}) as HeroData;
   const hasImage = data.image || data.imageB64;
   const imageUrl = data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image;
+  const themeMotion = useThemeMotion();
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -77,15 +79,20 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           <motion.div
             initial={{ opacity: 0, y: 15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: themeMotion.duration, ease: themeMotion.easing }}
             className="mb-10"
           >
             <span 
               className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium backdrop-blur-sm border ${
                 hasImage 
                   ? 'bg-white/10 border-white/20 text-white/90' 
-                  : 'bg-white/80 border-gray-200/50 text-gray-700 shadow-sm'
+                  : 'shadow-sm'
               }`}
+              style={!hasImage ? { 
+                backgroundColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.08)",
+                borderColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.15)",
+                color: "var(--brand-primary, hsl(var(--primary)))"
+              } : {}}
             >
               <Sparkles className="w-4 h-4" />
               {data.badge}
@@ -96,12 +103,13 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: themeMotion.durationSlow, delay: 0.1, ease: themeMotion.easing }}
           className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-[0.95] ${hasImage ? 'text-white' : ''}`}
           style={{ 
             letterSpacing: "-0.035em",
             fontFamily: "var(--font-heading, 'Inter', sans-serif)",
             textShadow: hasImage ? "0 4px 30px rgba(0,0,0,0.3)" : "none",
+            ...(!hasImage && { color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))" }),
           }}
         >
           {data.headline?.split('.').map((part, i, arr) => (
@@ -116,11 +124,14 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: themeMotion.durationSlow, delay: 0.25, ease: themeMotion.easing }}
             className={`mt-8 text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed font-light ${
-              hasImage ? 'text-white/85' : 'text-gray-600'
+              hasImage ? 'text-white/85' : ''
             }`}
-            style={{ fontFamily: "var(--font-body, 'Inter', sans-serif)" }}
+            style={{ 
+              fontFamily: "var(--font-body, 'Inter', sans-serif)",
+              ...(!hasImage && { color: "var(--brand-muted, var(--brand-text-secondary, hsl(var(--muted-foreground))))" }),
+            }}
           >
             {data.statement || data.subheadline}
           </motion.p>
@@ -129,7 +140,7 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: themeMotion.duration, delay: 0.4, ease: themeMotion.easing }}
           className="mt-12 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
@@ -157,8 +168,12 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
               className={`w-full sm:w-auto rounded-full px-8 py-6 text-base font-medium backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
                 hasImage 
                   ? 'text-white border-white/30 bg-white/10 hover:bg-white/20' 
-                  : 'text-gray-700 border-gray-300 hover:bg-gray-100'
+                  : ''
               }`}
+              style={!hasImage ? {
+                color: "var(--brand-text, hsl(var(--foreground)))",
+                borderColor: "var(--brand-border, hsl(var(--border)))",
+              } : {}}
               data-testid="button-hero-secondary-cta"
             >
               <a href={data.secondaryCtaLink || "#"}>
@@ -173,17 +188,17 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
         className="absolute bottom-8 left-1/2 -translate-x-1/2"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.6 }}
+        transition={{ delay: 1, duration: themeMotion.duration }}
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className={`w-6 h-10 rounded-full border-2 flex justify-center pt-2 ${
-            hasImage ? 'border-white/40' : 'border-gray-400'
+            hasImage ? 'border-white/40' : 'border-muted-foreground/40'
           }`}
         >
           <motion.div 
-            className={`w-1.5 h-1.5 rounded-full ${hasImage ? 'bg-white/60' : 'bg-gray-500'}`}
+            className={`w-1.5 h-1.5 rounded-full ${hasImage ? 'bg-white/60' : 'bg-muted-foreground'}`}
             animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />
