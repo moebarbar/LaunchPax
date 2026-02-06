@@ -68,6 +68,10 @@ Preferred communication style: Simple, everyday language.
 - **Smart AI Router**: Intelligently routes AI tasks to appropriate models with automatic fallback chains and retry logic.
 - **Content Cache System**: Reduces API calls by caching generated content with hash-based invalidation.
 - **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions, performs refinement passes, and enforces premium quality thresholds (e.g., minimum 75 score, hero minimum 80) by setting content status to "needs_review" if quality is below threshold.
+- **Hero Image Field Convention**: Backend stores hero images as `backgroundImage`/`backgroundImageB64`; all 6 hero templates read both `data.image || data.backgroundImage` and `data.imageB64 || data.backgroundImageB64` for full compatibility.
+- **Personality-Driven Design Pipeline**: Creative theme `personality` field (e.g., "bold-confident") is stored as `visualPersonality` in siteSettings, fed to frontend `DesignPersonalityProvider` which maps it to one of 17+ personality profiles affecting button styles, effects, decorations, and animations.
+- **Industry Normalization**: Keyword-based matching maps compound industry names (e.g., "Healthcare / Wellness", "Technology / SaaS") to 14 primary categories for image sourcing and section queries.
+- **Typography Dual Storage**: Both `fontFamily` and `bodyFont` fields stored in siteSettings for compatibility across different code paths.
 - **Premium Design Standards System (v2.0.0)**: Enforces agency-level quality through specific requirements for navigation, hero sections, cards, typography, and color integration, validated by a 13-point premium compliance check.
 - **White-Label Requirements**: Ensures no Replit branding is exposed, with hosting and build layers designed for future provider flexibility.
 - **Website Content Quality**: Includes smart icon assignment, comprehensive image population, and industry-specific logo prompts.

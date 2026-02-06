@@ -364,45 +364,106 @@ function buildSearchQueries(context: {
   photographyKeywords?: string[];
 }): string[] {
   const queries: string[] = [];
+  const industryLower = context.industry.toLowerCase();
   
-  const industryMappings: Record<string, string[]> = {
-    technology: ["modern tech office", "software development team", "digital innovation"],
-    restaurant: ["gourmet food photography", "restaurant interior", "chef cooking"],
-    bakery: ["artisan bakery", "fresh pastries", "baking kitchen"],
-    healthcare: ["medical professional", "healthcare clinic", "patient care"],
-    fitness: ["fitness training", "gym workout", "healthy lifestyle"],
-    consulting: ["business consulting", "professional meeting", "corporate office"],
-    saas: ["software dashboard", "startup team", "modern workspace"],
-    realestate: ["modern home interior", "real estate property", "luxury house"],
-    legal: ["law firm office", "legal professional", "courthouse"],
-    education: ["classroom learning", "students studying", "education"],
-    ecommerce: ["online shopping", "product photography", "retail"],
+  const industryMappings: Record<string, { keywords: string[]; queries: Record<string, string[]> }> = {
+    technology: {
+      keywords: ["technology", "tech", "saas", "software", "digital", "app", "startup"],
+      queries: {
+        hero: ["modern tech office workspace", "software development team", "digital innovation technology"],
+        services: ["technology service professional", "software development", "digital solution"],
+        default: ["modern tech office", "software development team", "digital innovation"],
+      },
+    },
+    restaurant: {
+      keywords: ["food", "restaurant", "beverage", "dining", "cafe", "bakery", "catering", "bistro", "grill"],
+      queries: {
+        hero: ["gourmet food photography plating", "restaurant interior elegant dining", "chef cooking kitchen professional"],
+        services: ["delicious food presentation", "restaurant cuisine dish", "food service professional"],
+        default: ["gourmet food photography", "restaurant interior", "chef cooking"],
+      },
+    },
+    healthcare: {
+      keywords: ["healthcare", "health", "medical", "dental", "clinic", "wellness", "therapy"],
+      queries: {
+        hero: ["healthcare professional caring patient", "modern medical facility clean", "dental clinic modern"],
+        services: ["medical professional consultation", "healthcare treatment", "wellness therapy"],
+        default: ["medical professional", "healthcare clinic", "patient care"],
+      },
+    },
+    fitness: {
+      keywords: ["fitness", "gym", "workout", "sports", "athletic"],
+      queries: { hero: ["fitness gym modern", "personal training"], default: ["fitness training", "gym workout", "healthy lifestyle"] },
+    },
+    consulting: {
+      keywords: ["consulting", "advisory", "management"],
+      queries: { hero: ["executive business meeting", "corporate strategy"], default: ["business consulting", "professional meeting", "corporate office"] },
+    },
+    realestate: {
+      keywords: ["real estate", "property", "housing", "construction"],
+      queries: { hero: ["luxury home interior", "modern architecture"], default: ["modern home interior", "real estate property", "luxury house"] },
+    },
+    beauty: {
+      keywords: ["beauty", "salon", "spa", "skincare", "cosmetic"],
+      queries: { hero: ["luxury spa treatment", "beauty salon professional"], default: ["beauty spa", "skincare professional", "salon interior"] },
+    },
+    legal: {
+      keywords: ["legal", "law", "attorney"],
+      queries: { hero: ["law office professional", "legal meeting"], default: ["law firm office", "legal professional", "courthouse"] },
+    },
+    education: {
+      keywords: ["education", "school", "university", "academy", "learning"],
+      queries: { hero: ["university campus learning", "education classroom"], default: ["classroom learning", "students studying", "education"] },
+    },
+    ecommerce: {
+      keywords: ["ecommerce", "e-commerce", "retail", "shop", "store"],
+      queries: { hero: ["product photography studio", "ecommerce modern"], default: ["online shopping", "product photography", "retail"] },
+    },
+    finance: {
+      keywords: ["finance", "financial", "banking", "investment", "accounting"],
+      queries: { hero: ["financial planning meeting", "banking professional"], default: ["finance professional", "investment", "financial planning"] },
+    },
+    creative: {
+      keywords: ["creative", "design", "agency", "studio", "photography", "art"],
+      queries: { hero: ["creative studio modern", "design agency workspace"], default: ["creative design studio", "artistic workspace", "design team"] },
+    },
+    marketing: {
+      keywords: ["marketing", "advertising", "media", "branding"],
+      queries: { hero: ["marketing team creative", "brand strategy"], default: ["marketing agency", "digital marketing", "brand strategy"] },
+    },
   };
   
   if (context.photographyKeywords && context.photographyKeywords.length > 0) {
     const photoQuery = context.photographyKeywords.slice(0, 3).join(' ');
-    queries.push(`${photoQuery} ${context.industry}`);
+    queries.push(`${photoQuery} ${context.sectionType}`);
   }
   
-  const industryKey = Object.keys(industryMappings).find(
-    key => context.industry.toLowerCase().includes(key)
-  );
-  
-  if (industryKey) {
-    const industryQueries = industryMappings[industryKey];
-    if (context.photographyStyle) {
-      queries.push(`${context.photographyStyle} ${industryQueries[0]}`);
-    } else {
-      queries.push(...industryQueries);
+  let matchedIndustry: string | undefined;
+  for (const [key, config] of Object.entries(industryMappings)) {
+    if (config.keywords.some(k => industryLower.includes(k))) {
+      matchedIndustry = key;
+      break;
     }
   }
   
-  const moodStr = context.photographyMood || context.mood || "";
-  queries.push(`${moodStr} ${context.industry} ${context.sectionType}`.trim());
+  if (matchedIndustry) {
+    const mapping = industryMappings[matchedIndustry];
+    const sectionQueries = mapping.queries[context.sectionType] || mapping.queries.default;
+    if (context.photographyStyle) {
+      queries.push(`${context.photographyStyle} ${sectionQueries[0]}`);
+    } else {
+      queries.push(...sectionQueries);
+    }
+  }
   
-  if (context.businessIdea) {
-    const keywords = context.businessIdea.split(' ').slice(0, 5).join(' ');
-    queries.push(keywords);
+  if (queries.length === 0) {
+    const moodStr = context.photographyMood || context.mood || "";
+    queries.push(`${moodStr} ${context.industry} ${context.sectionType} professional`.trim());
+    
+    if (context.businessIdea) {
+      const keywords = context.businessIdea.split(' ').filter(w => w.length > 3).slice(0, 4).join(' ');
+      if (keywords) queries.push(`${keywords} professional`);
+    }
   }
   
   return queries.slice(0, 3);

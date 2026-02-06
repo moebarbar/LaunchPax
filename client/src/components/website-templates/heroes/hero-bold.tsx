@@ -19,12 +19,14 @@ interface HeroData {
   badge?: string;
   image?: string;
   imageB64?: string;
+  backgroundImage?: string;
+  backgroundImageB64?: string;
 }
 
 export default function HeroBold({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
   const themeMotion = useThemeMotion();
-  const hasImage = data.image || data.imageB64;
+  const hasImage = data.image || data.backgroundImage || data.imageB64 || data.backgroundImageB64;
   const personality = useDesignPersonality();
 
   const visualPanel = hasImage ? (
@@ -34,7 +36,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
         style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
       />
       <img
-        src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
+        src={data.imageB64 || data.backgroundImageB64 ? `data:image/png;base64,${data.imageB64 || data.backgroundImageB64}` : (data.image || data.backgroundImage)}
         alt=""
         className="relative w-full rounded-2xl shadow-2xl object-cover"
         style={{ maxHeight: "70vh" }}

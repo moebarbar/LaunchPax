@@ -19,12 +19,14 @@ interface HeroData {
   badge?: string;
   image?: string;
   imageB64?: string;
+  backgroundImage?: string;
+  backgroundImageB64?: string;
 }
 
 export default function HeroEditorial({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
   const themeMotion = useThemeMotion();
-  const hasImage = data.image || data.imageB64;
+  const hasImage = data.image || data.backgroundImage || data.imageB64 || data.backgroundImageB64;
   const personality = useDesignPersonality();
 
   const visualContent = (
@@ -38,7 +40,7 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
           />
           <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border shadow-2xl">
             <img
-              src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
+              src={data.imageB64 || data.backgroundImageB64 ? `data:image/png;base64,${data.imageB64 || data.backgroundImageB64}` : (data.image || data.backgroundImage)}
               alt=""
               className="w-full h-full object-cover"
             />

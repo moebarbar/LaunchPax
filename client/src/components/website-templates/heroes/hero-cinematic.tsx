@@ -17,6 +17,8 @@ interface HeroData {
   badge?: string;
   image?: string;
   imageB64?: string;
+  backgroundImage?: string;
+  backgroundImageB64?: string;
 }
 
 export default function HeroCinematic({ section, siteName }: { section: SectionContent; siteName?: string }) {
@@ -56,10 +58,10 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
       <div className="absolute inset-0">
-        {(data.imageB64 || data.image) ? (
+        {(data.imageB64 || data.backgroundImageB64 || data.image || data.backgroundImage) ? (
           <>
             <motion.img
-              src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
+              src={data.imageB64 || data.backgroundImageB64 ? `data:image/png;base64,${data.imageB64 || data.backgroundImageB64}` : (data.image || data.backgroundImage)}
               alt=""
               className="w-full h-full object-cover opacity-60"
               initial={{ scale: 1.2 }}

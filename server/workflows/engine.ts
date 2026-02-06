@@ -496,6 +496,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           ...result.data.siteSettings,
           // Apply creative theme as base
           style: themeSettings.style,
+          visualPersonality: creativeTheme.personality,
           // Colors - use brand kit with theme fallback
           backgroundColor: finalBackgroundColor,
           primaryColor: finalPrimaryColor,
@@ -507,13 +508,18 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           headingColor: finalHeadingColor,
           cardBackground: finalCardBackground,
           colorScheme: themeSettings.colorScheme || colorScheme,
-          // Typography from theme
+          // Typography from theme - store both field names for compatibility
           fontFamily: finalBodyFont,
+          bodyFont: finalBodyFont,
           headingFont: finalHeadingFont,
           // Store theme info for frontend rendering
           creativeThemeId: creativeTheme.id,
-          // Premium hero configuration
-          heroArchetype: premiumHeroConfig.archetype,
+          // Photography settings from creative theme for image sourcing
+          photographyStyle: themeSettings.photographyStyle,
+          photographyMood: themeSettings.photographyMood,
+          photographyKeywords: themeSettings.photographyKeywords,
+          // Premium hero configuration - prefer theme archetype over generic premium
+          heroArchetype: themeSettings.heroArchetype || premiumHeroConfig.archetype,
           heroHasAnimatedOrbs: premiumHeroConfig.hasAnimatedOrbs,
           heroHasScrollIndicator: premiumHeroConfig.hasScrollIndicator,
           heroBadgeStyle: premiumHeroConfig.badgeStyle,
@@ -528,7 +534,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const siteSettings = applyPremiumStandardsToSiteSettings(baseSiteSettings);
         
         console.log(`[Premium Standards] Applied v${PREMIUM_DESIGN_STANDARDS.version}: navigation="${premiumNavConfig.style}", hero="${premiumHeroConfig.archetype}"`);
-        console.log(`[Creative Theme] Applied: theme="${creativeTheme.name}", heading=${finalHeadingColor}, text=${finalTextColor}, headingFont="${finalHeadingFont}", bodyFont="${finalBodyFont}"`);
+        console.log(`[Creative Theme] Applied: theme="${creativeTheme.name}", personality="${creativeTheme.personality}", heading=${finalHeadingColor}, text=${finalTextColor}, headingFont="${finalHeadingFont}", bodyFont="${finalBodyFont}"`);
         
         // Enforce correct hero archetype based on industry and creative theme (server-side override)
         const enforcedPages = enforceHeroArchetype(result.data.pages, ctx.project.industry || "", creativeTheme);
@@ -1214,16 +1220,31 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           ],
         };
         
-        // Normalize industry for lookup
-        const normalizedIndustry = industry.toLowerCase().includes("food") || 
-                                    industry.toLowerCase().includes("restaurant") || 
-                                    industry.toLowerCase().includes("beverage") ||
-                                    industry.toLowerCase().includes("dining") ||
-                                    industry.toLowerCase().includes("cafe") ||
-                                    industry.toLowerCase().includes("bakery") ||
-                                    industry.toLowerCase().includes("catering")
-                                    ? "restaurant" 
-                                    : industry.toLowerCase().replace(/[^a-z]/g, "");
+        // Normalize industry for lookup - map compound industries to their primary category
+        const industryLower = industry.toLowerCase();
+        const industryNormMap: Record<string, string[]> = {
+          restaurant: ["food", "restaurant", "beverage", "dining", "cafe", "bakery", "catering", "bistro", "trattoria", "grill"],
+          technology: ["technology", "tech", "saas", "software", "digital", "app", "startup"],
+          healthcare: ["healthcare", "health", "medical", "dental", "clinic", "wellness", "therapy"],
+          fitness: ["fitness", "gym", "workout", "sports", "athletic"],
+          consulting: ["consulting", "advisory", "management"],
+          realestate: ["real estate", "property", "housing", "construction", "contractor"],
+          beauty: ["beauty", "salon", "spa", "skincare", "cosmetic"],
+          education: ["education", "school", "university", "academy", "tutoring", "learning"],
+          legal: ["legal", "law", "attorney", "lawyer"],
+          finance: ["finance", "financial", "banking", "investment", "accounting", "insurance"],
+          ecommerce: ["ecommerce", "e-commerce", "retail", "shop", "store", "commerce"],
+          creative: ["creative", "design", "agency", "studio", "photography", "art"],
+          marketing: ["marketing", "advertising", "media", "branding", "seo"],
+          entertainment: ["entertainment", "event", "music", "gaming"],
+        };
+        let normalizedIndustry = "consulting";
+        for (const [key, keywords] of Object.entries(industryNormMap)) {
+          if (keywords.some(k => industryLower.includes(k))) {
+            normalizedIndustry = key;
+            break;
+          }
+        }
         
         console.log(`[Image Auto-Fill] Normalized industry: ${normalizedIndustry}`);
         
