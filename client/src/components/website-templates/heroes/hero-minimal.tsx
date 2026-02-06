@@ -5,6 +5,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
 import { FloatingOrb, GradientMesh } from "../visuals/floating-elements";
 import { GeometricPattern, AnimatedGradientBorder, GlowLine } from "../visuals";
+import { useDesignPersonality } from "../design-personality";
 
 interface HeroData {
   headline?: string;
@@ -24,6 +25,35 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
   const hasImage = data.image || data.imageB64;
   const imageUrl = data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image;
   const themeMotion = useThemeMotion();
+  const personality = useDesignPersonality();
+
+  const ctaStyle = personality.ctaButtonStyle;
+  const isTransparentCta = ctaStyle === "outlined" || ctaStyle === "ghost" || ctaStyle === "minimal";
+  const ctaRadius = ctaStyle === "sharp" ? "0.375rem" : ctaStyle === "solid" ? "0.75rem" : ctaStyle === "ghost" ? "0.5rem" : ctaStyle === "minimal" ? "0.25rem" : "9999px";
+  const ctaBg = isTransparentCta ? "transparent" : `linear-gradient(135deg, var(--brand-primary, #3b82f6) 0%, var(--brand-secondary, var(--brand-primary, #2563eb)) 100%)`;
+  const ctaColor = isTransparentCta ? (hasImage ? "rgba(255,255,255,0.9)" : "var(--brand-primary, hsl(var(--primary)))") : "white";
+  const ctaBorder = ctaStyle === "outlined" ? (hasImage ? "2px solid rgba(255,255,255,0.4)" : "2px solid var(--brand-primary, hsl(var(--primary)))") : "none";
+
+  const ctaButton = (
+    <Button
+      asChild
+      size="lg"
+      className="w-full sm:w-auto px-8 py-6 text-base font-medium shadow-xl"
+      style={{ 
+        borderRadius: ctaRadius,
+        background: ctaBg,
+        color: ctaColor,
+        border: ctaBorder,
+        ...(isTransparentCta && { boxShadow: "none" }),
+      }}
+      data-testid="button-hero-cta"
+    >
+      <a href={data.ctaLink || "#contact"} className="flex items-center gap-2">
+        {data.ctaText}
+        <ArrowRight className="w-5 h-5" />
+      </a>
+    </Button>
+  );
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -39,9 +69,11 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           <div className="absolute inset-0 opacity-[0.015]" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
-          <div className="absolute inset-0 pointer-events-none hidden sm:block">
-            <GeometricPattern color="var(--brand-primary, hsl(var(--primary)))" opacity={0.02} size={400} />
-          </div>
+          {personality.showDecorativeSvgs && (
+            <div className="absolute inset-0 pointer-events-none hidden sm:block">
+              <GeometricPattern color="var(--brand-primary, hsl(var(--primary)))" opacity={0.02} size={400} />
+            </div>
+          )}
         </>
       )}
       
@@ -111,23 +143,11 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           className="mt-12 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
-            <AnimatedGradientBorder borderRadius={999}>
-              <Button
-                asChild
-                size="lg"
-                className="w-full sm:w-auto rounded-full px-8 py-6 text-base font-medium shadow-xl"
-                style={{ 
-                  background: `linear-gradient(135deg, var(--brand-primary, #3b82f6) 0%, var(--brand-secondary, var(--brand-primary, #2563eb)) 100%)`,
-                  color: "white",
-                }}
-                data-testid="button-hero-cta"
-              >
-                <a href={data.ctaLink || "#contact"} className="flex items-center gap-2">
-                  {data.ctaText}
-                  <ArrowRight className="w-5 h-5" />
-                </a>
-              </Button>
-            </AnimatedGradientBorder>
+            personality.ctaButtonStyle === "gradient-border" ? (
+              <AnimatedGradientBorder borderRadius={999}>
+                {ctaButton}
+              </AnimatedGradientBorder>
+            ) : ctaButton
           )}
           {data.secondaryCtaText && (
             <Button
@@ -152,9 +172,11 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
       </div>
       
       {!hasImage ? (
-        <div className="absolute bottom-0 left-0 right-0">
-          <GlowLine animated />
-        </div>
+        personality.showGlowLines ? (
+          <div className="absolute bottom-0 left-0 right-0">
+            <GlowLine animated />
+          </div>
+        ) : null
       ) : (
         <motion.div 
           className="absolute bottom-8 left-1/2 -translate-x-1/2"

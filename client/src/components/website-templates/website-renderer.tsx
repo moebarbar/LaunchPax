@@ -23,6 +23,7 @@ import { getSectionLayoutConfig, getSectionEntrance, getSectionDividerConfig, ge
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { DesignPersonalityProvider, useDesignPersonality } from "./design-personality";
 
 function useSeoMeta(
   siteName?: string, 
@@ -277,6 +278,7 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const navigation = globalContent?.navigation || [];
   
+  const personality = useDesignPersonality();
   const isDark = (siteSettings as any)?.colorScheme === "dark";
   const navStyle = (siteSettings as any)?.navigationStyle || "floating-pill";
   
@@ -376,7 +378,11 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                 />
               ) : (
                 <div 
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-bold text-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                  className={`w-11 h-11 flex items-center justify-center text-white font-bold text-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
+                    personality.buttonStyle === "sharp" ? "rounded-md" 
+                    : personality.buttonStyle === "pill" ? "rounded-full" 
+                    : "rounded-2xl"
+                  }`}
                   style={{ 
                     background: `linear-gradient(135deg, 
                       var(--brand-primary, hsl(var(--primary))) 0%, 
@@ -398,7 +404,11 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
               <>
                 <div className="hidden lg:flex items-center">
                   <div 
-                    className="flex items-center gap-1 p-1.5 rounded-full transition-all duration-500"
+                    className={`flex items-center gap-1 p-1.5 transition-all duration-500 ${
+                      personality.buttonStyle === "sharp" ? "rounded-lg" 
+                      : personality.buttonStyle === "minimal" ? "rounded-none"
+                      : "rounded-full"
+                    }`}
                     style={{ background: scrolled ? pillBgScrolled : pillBg }}
                   >
                     {navigation.map((item, index) => (
@@ -415,7 +425,9 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                         data-testid={`link-nav-${index}`}
                       >
                         <span 
-                          className={`absolute inset-0 rounded-full transition-all duration-300 ${
+                          className={`absolute inset-0 transition-all duration-300 ${
+                            personality.buttonStyle === "sharp" ? "rounded-lg" : personality.buttonStyle === "minimal" ? "rounded-sm" : "rounded-full"
+                          } ${
                             hoveredIndex === index ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                           }`}
                           style={{ 
@@ -438,25 +450,49 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
                 </div>
 
                 <div className="hidden lg:flex items-center gap-3">
-                  <a
-                    href="#contact"
-                    className="group relative px-7 py-3 rounded-full text-sm font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]"
-                    style={{ 
-                      background: `linear-gradient(135deg, 
-                        var(--brand-primary, #3b82f6) 0%, 
-                        var(--brand-secondary, var(--brand-primary, #1d4ed8)) 100%)`,
-                      boxShadow: '0 4px 20px -4px var(--brand-primary, rgba(59, 130, 246, 0.5))'
-                    }}
-                    data-testid="button-nav-cta"
-                  >
-                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                    <span className="relative flex items-center gap-2">
-                      Get Started
-                      <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </span>
-                  </a>
+                  {(() => {
+                    const cStyle = personality.ctaButtonStyle;
+                    const ctaRadius = cStyle === "sharp" ? "0.25rem"
+                      : cStyle === "pill" || cStyle === "gradient-border" ? "9999px"
+                      : "0.75rem";
+                    const ctaBg = cStyle === "outlined" || cStyle === "ghost"
+                      ? "transparent"
+                      : `linear-gradient(135deg, var(--brand-primary, #3b82f6) 0%, var(--brand-secondary, var(--brand-primary, #1d4ed8)) 100%)`;
+                    const ctaColor = cStyle === "outlined" || cStyle === "ghost"
+                      ? "var(--brand-primary, #3b82f6)"
+                      : "white";
+                    const ctaBorder = cStyle === "outlined"
+                      ? "2px solid var(--brand-primary, #3b82f6)"
+                      : "none";
+                    const ctaShadow = cStyle === "outlined" || cStyle === "ghost" || cStyle === "minimal"
+                      ? "none"
+                      : "0 4px 20px -4px var(--brand-primary, rgba(59, 130, 246, 0.5))";
+
+                    return (
+                      <a
+                        href="#contact"
+                        className="group relative px-7 py-3 text-sm font-semibold overflow-hidden transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]"
+                        style={{
+                          borderRadius: ctaRadius,
+                          background: ctaBg,
+                          color: ctaColor,
+                          border: ctaBorder,
+                          boxShadow: ctaShadow,
+                        }}
+                        data-testid="button-nav-cta"
+                      >
+                        {cStyle !== "outlined" && cStyle !== "ghost" && cStyle !== "minimal" && (
+                          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                        )}
+                        <span className="relative flex items-center gap-2">
+                          Get Started
+                          <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </span>
+                      </a>
+                    );
+                  })()}
                 </div>
               
                 <button
@@ -494,22 +530,40 @@ function WebsiteHeader({ globalContent, onNavigate, siteSettings }: { globalCont
               </a>
             ))}
             <div className="pt-4">
-              <a
-                href="#contact"
-                className="flex items-center justify-center py-4 px-6 rounded-2xl text-lg text-white font-semibold"
-                style={{ 
-                  background: `linear-gradient(135deg, 
-                    var(--brand-primary, hsl(var(--primary))) 0%, 
-                    var(--brand-secondary, hsl(var(--primary))) 100%)`,
-                  boxShadow: '0 8px 24px -8px var(--brand-primary, rgba(59, 130, 246, 0.5))'
-                }}
-                data-testid="button-mobile-cta"
-              >
-                Get Started
-                <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </a>
+              {(() => {
+                const mcStyle = personality.ctaButtonStyle;
+                const mRadius = mcStyle === "sharp" ? "0.5rem"
+                  : mcStyle === "pill" || mcStyle === "gradient-border" ? "9999px"
+                  : "1rem";
+                const mBg = mcStyle === "outlined" || mcStyle === "ghost"
+                  ? "transparent"
+                  : `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`;
+                const mColor = mcStyle === "outlined" || mcStyle === "ghost"
+                  ? "var(--brand-primary, hsl(var(--primary)))"
+                  : "white";
+                const mBorder = mcStyle === "outlined"
+                  ? "2px solid var(--brand-primary, hsl(var(--primary)))"
+                  : "none";
+                return (
+                  <a
+                    href="#contact"
+                    className="flex items-center justify-center py-4 px-6 text-lg font-semibold"
+                    style={{
+                      borderRadius: mRadius,
+                      background: mBg,
+                      color: mColor,
+                      border: mBorder,
+                      boxShadow: mcStyle === "outlined" || mcStyle === "ghost" ? "none" : "0 8px 24px -8px var(--brand-primary, rgba(59, 130, 246, 0.5))",
+                    }}
+                    data-testid="button-mobile-cta"
+                  >
+                    Get Started
+                    <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </a>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -949,6 +1003,7 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
   };
 
   return (
+    <DesignPersonalityProvider siteSettings={siteSettings as Record<string, any> | undefined}>
     <div className="min-h-screen website-renderer" style={combinedStyles}>
       <style>{`
         .website-renderer {
@@ -1147,5 +1202,6 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
       
       <WebsiteFooter globalContent={globalContent || undefined} siteSettings={siteSettings} />
     </div>
+    </DesignPersonalityProvider>
   );
 }

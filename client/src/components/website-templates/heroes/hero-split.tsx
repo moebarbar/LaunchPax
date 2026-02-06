@@ -7,6 +7,7 @@ import { BrowserMockup } from "../visuals/browser-mockup";
 import { ChecklistPanel } from "../visuals/checklist-panel";
 import { FloatingOrb, DotGrid } from "../visuals/floating-elements";
 import { AbstractBlob, AnimatedGradientBorder, ParallaxLayer } from "../visuals";
+import { useDesignPersonality } from "../design-personality";
 
 interface HeroData {
   headline?: string;
@@ -27,18 +28,114 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
   const features = data.features || [];
   const themeMotion = useThemeMotion();
   const hasImage = data.image || data.imageB64;
+  const personality = useDesignPersonality();
+
+  const visualPanel = hasImage ? (
+    <div className="relative w-full h-full">
+      <img
+        src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
+        alt=""
+        className="w-full h-full object-cover rounded-2xl shadow-2xl"
+      />
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent" />
+      <motion.div
+        className="absolute bottom-6 left-6 right-6 p-6 rounded-xl backdrop-blur-xl border shadow-2xl"
+        style={{
+          backgroundColor: "var(--brand-card-bg, hsl(var(--card) / 0.9))",
+          borderColor: "var(--brand-border, hsl(var(--border)))",
+        }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: themeMotion.durationSlow, delay: 0.8 }}
+      >
+        <div className="flex items-center gap-4">
+          <div 
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+            style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+          >
+            {siteName?.charAt(0) || "L"}
+          </div>
+          <div>
+            <p className="font-semibold" style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>{siteName || "Trusted by thousands"}</p>
+            <p className="text-sm" style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>Join the growing community</p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  ) : (
+    <div className="w-full max-w-lg space-y-4">
+      <BrowserMockup url={`${siteName?.toLowerCase().replace(/\s/g, '') || 'yoursite'}.com`} />
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { label: "Active Users", val: "2,847", change: "+24%" },
+          { label: "Revenue", val: "$48.2k", change: "+18%" },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            className="p-3 rounded-xl border backdrop-blur-sm"
+            style={{
+              backgroundColor: "var(--brand-card-bg, hsl(var(--card)))",
+              borderColor: "var(--brand-border, hsl(var(--border)))",
+            }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.8 + i * 0.15 }}
+          >
+            <p className="text-xs" style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>{stat.label}</p>
+            <p className="text-lg font-bold" style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>{stat.val}</p>
+            <span className="text-xs font-medium" style={{ color: "#22c55e" }}>{stat.change}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const ctaStyle = personality.ctaButtonStyle;
+  const isTransparentCta = ctaStyle === "outlined" || ctaStyle === "ghost" || ctaStyle === "minimal";
+  const ctaRadius = ctaStyle === "sharp" ? "0.375rem" : ctaStyle === "solid" ? "0.75rem" : ctaStyle === "ghost" ? "0.5rem" : ctaStyle === "minimal" ? "0.25rem" : "9999px";
+  const ctaBg = isTransparentCta ? "transparent" : `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`;
+  const ctaColor = isTransparentCta ? "var(--brand-primary, hsl(var(--primary)))" : "white";
+  const ctaBorder = ctaStyle === "outlined" ? "2px solid var(--brand-primary, hsl(var(--primary)))" : "none";
+
+  const ctaButton = (
+    <Button
+      asChild
+      size="lg"
+      className="w-full sm:w-auto shadow-lg"
+      style={{ 
+        borderRadius: ctaRadius,
+        background: ctaBg,
+        color: ctaColor,
+        border: ctaBorder,
+        ...(isTransparentCta && { boxShadow: "none" }),
+      }}
+      data-testid="button-hero-cta"
+    >
+      <a href={data.ctaLink || "#contact"}>
+        {data.ctaText}
+        <ArrowRight className="ml-2 w-4 h-4" />
+      </a>
+    </Button>
+  );
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
       <div className="absolute inset-0" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }} />
       
-      <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={600} x="70%" y="30%" opacity={0.08} blur={120} />
-      <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={400} x="20%" y="70%" delay={4} opacity={0.06} blur={100} />
-      <DotGrid opacity={0.02} spacing={50} />
+      {personality.showFloatingOrbs && (
+        <>
+          <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={600} x="70%" y="30%" opacity={0.08} blur={120} />
+          <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={400} x="20%" y="70%" delay={4} opacity={0.06} blur={100} />
+        </>
+      )}
+      {personality.showDotGrid && <DotGrid opacity={0.02} spacing={50} />}
 
-      <div className="absolute bottom-10 left-10 pointer-events-none hidden md:block">
-        <AbstractBlob color="var(--brand-primary, hsl(var(--primary)))" size={300} opacity={0.06} />
-      </div>
+      {personality.showDecorativeSvgs && (
+        <div className="absolute bottom-10 left-10 pointer-events-none hidden md:block">
+          <AbstractBlob color="var(--brand-primary, hsl(var(--primary)))" size={300} opacity={0.06} />
+        </div>
+      )}
 
       <div className="relative z-10 w-full">
         <div className="grid lg:grid-cols-2 min-h-screen">
@@ -119,22 +216,11 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
                 className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
               >
                 {data.ctaText && (
-                  <AnimatedGradientBorder borderRadius={999}>
-                    <Button
-                      asChild
-                      size="lg"
-                      className="w-full sm:w-auto rounded-xl shadow-lg"
-                      style={{ 
-                        background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
-                      }}
-                      data-testid="button-hero-cta"
-                    >
-                      <a href={data.ctaLink || "#contact"}>
-                        {data.ctaText}
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </a>
-                    </Button>
-                  </AnimatedGradientBorder>
+                  personality.ctaButtonStyle === "gradient-border" ? (
+                    <AnimatedGradientBorder borderRadius={999}>
+                      {ctaButton}
+                    </AnimatedGradientBorder>
+                  ) : ctaButton
                 )}
                 {data.secondaryCtaText && (
                   <Button
@@ -158,68 +244,11 @@ export default function HeroSplit({ section, siteName }: { section: SectionConte
             transition={{ duration: themeMotion.durationVerySlow, delay: 0.2 }}
             className="relative hidden lg:flex items-center justify-center p-8 xl:p-12"
           >
-            <ParallaxLayer speed={0.3}>
-              {hasImage ? (
-                <div className="relative w-full h-full">
-                  <img
-                    src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
-                    alt=""
-                    className="w-full h-full object-cover rounded-2xl shadow-2xl"
-                  />
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent" />
-                  <motion.div
-                    className="absolute bottom-6 left-6 right-6 p-6 rounded-xl backdrop-blur-xl border shadow-2xl"
-                    style={{
-                      backgroundColor: "var(--brand-card-bg, hsl(var(--card) / 0.9))",
-                      borderColor: "var(--brand-border, hsl(var(--border)))",
-                    }}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: themeMotion.durationSlow, delay: 0.8 }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div 
-                        className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
-                        style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                      >
-                        {siteName?.charAt(0) || "L"}
-                      </div>
-                      <div>
-                        <p className="font-semibold" style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>{siteName || "Trusted by thousands"}</p>
-                        <p className="text-sm" style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>Join the growing community</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              ) : (
-                <div className="w-full max-w-lg space-y-4">
-                  <BrowserMockup url={`${siteName?.toLowerCase().replace(/\s/g, '') || 'yoursite'}.com`} />
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: "Active Users", val: "2,847", change: "+24%" },
-                      { label: "Revenue", val: "$48.2k", change: "+18%" },
-                    ].map((stat, i) => (
-                      <motion.div
-                        key={i}
-                        className="p-3 rounded-xl border backdrop-blur-sm"
-                        style={{
-                          backgroundColor: "var(--brand-card-bg, hsl(var(--card)))",
-                          borderColor: "var(--brand-border, hsl(var(--border)))",
-                        }}
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.8 + i * 0.15 }}
-                      >
-                        <p className="text-xs" style={{ color: "var(--brand-muted-text, hsl(var(--muted-foreground)))" }}>{stat.label}</p>
-                        <p className="text-lg font-bold" style={{ color: "var(--brand-text, hsl(var(--foreground)))" }}>{stat.val}</p>
-                        <span className="text-xs font-medium" style={{ color: "#22c55e" }}>{stat.change}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </ParallaxLayer>
+            {personality.showParallax ? (
+              <ParallaxLayer speed={0.3}>
+                {visualPanel}
+              </ParallaxLayer>
+            ) : visualPanel}
           </motion.div>
         </div>
       </div>

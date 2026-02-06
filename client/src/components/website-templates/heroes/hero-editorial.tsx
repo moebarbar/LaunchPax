@@ -6,6 +6,7 @@ import { useThemeMotion } from "../motion-wrapper";
 import { FloatingOrb, DotGrid } from "../visuals/floating-elements";
 import { PhoneMockup } from "../visuals/browser-mockup";
 import { GeometricPattern, AnimatedGradientBorder, ParallaxLayer, RadialGlow } from "../visuals";
+import { useDesignPersonality } from "../design-personality";
 
 interface HeroData {
   headline?: string;
@@ -24,18 +25,76 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
   const data = (section.data || {}) as HeroData;
   const themeMotion = useThemeMotion();
   const hasImage = data.image || data.imageB64;
+  const personality = useDesignPersonality();
+
+  const visualContent = (
+    <div className="relative">
+      <RadialGlow color="var(--brand-primary, hsl(var(--primary)))" size={600} x="50%" y="50%" opacity={0.12} />
+      {hasImage ? (
+        <div className="relative w-full">
+          <div 
+            className="absolute -inset-4 rounded-3xl blur-2xl opacity-20"
+            style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+          />
+          <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border shadow-2xl">
+            <img
+              src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      ) : (
+        <PhoneMockup />
+      )}
+    </div>
+  );
+
+  const ctaStyle = personality.ctaButtonStyle;
+  const isTransparentCta = ctaStyle === "outlined" || ctaStyle === "ghost" || ctaStyle === "minimal";
+  const ctaRadius = ctaStyle === "sharp" ? "0.375rem" : ctaStyle === "solid" ? "0.75rem" : ctaStyle === "ghost" ? "0.5rem" : ctaStyle === "minimal" ? "0.25rem" : "9999px";
+  const ctaBg = isTransparentCta ? "transparent" : `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`;
+  const ctaColor = isTransparentCta ? "var(--brand-primary, hsl(var(--primary)))" : "white";
+  const ctaBorder = ctaStyle === "outlined" ? "2px solid var(--brand-primary, hsl(var(--primary)))" : "none";
+
+  const ctaButton = (
+    <Button
+      asChild
+      size="lg"
+      className="w-full sm:w-auto shadow-xl group"
+      style={{ 
+        borderRadius: ctaRadius,
+        background: ctaBg,
+        color: ctaColor,
+        border: ctaBorder,
+        ...(isTransparentCta && { boxShadow: "none" }),
+      }}
+      data-testid="button-hero-cta"
+    >
+      <a href={data.ctaLink || "#contact"}>
+        {data.ctaText}
+        <ArrowRight className="ml-2 w-5 h-5" />
+      </a>
+    </Button>
+  );
 
   return (
     <section className="relative min-h-[90vh] flex items-end overflow-hidden" style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}>
       <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom right, var(--brand-background, hsl(var(--background))), var(--brand-surface, hsl(var(--muted))) 70%)` }} />
       
-      <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={500} x="75%" y="30%" opacity={0.08} blur={100} />
-      <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={200} x="15%" y="45%" delay={5} opacity={0.06} blur={60} />
-      <DotGrid opacity={0.015} spacing={50} />
+      {personality.showFloatingOrbs && (
+        <>
+          <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={500} x="75%" y="30%" opacity={0.08} blur={100} />
+          <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={200} x="15%" y="45%" delay={5} opacity={0.06} blur={60} />
+        </>
+      )}
+      {personality.showDotGrid && <DotGrid opacity={0.015} spacing={50} />}
 
-      <div className="absolute inset-0 pointer-events-none hidden sm:block">
-        <GeometricPattern color="var(--brand-primary, hsl(var(--primary)))" opacity={0.03} size={400} />
-      </div>
+      {personality.showDecorativeSvgs && (
+        <div className="absolute inset-0 pointer-events-none hidden sm:block">
+          <GeometricPattern color="var(--brand-primary, hsl(var(--primary)))" opacity={0.03} size={400} />
+        </div>
+      )}
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-32">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-end">
@@ -117,22 +176,11 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
               className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4"
             >
               {data.ctaText && (
-                <AnimatedGradientBorder borderRadius={999}>
-                  <Button
-                    asChild
-                    size="lg"
-                    className="w-full sm:w-auto rounded-full shadow-xl group"
-                    style={{ 
-                      background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-secondary, hsl(var(--primary))) 100%)`
-                    }}
-                    data-testid="button-hero-cta"
-                  >
-                    <a href={data.ctaLink || "#contact"}>
-                      {data.ctaText}
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </a>
-                  </Button>
-                </AnimatedGradientBorder>
+                personality.ctaButtonStyle === "gradient-border" ? (
+                  <AnimatedGradientBorder borderRadius={999}>
+                    {ctaButton}
+                  </AnimatedGradientBorder>
+                ) : ctaButton
               )}
               {data.secondaryCtaText && (
                 <Button
@@ -157,28 +205,11 @@ export default function HeroEditorial({ section, siteName }: { section: SectionC
             transition={{ duration: themeMotion.durationVerySlow, delay: 0.3 }}
             className="hidden lg:flex lg:col-span-5 justify-center"
           >
-            <ParallaxLayer speed={0.3}>
-              <div className="relative">
-                <RadialGlow color="var(--brand-primary, hsl(var(--primary)))" size={600} x="50%" y="50%" opacity={0.12} />
-                {hasImage ? (
-                  <div className="relative w-full">
-                    <div 
-                      className="absolute -inset-4 rounded-3xl blur-2xl opacity-20"
-                      style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                    />
-                    <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 border shadow-2xl">
-                      <img
-                        src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <PhoneMockup />
-                )}
-              </div>
-            </ParallaxLayer>
+            {personality.showParallax ? (
+              <ParallaxLayer speed={0.3}>
+                {visualContent}
+              </ParallaxLayer>
+            ) : visualContent}
           </motion.div>
         </div>
       </div>

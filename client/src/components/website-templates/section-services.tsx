@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, GridLines, AbstractBlob, GlowLine } from "./visuals";
+import { useDesignPersonality } from "./design-personality";
 
 interface ServiceItem {
   title: string;
@@ -30,15 +31,16 @@ export default function SectionServices({ section }: { section: SectionContent }
   const data = (section.data || {}) as ServicesData;
   const items = data.items || [];
   const themeMotion = useThemeMotion();
+  const personality = useDesignPersonality();
   
   return (
     <section 
       className="py-28 sm:py-36 px-4 sm:px-6 relative overflow-hidden"
       style={{ backgroundColor: "var(--brand-background, hsl(var(--background)))" }}
     >
-      <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={500} x="90%" y="30%" opacity={0.06} blur={120} />
-      <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={300} x="5%" y="70%" delay={4} opacity={0.04} blur={80} />
-      <GridLines opacity={0.02} spacing={80} />
+      {personality.showFloatingOrbs && <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={500} x="90%" y="30%" opacity={0.06} blur={120} />}
+      {personality.showFloatingOrbs && <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={300} x="5%" y="70%" delay={4} opacity={0.04} blur={80} />}
+      {personality.showDotGrid && <GridLines opacity={0.02} spacing={80} />}
       
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -167,7 +169,7 @@ export default function SectionServices({ section }: { section: SectionContent }
                       </div>
 
                       <div className={`md:col-span-2 relative ${!isEven ? 'md:order-1' : ''}`}>
-                        {isEven && (
+                        {isEven && personality.showDecorativeSvgs && (
                           <AbstractBlob
                             variant={((index % 5) + 1) as 1 | 2 | 3 | 4 | 5}
                             color="var(--brand-primary, hsl(var(--primary)))"
@@ -211,7 +213,7 @@ export default function SectionServices({ section }: { section: SectionContent }
                     </div>
                   </div>
                 </motion.div>
-                {index < items.length - 1 && (
+                {index < items.length - 1 && personality.showGlowLines && (
                   <div className="py-2">
                     <GlowLine animated={false} />
                   </div>

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useThemeMotion } from "./motion-wrapper";
 import { MagneticElement, GlowLine, NoiseTexture } from "./visuals";
+import { useDesignPersonality } from "./design-personality";
 
 interface CtaData {
   headline?: string;
@@ -16,6 +17,7 @@ interface CtaData {
 export default function SectionCta({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as CtaData;
   const themeMotion = useThemeMotion();
+  const personality = useDesignPersonality();
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -35,7 +37,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
               var(--brand-accent, hsl(var(--primary))) 100%)`
           }}
         >
-          <GlowLine animated />
+          {personality.showGlowLines && <GlowLine animated />}
           <div className="absolute inset-0 pointer-events-none">
             <motion.div 
               animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }}
@@ -57,7 +59,7 @@ export default function SectionCta({ section }: { section: SectionContent }) {
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
-          <NoiseTexture opacity={0.03} />
+          {personality.showNoiseTexture && <NoiseTexture opacity={0.03} />}
           
           <div className="relative z-10 grid lg:grid-cols-5 gap-8 items-center py-16 sm:py-24 px-8 sm:px-16">
             <div className="lg:col-span-3 text-center lg:text-left">
@@ -103,18 +105,23 @@ export default function SectionCta({ section }: { section: SectionContent }) {
                   viewport={{ once: true }}
                   transition={{ duration: themeMotion.duration, delay: 0.3 }}
                 >
-                  <MagneticElement strength={0.3}>
-                    <Button
-                      asChild size="lg"
-                      className="text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-full bg-white text-gray-900 shadow-xl group"
-                      data-testid="button-cta-action"
-                    >
-                      <a href={data.buttonLink || "#contact"} className="flex items-center gap-2">
-                        {data.buttonText}
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </a>
-                    </Button>
-                  </MagneticElement>
+                  {(() => {
+                    const ctaButton = (
+                      <Button
+                        asChild size="lg"
+                        className="text-base sm:text-lg px-8 sm:px-10 py-6 sm:py-7 rounded-full bg-white text-gray-900 shadow-xl group"
+                        data-testid="button-cta-action"
+                      >
+                        <a href={data.buttonLink || "#contact"} className="flex items-center gap-2">
+                          {data.buttonText}
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </a>
+                      </Button>
+                    );
+                    return personality.showMagneticButtons ? (
+                      <MagneticElement strength={0.3}>{ctaButton}</MagneticElement>
+                    ) : ctaButton;
+                  })()}
                 </motion.div>
               )}
             </div>

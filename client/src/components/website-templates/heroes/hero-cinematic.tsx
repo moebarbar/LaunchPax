@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
 import { NoiseTexture, AnimatedGradientBorder } from "../visuals";
+import { useDesignPersonality } from "../design-personality";
 
 interface HeroData {
   headline?: string;
@@ -21,6 +22,36 @@ interface HeroData {
 export default function HeroCinematic({ section, siteName }: { section: SectionContent; siteName?: string }) {
   const data = (section.data || {}) as HeroData;
   const themeMotion = useThemeMotion();
+  const personality = useDesignPersonality();
+
+  const ctaStyle = personality.ctaButtonStyle;
+  const isTransparentCta = ctaStyle === "outlined" || ctaStyle === "ghost" || ctaStyle === "minimal";
+  const ctaRadius = ctaStyle === "sharp" ? "0.375rem" : ctaStyle === "solid" ? "0.75rem" : ctaStyle === "ghost" ? "0.5rem" : ctaStyle === "minimal" ? "0.25rem" : "9999px";
+  const ctaBg = isTransparentCta ? "transparent" : "white";
+  const ctaColor = isTransparentCta ? "rgba(255,255,255,0.9)" : "black";
+  const ctaBorder = ctaStyle === "outlined" ? "2px solid rgba(255,255,255,0.4)" : "none";
+
+  const ctaButton = (
+    <Button
+      asChild size="lg"
+      className="w-full sm:w-auto shadow-2xl"
+      style={{
+        borderRadius: ctaRadius,
+        background: ctaBg,
+        color: ctaColor,
+        border: ctaBorder,
+        ...(isTransparentCta && { boxShadow: "none" }),
+      }}
+      data-testid="button-hero-cta"
+    >
+      <a href={data.ctaLink || "#contact"}>
+        <span className="relative z-10 flex items-center">
+          {data.ctaText}
+          <ArrowRight className="ml-3 w-5 h-5" />
+        </span>
+      </a>
+    </Button>
+  );
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
@@ -58,7 +89,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
         )}
       </div>
 
-      <NoiseTexture opacity={0.03} />
+      {personality.showNoiseTexture && <NoiseTexture opacity={0.03} />}
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(3)].map((_, i) => (
@@ -133,20 +164,11 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           className="mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6"
         >
           {data.ctaText && (
-            <AnimatedGradientBorder borderRadius={999}>
-              <Button
-                asChild size="lg"
-                className="w-full sm:w-auto rounded-none bg-white text-black shadow-2xl"
-                data-testid="button-hero-cta"
-              >
-                <a href={data.ctaLink || "#contact"}>
-                  <span className="relative z-10 flex items-center">
-                    {data.ctaText}
-                    <ArrowRight className="ml-3 w-5 h-5" />
-                  </span>
-                </a>
-              </Button>
-            </AnimatedGradientBorder>
+            personality.ctaButtonStyle === "gradient-border" ? (
+              <AnimatedGradientBorder borderRadius={999}>
+                {ctaButton}
+              </AnimatedGradientBorder>
+            ) : ctaButton
           )}
           {data.secondaryCtaText && (
             <Button

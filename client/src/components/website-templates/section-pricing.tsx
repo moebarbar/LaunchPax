@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, AnimatedGradientBorder, HoverTilt, DecorativeCircles } from "./visuals";
+import { useDesignPersonality } from "./design-personality";
 
 interface PricingPlan {
   name: string;
@@ -26,13 +27,14 @@ export default function SectionPricing({ section }: { section: SectionContent })
   const data = (section.data || {}) as PricingData;
   const plans = data.plans || [];
   const themeMotion = useThemeMotion();
+  const personality = useDesignPersonality();
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-muted/30" />
-      <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={400} x="20%" y="20%" opacity={0.06} blur={120} />
-      <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={350} x="80%" y="80%" delay={3} opacity={0.05} blur={100} />
-      <DecorativeCircles count={4} maxSize={400} className="absolute inset-0 opacity-[0.03] hidden sm:block" />
+      {personality.showFloatingOrbs && <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={400} x="20%" y="20%" opacity={0.06} blur={120} />}
+      {personality.showFloatingOrbs && <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={350} x="80%" y="80%" delay={3} opacity={0.05} blur={100} />}
+      {personality.showDecorativeSvgs && <DecorativeCircles count={4} maxSize={400} className="absolute inset-0 opacity-[0.03] hidden sm:block" />}
 
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -156,18 +158,23 @@ export default function SectionPricing({ section }: { section: SectionContent })
                 )}
 
                 {plan.highlighted ? (
-                  <AnimatedGradientBorder borderRadius={999} borderWidth={2}>
-                    <Button
-                      asChild size="lg"
-                      className="w-full text-base py-6 rounded-xl bg-white text-gray-900 shadow-lg"
-                      data-testid={`button-pricing-cta-${index}`}
-                    >
-                      <a href={plan.ctaLink || "#contact"} className="flex items-center justify-center gap-2">
-                        {plan.ctaText || "Get Started"}
-                        <ArrowRight className="w-4 h-4" />
-                      </a>
-                    </Button>
-                  </AnimatedGradientBorder>
+                  (() => {
+                    const ctaButton = (
+                      <Button
+                        asChild size="lg"
+                        className="w-full text-base py-6 rounded-xl bg-white text-gray-900 shadow-lg"
+                        data-testid={`button-pricing-cta-${index}`}
+                      >
+                        <a href={plan.ctaLink || "#contact"} className="flex items-center justify-center gap-2">
+                          {plan.ctaText || "Get Started"}
+                          <ArrowRight className="w-4 h-4" />
+                        </a>
+                      </Button>
+                    );
+                    return personality.buttonStyle === "gradient-border" ? (
+                      <AnimatedGradientBorder borderRadius={999} borderWidth={2}>{ctaButton}</AnimatedGradientBorder>
+                    ) : ctaButton;
+                  })()
                 ) : (
                   <Button
                     asChild size="lg"
@@ -200,13 +207,17 @@ export default function SectionPricing({ section }: { section: SectionContent })
                     style={{ background: "var(--brand-primary, hsl(var(--primary)))" }} />
                 )}
                 {plan.highlighted ? (
-                  <AnimatedGradientBorder borderWidth={2} borderRadius={32}>
-                    {cardContent}
-                  </AnimatedGradientBorder>
+                  personality.buttonStyle === "gradient-border" ? (
+                    <AnimatedGradientBorder borderWidth={2} borderRadius={32}>
+                      {cardContent}
+                    </AnimatedGradientBorder>
+                  ) : cardContent
                 ) : (
-                  <HoverTilt maxTilt={3} scale={1.01}>
-                    {cardContent}
-                  </HoverTilt>
+                  personality.showHoverTilt ? (
+                    <HoverTilt maxTilt={3} scale={1.01}>
+                      {cardContent}
+                    </HoverTilt>
+                  ) : cardContent
                 )}
               </motion.div>
             );

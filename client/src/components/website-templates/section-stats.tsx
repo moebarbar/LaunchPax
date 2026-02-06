@@ -2,6 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
 import { CountUpAnimation, RadialGlow, GlowLine } from "./visuals";
+import { useDesignPersonality } from "./design-personality";
 
 interface StatItem {
   value: string;
@@ -32,6 +33,7 @@ export default function SectionStats({ section }: { section: SectionContent }) {
   const data = (section.data || {}) as StatsData;
   const items = data.items || [];
   const themeMotion = useThemeMotion();
+  const personality = useDesignPersonality();
   
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden">
@@ -58,7 +60,7 @@ export default function SectionStats({ section }: { section: SectionContent }) {
         />
       </div>
 
-      <RadialGlow color="rgba(255,255,255,0.15)" size={600} x="50%" y="50%" opacity={0.12} />
+      {(personality.effectIntensity === "high" || personality.effectIntensity === "medium") && <RadialGlow color="rgba(255,255,255,0.15)" size={600} x="50%" y="50%" opacity={0.12} />}
 
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
@@ -85,9 +87,11 @@ export default function SectionStats({ section }: { section: SectionContent }) {
           </motion.div>
         )}
 
-        <div className="mb-10">
-          <GlowLine animated />
-        </div>
+        {personality.showGlowLines && (
+          <div className="mb-10">
+            <GlowLine animated />
+          </div>
+        )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {items.map((item, index) => (
@@ -116,13 +120,15 @@ export default function SectionStats({ section }: { section: SectionContent }) {
                 >
                   {(() => {
                     const parsed = parseStatValue(item.value, item.prefix, item.suffix);
-                    return (
+                    return personality.showCountUpAnimation ? (
                       <CountUpAnimation
                         value={parsed.numericValue}
                         duration={2}
                         prefix={parsed.prefix}
                         suffix={parsed.suffix}
                       />
+                    ) : (
+                      <>{parsed.prefix}{parsed.numericValue}{parsed.suffix}</>
                     );
                   })()}
                 </div>
