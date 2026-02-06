@@ -2,9 +2,9 @@
 
 ## Overview
 
-LaunchPax is an AI-powered platform designed to empower users to launch and grow businesses efficiently. It provides a centralized dashboard to orchestrate various external APIs for generating essential business assets like names, domains, brand kits, website content, and graphics. The platform operates on a project-based architecture, ensuring isolated configurations for each business venture.
+LaunchPax is an AI-powered platform designed to enable users to launch and grow businesses efficiently. It provides a centralized dashboard to orchestrate various external APIs for generating essential business assets like names, domains, brand kits, website content, and graphics. The platform operates on a project-based architecture, ensuring isolated configurations for each business venture.
 
-The core vision is to offer a comprehensive, white-labeled solution that simplifies the business launch process. It abstracts technical and design complexities through an intuitive AI-driven workflow, enabling users to create and manage their online presence with ease. Key capabilities include AI-powered content generation, a flexible connector-based integration system, and a robust workflow engine for multi-step generation processes.
+The core vision is to offer a comprehensive, white-labeled solution that simplifies the business launch process. It abstracts technical and design complexities through an intuitive AI-driven workflow, enabling users to create and manage their online presence with ease. Key capabilities include AI-powered content generation, a flexible connector-based integration system, and a robust workflow engine for multi-step generation processes. The project aims to provide a comprehensive, white-labeled solution for business creation, emphasizing ease of use and professional-grade output.
 
 ## User Preferences
 
@@ -23,9 +23,7 @@ Preferred communication style: Simple, everyday language.
     - **Editable Sections Panel**: Allows drag-based reordering, adding, deleting, and duplicating of website sections.
     - **Website Templates**: Offers 12 diverse section types with premium styling and animations.
     - **Responsive Design**: Mobile-first approach with progressive text scaling and responsive layouts.
-    - **Signature Visual Moments**: Utilizes components like LargeTypography, ParallaxDivider, and AnimatedGradientBg.
-    - **Techy Build Progress**: Displays terminal-style animated progress visualization for workflows.
-    - **Visual Editor**: Full-page split-screen editor (60% preview, 40% editor panel) at `/project/:id/editor`. Click-to-edit for text, images, sections. Features: undo/redo (Ctrl+Z/Ctrl+Shift+Z), desktop/mobile preview toggle, section toolbar (move/duplicate/delete), add section panel, AI refinement with quick actions and variations. Components in `client/src/components/editor/`.
+    - **Visual Editor**: Full-page split-screen editor (60% preview, 40% editor panel) for intuitive content editing.
 
 ### Backend
 - **Framework**: Express.js with TypeScript
@@ -35,83 +33,33 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Systems
 - **Connector System**: Registry pattern for abstracting external API integrations with capability-based lookup and mock fallbacks.
-- **Creative Theme Engine v4.0.0**: World-class design system with 24 distinctive themes covering ALL business types:
-  - **Original 12 Themes**: dark-neon, editorial-luxury, soft-gradient, bold-modern, minimal-clean, urban-gritty, vibrant-pop, classic-elegant, nature-organic, tech-futuristic, warm-artisan, crisp-corporate
-  - **NEW 12 Specialized Themes v4.0**:
-    - `startup-velocity`: Dynamic startup/tech companies with purple/cyan gradients
-    - `saas-aurora`: Modern SaaS products with aurora-inspired gradients
-    - `fintech-precision`: Financial/banking with trust-building blue/green palette
-    - `healthcare-trust`: Medical/wellness with calming cyan/green tones
-    - `cyber-matrix`: Cybersecurity/dev tools with terminal green aesthetic
-    - `creative-studio`: Creative agencies with expressive orange/purple
-    - `luxury-noir`: High-end luxury with gold on black elegance
-    - `eco-sustainable`: Environmental/organic with natural green palette
-    - `indie-maker`: Indie hackers/solo founders with warm orange energy
-    - `enterprise-power`: Enterprise B2B with authoritative blue
-    - `retro-future`: Synthwave/gaming with pink/cyan/yellow neon
-    - `zen-minimal`: Ultra-minimal Japanese aesthetic with serene neutrals
-  - **Complete Design Systems**: 22+ color palette, named gradient definitions, 7-level shadow system, typography scales, spacing/border-radius scales per theme
-  - **Motion Design**: Theme-specific durations, easings, hover/click transforms, page transitions, scroll reveal animations
-  - **Visual Effects**: Glass morphism, gradient overlays, animated gradients, parallax, particle effects, grain textures
-  - **Intelligent Selection**: Advanced scoring algorithm with 150+ industry mappings, 25+ tone modifiers with boost/suppress logic
-  - **Hero/Navigation/Card Configs**: Per-theme configurations for archetypes, styles, animations
-  - **Photography Direction**: Style, mood, lighting, composition, color treatment per theme
-  - **Quality Metrics**: Sophistication, accessibility, uniqueness scores with bestFor/avoidFor recommendations
-- **Image Management System**: Handles user uploads, auto-generates SEO-optimized alt text, integrates with stock photo services, and optimizes images via Cloudinary.
-- **Section Transitions**: Implements smooth visual transitions (gradient-fade, overlap, soft-merge, blur-blend) between website sections.
-- **Workflow Engine**: Orchestrates multi-step generation processes with self-healing capabilities (automatic retries, workflow recovery). Non-critical steps (graphics, Claude enhancement, image auto-fill) are marked `optional` so failures don't block the entire workflow. Core content generation always completes.
-- **Smart AI Router**: Intelligently routes AI tasks to appropriate models (e.g., OpenAI, DeepSeek, DALL-E) with automatic fallback chains and retry logic.
+- **Creative Theme Engine v4.0.0**: A world-class design system offering 24 distinctive themes with complete design systems (color palettes, shadows, typography, spacing, motion design, visual effects) and intelligent selection based on industry and tone.
+- **Image Management System**: Handles user uploads, automates SEO-optimized alt text generation, integrates with stock photo services, and optimizes images via Cloudinary.
+- **Workflow Engine**: Orchestrates multi-step generation processes with self-healing capabilities (automatic retries, workflow recovery). Non-critical steps are optional to ensure core content generation completes.
+- **Smart AI Router**: Intelligently routes AI tasks to appropriate models with automatic fallback chains and retry logic.
 - **Content Cache System**: Reduces API calls by caching generated content with hash-based invalidation.
-- **Workflow Recovery**: Ensures workflow completion by tracking progress, auto-cleaning stuck jobs, and enforcing maximum workflow times.
-- **Creativity Checklist**: Validates premium website elements, hero archetypes, visual signatures, section variety, SEO fields, and font limits.
-- **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions and performs refinement passes to improve weak sections, enforcing premium quality thresholds and detecting generic patterns. Quality gate enforcement: content status is set to "needs_review" when quality score < 75, blocking publishing until quality improves or content is regenerated. Quality metadata stored in siteSettings for frontend display. Thresholds: minimum=75, heroMinimum=80, good=85, excellent=92.
-- **Long-Form Page Blueprints**: Defines sophisticated section layouts for common page types (HOME, ABOUT, SERVICES, CONTACT).
-- **Project Architecture**: Each project is an independent business configuration with isolated content and build states.
-- **Website Publishing System**: Supports publishing to live URLs and secure previews.
-- **AI-Powered Section Editing**: Allows users to refine website sections using natural language prompts.
-- **Website Enhancement Service**: Orchestrates integrations for premium website features, including AI hero images, multi-source stock photos, CDN optimization, analytics injection, maps, payment processing, contact forms, and animations.
-- **Theme Color Integration (Complete)**: Full pipeline from backend theme data to frontend CSS variables:
-  - **generateBrandStyles**: Maps 30+ theme settings to CSS custom properties (colors, gradients, card configs, motion tokens, effects, typography weights)
-  - **CSS Variable Cascade**: Global CSS overrides use `var(--brand-heading, var(--brand-text, hsl(var(--foreground))))` pattern for graceful fallback
-  - **Dark Theme Support**: All section templates, navigation, and footer use CSS variables instead of hardcoded light-mode colors
-  - **Theme-Aware Navigation**: Adapts background, text, border, shadow, and pill colors based on `colorScheme` (dark/light) and `navigationStyle` (floating-pill/minimal/solid/transparent)
-  - **Themed Cards**: `.themed-card` CSS class applies `--brand-card-radius`, `--brand-card-shadow`, `--brand-card-hover-lift`, `--brand-card-hover-shadow` with motion-aware transitions
-  - **Motion Tokens (Complete)**: Theme-specific motion system with `useThemeMotion()` hook in `motion-wrapper.tsx`:
-    - 8 CSS variables: `--brand-motion-fast`, `--brand-motion-duration`, `--brand-motion-slow`, `--brand-motion-very-slow`, `--brand-motion-easing`, `--brand-motion-easing-out`, `--brand-motion-easing-bounce`, `--brand-motion-easing-smooth`
-    - `useThemeMotion()` hook reads CSS variables and provides JS values (duration, durationFast, durationSlow, durationVerySlow, easing, easingOut) for Framer Motion
-    - All 15 section templates + 5 hero templates use `themeMotion.*` instead of hardcoded duration/easing values
-    - `FadeIn`, `StaggerItem`, `ScaleIn` wrappers in motion-wrapper.tsx also use theme tokens internally
-    - CSS `.hover-card` and `.themed-card` classes use motion tokens for transition timing
-  - **Visual Effects System**: CSS utility classes for glass-morphism, gradient-overlay, animated-gradient injected in website-renderer.tsx scoped styles when theme enables them via `enableGlassMorphism`/`enableGradientOverlays`/`enableAnimatedGradients` flags
-  - **Photography Direction Integration**: Stock photo searches receive `photographyStyle`, `photographyMood`, `photographyKeywords` from theme config via siteSettings, threaded through `autoFillMissingImages` → `findStockImage`
-- **Premium Design Standards System (v2.0.0)**: Central module (`server/services/premium-design-standards.ts`) enforcing agency-level quality via:
-  - **Navigation**: Floating-pill style with glass morphism, hover animations, gradient CTA with shine effect
-  - **Hero Sections**: 90vh minimum height, animated gradient orbs, pill-style badges, scroll indicators
-  - **Cards**: 1.5rem border radius, 8px hover lift, premium shadows (0 20px 40px)
-  - **Typography**: font-weight 800 for h1, -0.035em letter-spacing, antialiased rendering
-  - **Colors**: Theme-driven via CSS variables; no hardcoded light-mode colors in section templates
-  - **Quality Thresholds**: Overall 90, hero 95, home page 10 sections, about/services 8 sections
-  - **Validation**: 13-point premium compliance check integrated into quality gate (requires 80% score)
-- **White-Label Requirements**: No Replit branding exposed; hosting/build layers designed for future provider flexibility.
-- **Website Content Quality**: Includes smart icon assignment based on keywords, comprehensive image population for all sections, and industry-specific logo prompts for combination marks.
+- **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions, performs refinement passes, and enforces premium quality thresholds (e.g., minimum 75 score, hero minimum 80) by setting content status to "needs_review" if quality is below threshold.
+- **Premium Design Standards System (v2.0.0)**: Enforces agency-level quality through specific requirements for navigation, hero sections, cards, typography, and color integration, validated by a 13-point premium compliance check.
+- **White-Label Requirements**: Ensures no Replit branding is exposed, with hosting and build layers designed for future provider flexibility.
+- **Website Content Quality**: Includes smart icon assignment, comprehensive image population, and industry-specific logo prompts.
 
 ## External Dependencies
 
 ### Database
 - **PostgreSQL**: Primary database.
-- **Drizzle ORM**: For database schema definition and interaction.
+- **Drizzle ORM**: For database interaction.
 
 ### LaunchPax Engine (Multi-Model AI Orchestration)
 - **LaunchPax Engine (DeepSeek)**: For cost-effective long-form content generation.
 - **GPT-4o (OpenAI)**: For premium name, brand, and website content generation.
 - **Claude 3.5 Sonnet (Anthropic)**: Alternative for long-form content generation.
-- **DALL-E 3 (OpenAI)**: For AI image generation (hero images, logos).
-- **Stability AI**: For high-quality AI image generation (Stable Diffusion).
-- **Leonardo AI**: For stylized AI graphics and illustrations.
+- **DALL-E 3 (OpenAI)**: For AI image generation.
+- **Stability AI**: For high-quality AI image generation.
+- **Leonardo AI**: For stylized AI graphics.
 - **Google Studio (Google Gemini)**: For advanced graphics generation.
 
 ### Stock Photography
-- **Pexels**: For high-quality free stock photos.
+- **Pexels**: For free stock photos.
 - **Unsplash**: For premium stock photography.
 
 ### Payment Processing
@@ -121,10 +69,10 @@ Preferred communication style: Simple, everyday language.
 - **SendGrid**: For email delivery.
 
 ### SMS Services
-- **Twilio**: For SMS notifications and business alerts.
+- **Twilio**: For SMS notifications.
 
 ### Analytics
-- **Google Analytics**: For website visitor tracking and conversion tracking.
+- **Google Analytics**: For website visitor and conversion tracking.
 
 ### Domain Services
 - **Namecheap**: For domain availability checking and registration.
@@ -136,7 +84,7 @@ Preferred communication style: Simple, everyday language.
 - **Lottie**: For animated icons and graphics.
 
 ### CDN & Image Optimization
-- **Cloudinary**: For image optimization, transformation, and CDN.
+- **Cloudinary**: For image optimization and CDN.
 - **Cloudflare**: For CDN, DNS, and edge deployment.
 
 ### Authentication
