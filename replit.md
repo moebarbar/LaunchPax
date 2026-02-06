@@ -58,12 +58,12 @@ Preferred communication style: Simple, everyday language.
   - **Quality Metrics**: Sophistication, accessibility, uniqueness scores with bestFor/avoidFor recommendations
 - **Image Management System**: Handles user uploads, auto-generates SEO-optimized alt text, integrates with stock photo services, and optimizes images via Cloudinary.
 - **Section Transitions**: Implements smooth visual transitions (gradient-fade, overlap, soft-merge, blur-blend) between website sections.
-- **Workflow Engine**: Orchestrates multi-step generation processes with self-healing capabilities (automatic retries, workflow recovery).
+- **Workflow Engine**: Orchestrates multi-step generation processes with self-healing capabilities (automatic retries, workflow recovery). Non-critical steps (graphics, Claude enhancement, image auto-fill) are marked `optional` so failures don't block the entire workflow. Core content generation always completes.
 - **Smart AI Router**: Intelligently routes AI tasks to appropriate models (e.g., OpenAI, DeepSeek, DALL-E) with automatic fallback chains and retry logic.
 - **Content Cache System**: Reduces API calls by caching generated content with hash-based invalidation.
 - **Workflow Recovery**: Ensures workflow completion by tracking progress, auto-cleaning stuck jobs, and enforcing maximum workflow times.
 - **Creativity Checklist**: Validates premium website elements, hero archetypes, visual signatures, section variety, SEO fields, and font limits.
-- **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions and performs refinement passes to improve weak sections, enforcing premium quality thresholds and detecting generic patterns.
+- **Quality Engine**: Provides AI-powered quality evaluation across 8 dimensions and performs refinement passes to improve weak sections, enforcing premium quality thresholds and detecting generic patterns. Quality gate enforcement: content status is set to "needs_review" when quality score < 75, blocking publishing until quality improves or content is regenerated. Quality metadata stored in siteSettings for frontend display. Thresholds: minimum=75, heroMinimum=80, good=85, excellent=92.
 - **Long-Form Page Blueprints**: Defines sophisticated section layouts for common page types (HOME, ABOUT, SERVICES, CONTACT).
 - **Project Architecture**: Each project is an independent business configuration with isolated content and build states.
 - **Website Publishing System**: Supports publishing to live URLs and secure previews.

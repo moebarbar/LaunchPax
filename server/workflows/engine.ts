@@ -114,6 +114,7 @@ export interface WorkflowContext {
 export interface WorkflowStep {
   name: string;
   execute: (ctx: WorkflowContext, prevResult?: unknown) => Promise<unknown>;
+  optional?: boolean;
 }
 
 /**
@@ -169,8 +170,19 @@ async function executeWorkflow(
       }
       
       if (stepError) {
-        workflowRecovery.markFailed(ctx.jobId, stepError.message);
-        throw stepError;
+        if (step.optional) {
+          console.warn(`[Workflow] Optional step "${step.name}" failed after ${maxRetries} retries: ${stepError.message}. Continuing workflow.`);
+          await storage.createActivityLog({
+            projectId: ctx.projectId,
+            action: `${step.name} - skipped (non-critical)`,
+            details: `Step failed but workflow continues: ${stepError.message}`,
+            status: "completed",
+          });
+          stepResult = { skipped: true, error: stepError.message };
+        } else {
+          workflowRecovery.markFailed(ctx.jobId, stepError.message);
+          throw stepError;
+        }
       }
       
       workflowRecovery.updateProgress(ctx.jobId, i, step.name, stepResult);
@@ -562,6 +574,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
     },
     {
       name: "Generating hero image, logo, and favicon",
+      optional: true,
       execute: async (ctx) => {
         const namingResult = await storage.getNamingResult(ctx.projectId);
         const brandKit = await storage.getBrandKit(ctx.projectId);
@@ -572,62 +585,85 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         const primaryColor = brandColors[0] || websiteContent?.siteSettings?.primaryColor || "#4F46E5";
         const industry = ctx.project.industry || "technology";
         
-        console.log(`[Logo Generation] Creating combination logo for "${businessName}" (${industry})`);
-        
-        // Generate hero image - prefer Google Studio for stunning AI graphics
-        console.log("[Multi-AI] Using Google Studio for hero image generation");
-        const heroResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
-          "image_generation",
-          "generate_hero_image",
-          {
-            businessName,
-            businessIdea: ctx.project.businessIdea || "A new business",
-            industry,
-            style: "cinematic professional",
-            brandColors: { primary: primaryColor },
-          },
-          { preferredConnector: "nanobanana" }
-        );
-        
-        // Generate COMBINATION LOGO (icon + business name text)
-        console.log("[Multi-AI] Generating combination logo with business name");
-        const logoResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
-          "image_generation",
-          "generate_logo",
-          {
-            businessName,
-            industry,
-            style: "minimal",
-            brandColors: { primary: primaryColor },
-            includeText: true, // Request logo WITH business name
-          },
-          { preferredConnector: "nanobanana" }
-        );
-        
-        // Generate FAVICON ICON (simple symbol for small sizes)
-        console.log("[Multi-AI] Generating favicon icon for small sizes");
-        const faviconResult = await connectorRegistry.execute<any, { b64_json?: string; url?: string }>(
-          "image_generation",
-          "generate_favicon",
-          {
-            businessName,
-            industry,
-            brandColors: { primary: primaryColor },
-          },
-          { preferredConnector: "nanobanana" }
-        );
-        
-        // Update website content with generated images
-        let heroImageB64 = heroResult.success ? heroResult.data?.b64_json : undefined;
-        let heroImageUrl: string | undefined = undefined;
-        const logoImageB64 = logoResult.success ? logoResult.data?.b64_json : undefined;
-        const faviconImageB64 = faviconResult.success ? faviconResult.data?.b64_json : undefined;
-        
-        console.log(`[Logo Generation] Results: logo=${logoResult.success}, favicon=${faviconResult.success}`);
-        
-        // Fallback to stock photos if AI generation failed
-        if (!heroImageB64) {
-          console.log(`[Workflow] AI hero image failed, falling back to stock photos for ${industry}`);
+        console.log(`[Graphics] Creating images for "${businessName}" (${industry})`);
+
+        const safeGenerate = async <T>(
+          name: string,
+          fn: () => Promise<ConnectorResult<T>>
+        ): Promise<ConnectorResult<T>> => {
+          try {
+            const result = await fn();
+            console.log(`[Graphics] ${name}: success=${result.success}, provider=${result.provider}`);
+            return result;
+          } catch (error) {
+            console.error(`[Graphics] ${name} threw error:`, error);
+            return { success: false, error: error instanceof Error ? error.message : "Unknown error", provider: "none" };
+          }
+        };
+
+        const [heroResult, logoResult, faviconResult] = await Promise.all([
+          safeGenerate("Hero image", () =>
+            connectorRegistry.execute<any, { b64_json?: string; url?: string; images?: { url: string }[] }>(
+              "image_generation",
+              "generate_hero_image",
+              {
+                businessName,
+                businessIdea: ctx.project.businessIdea || "A new business",
+                industry,
+                style: "cinematic professional",
+                brandColors: { primary: primaryColor },
+              },
+              { preferredConnector: "nanobanana" }
+            )
+          ),
+          safeGenerate("Logo", () =>
+            connectorRegistry.execute<any, { b64_json?: string; url?: string; images?: { url: string }[] }>(
+              "image_generation",
+              "generate_logo",
+              {
+                businessName,
+                industry,
+                style: "minimal",
+                brandColors: { primary: primaryColor },
+                colors: brandColors,
+                includeText: true,
+              },
+              { preferredConnector: "nanobanana" }
+            )
+          ),
+          safeGenerate("Favicon", () =>
+            connectorRegistry.execute<any, { b64_json?: string; url?: string; images?: { url: string }[] }>(
+              "image_generation",
+              "generate_favicon",
+              {
+                businessName,
+                industry,
+                brandColors: { primary: primaryColor },
+                colors: brandColors,
+              },
+              { preferredConnector: "nanobanana" }
+            )
+          ),
+        ]);
+
+        const extractImageData = (result: ConnectorResult<any>): { b64?: string; url?: string } => {
+          if (!result.success || !result.data) return {};
+          const d = result.data;
+          return {
+            b64: d.b64_json,
+            url: d.images?.[0]?.url || d.url,
+          };
+        };
+
+        const heroData = extractImageData(heroResult);
+        const logoData = extractImageData(logoResult);
+        const faviconData = extractImageData(faviconResult);
+
+        let heroImageB64 = heroData.b64;
+        let heroImageUrl = heroData.url;
+
+        if (!heroImageB64 && !heroImageUrl) {
+          console.log(`[Graphics] AI hero image failed, falling back to stock photos for ${industry}`);
           const stockResult = await connectorRegistry.execute<any, { photos: { url: string; alt: string }[] }>(
             "stock_photos",
             "get_photo_for_industry",
@@ -640,11 +676,50 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           
           if (stockResult.success && stockResult.data?.photos?.length > 0) {
             heroImageUrl = stockResult.data.photos[0].url;
-            console.log(`[Workflow] Using stock photo for hero: ${heroImageUrl}`);
+            console.log(`[Graphics] Using stock photo for hero: ${heroImageUrl}`);
           }
         }
+
+        let logoUrl = logoData.url;
+        if (logoData.b64 && !logoUrl) {
+          try {
+            const cdnResult = await connectorRegistry.execute<any, { url: string }>(
+              "image_optimization",
+              "upload_image",
+              {
+                imageBase64: logoData.b64,
+                folder: `launchpax/${ctx.projectId}/branding`,
+                transformation: { width: 1024, height: 1024, crop: "fit" },
+              }
+            );
+            if (cdnResult.success && cdnResult.data?.url) {
+              logoUrl = cdnResult.data.url;
+            }
+          } catch (e) {
+            console.warn("[Graphics] CDN upload failed for logo, using base64");
+          }
+        }
+
+        if (logoUrl && brandKit) {
+          await storage.upsertBrandKit({
+            projectId: ctx.projectId,
+            brandVoice: brandKit.brandVoice,
+            taglines: brandKit.taglines,
+            colorPalette: brandKit.colorPalette,
+            fontPairings: brandKit.fontPairings,
+            messagingPillars: brandKit.messagingPillars,
+            elevatorPitch: brandKit.elevatorPitch,
+            colorsApproved: brandKit.colorsApproved,
+            colorExplanation: brandKit.colorExplanation,
+            faviconUrl: brandKit.faviconUrl,
+            logoUrl,
+            logoStyle: "minimal",
+            status: "ready",
+          });
+          console.log(`[Graphics] Logo URL saved to brand kit: ${logoUrl}`);
+        }
         
-        if (websiteContent && (heroImageB64 || heroImageUrl || logoImageB64 || faviconImageB64)) {
+        if (websiteContent && (heroImageB64 || heroImageUrl || logoData.b64 || faviconData.b64)) {
           const updatedPages = websiteContent.pages?.map((page: any) => {
             if (page.slug === "home") {
               return {
@@ -676,16 +751,12 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             return page;
           });
           
-          // Store both combination logo AND favicon icon
           const updatedGlobalContent = {
             ...websiteContent.globalContent,
-            businessName, // Store for frontend text rendering if needed
-            ...(logoImageB64 && {
-              logoB64: logoImageB64, // Full combination logo (icon + text)
-            }),
-            ...(faviconImageB64 && {
-              faviconB64: faviconImageB64, // Icon only for favicon
-            }),
+            businessName,
+            ...(logoData.b64 && { logoB64: logoData.b64 }),
+            ...(logoUrl && { logoUrl }),
+            ...(faviconData.b64 && { faviconB64: faviconData.b64 }),
           };
           
           await storage.upsertWebsiteContent({
@@ -698,12 +769,12 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             status: "completed",
           });
           
-          console.log(`[Logo Generation] Saved: logo=${!!logoImageB64}, favicon=${!!faviconImageB64}, businessName="${businessName}"`);
+          console.log(`[Graphics] Saved: hero=${!!heroImageB64 || !!heroImageUrl}, logo=${!!logoData.b64 || !!logoUrl}, favicon=${!!faviconData.b64}`);
         }
         
         return { 
           heroGenerated: heroResult.success, 
-          heroStockPhoto: !!heroImageUrl, 
+          heroStockPhoto: !!heroImageUrl && !heroImageB64,
           logoGenerated: logoResult.success,
           faviconGenerated: faviconResult.success,
         };
@@ -711,6 +782,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
     },
     {
       name: "Enhancing content with Claude storytelling",
+      optional: true,
       execute: async (ctx) => {
         const websiteContent = await storage.getWebsiteContent(ctx.projectId);
         if (!websiteContent) {
@@ -799,35 +871,63 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
         };
         
         try {
-          // Run multi-pass refinement (up to 3 passes)
           console.log("[Quality Engine] Starting quality evaluation and refinement...");
           const { content: improvedContent, report, passCount } = await runMultiPassRefinement(
             websiteContent,
             businessContext,
-            3 // Max 3 refinement passes
+            3
           );
           
           console.log(`[Quality Engine] Completed in ${passCount} passes. Overall score: ${report.scores.overall}`);
           console.log(`[Quality Engine] Verdict: ${report.overallVerdict}. Passes gate: ${report.passesQualityGate}`);
           
-          // Save the improved content
-          if (improvedContent.pages && improvedContent.pages !== websiteContent.pages) {
+          const qualityMeta = {
+            qualityScore: report.scores.overall,
+            qualityVerdict: report.overallVerdict,
+            qualityScores: report.scores,
+            passesQualityGate: report.passesQualityGate,
+            refinementPasses: passCount,
+            weakSections: report.weakSections.map(s => ({ id: s.sectionId, type: s.sectionType, score: s.score })),
+            genericPatterns: report.genericPatterns,
+            evaluatedAt: new Date().toISOString(),
+          };
+
+          const contentStatus = report.passesQualityGate ? "completed" : "needs_review";
+
+          const existingSettings = improvedContent.siteSettings || websiteContent.siteSettings || {};
+          const settingsWithQuality = {
+            ...existingSettings,
+            qualityMeta,
+          } as any;
+
+          if (improvedContent.pages) {
             await storage.upsertWebsiteContent({
               projectId: ctx.projectId,
               pages: improvedContent.pages,
-              globalContent: improvedContent.globalContent,
-              siteSettings: improvedContent.siteSettings,
-              seo: improvedContent.seo,
+              globalContent: improvedContent.globalContent || websiteContent.globalContent,
+              siteSettings: settingsWithQuality,
+              seo: improvedContent.seo || websiteContent.seo,
               providerUsed: websiteContent.providerUsed,
-              status: "completed",
+              status: contentStatus,
             });
-            console.log("[Quality Engine] Saved improved website content");
+            console.log(`[Quality Engine] Saved content with status="${contentStatus}", score=${report.scores.overall}`);
+          }
+
+          if (!report.passesQualityGate) {
+            console.warn(`[Quality Engine] QUALITY WARNING: Score ${report.scores.overall} below threshold. Status set to "needs_review".`);
+            if (report.weakSections.length > 0) {
+              console.warn(`[Quality Engine] Weak sections: ${report.weakSections.map(s => `${s.sectionType}(${s.score})`).join(', ')}`);
+            }
+            if (report.genericPatterns.length > 0) {
+              console.warn(`[Quality Engine] Generic patterns found: ${report.genericPatterns.slice(0, 5).join(', ')}`);
+            }
           }
           
-          // Store quality report in activity log for transparency
           await storage.createActivityLog({
             projectId: ctx.projectId,
-            action: "Quality evaluation completed",
+            action: report.passesQualityGate 
+              ? `Quality gate PASSED - Score: ${report.scores.overall}/100` 
+              : `Quality gate NEEDS REVIEW - Score: ${report.scores.overall}/100`,
             details: JSON.stringify({
               scores: report.scores,
               verdict: report.overallVerdict,
@@ -835,6 +935,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
               passCount,
               weakSectionsCount: report.weakSections.length,
               genericPatterns: report.genericPatterns,
+              status: contentStatus,
             }),
             status: "completed",
           });
@@ -845,21 +946,19 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             passesGate: report.passesQualityGate,
             passCount,
             sectionsImproved: report.improvementPlan.length,
+            contentStatus,
           };
         } catch (error) {
-          // Log error but don't fail the entire workflow - original content is still valid
           console.error("[Quality Engine] Error during quality evaluation:", error);
           
           await storage.createActivityLog({
             projectId: ctx.projectId,
-            action: "Quality evaluation completed",
+            action: "Quality evaluation skipped due to error",
             details: JSON.stringify({
               scores: { overall: 0, layout: 0, typography: 0, creativity: 0, heroImpact: 0, contentQuality: 0, visualDepth: 0 },
               verdict: "needs_improvement",
               passesGate: false,
               passCount: 0,
-              weakSectionsCount: 0,
-              genericPatterns: [],
               skipped: true,
               error: error instanceof Error ? error.message : "Unknown error",
             }),
@@ -875,6 +974,7 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
     },
     {
       name: "Auto-filling ALL missing images with business-specific stock photos",
+      optional: true,
       execute: async (ctx) => {
         const websiteContent = await storage.getWebsiteContent(ctx.projectId);
         if (!websiteContent || !websiteContent.pages) {
@@ -1533,6 +1633,7 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
     },
     {
       name: "Generating marketing graphics",
+      optional: true,
       execute: async (ctx) => {
         const namingResult = await storage.getNamingResult(ctx.projectId);
         const brandKit = await storage.getBrandKit(ctx.projectId);

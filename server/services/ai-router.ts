@@ -104,7 +104,7 @@ class AIRouter {
 
   async executeWithFallback<TInput, TOutput>(
     taskType: string,
-    task: string,
+    action: string,
     params: TInput,
     config: AIRouterConfig = {}
   ): Promise<ConnectorResult<TOutput>> {
@@ -115,12 +115,13 @@ class AIRouter {
       console.log(`[AIRouter] No routing for task type: ${taskType}, using capability lookup`);
       return connectorRegistry.execute<TInput, TOutput>(
         taskType as ConnectorCapability,
-        task,
+        action,
         params
       );
     }
 
     const modelsToTry = [routing.primary, ...(enableFallback ? routing.fallbacks : [])];
+    const errors: string[] = [];
     
     for (let i = 0; i < modelsToTry.length; i++) {
       const model = modelsToTry[i];
@@ -138,9 +139,14 @@ class AIRouter {
 
       for (let retry = 0; retry < maxRetries; retry++) {
         try {
-          console.log(`[AIRouter] Attempting ${model} for ${taskType}/${task} (attempt ${retry + 1})`);
+          console.log(`[AIRouter] Attempting ${model} for ${taskType}/${action} (attempt ${retry + 1})`);
           
-          const result = await connector.execute<TInput, TOutput>(task, params);
+          const connectorTask = {
+            capability: routing.capability,
+            action,
+            input: params,
+          };
+          const result = await connector.execute<TInput, TOutput>(connectorTask);
           
           if (result.success) {
             this.incrementModelCall(model);
@@ -151,6 +157,8 @@ class AIRouter {
             return result;
           }
           
+          const errMsg = `${model}: ${result.error}`;
+          errors.push(errMsg);
           console.log(`[AIRouter] ${model} returned error: ${result.error}, retry ${retry + 1}/${maxRetries}`);
           
           if (result.error?.includes("rate limit") || result.error?.includes("quota")) {
@@ -165,6 +173,7 @@ class AIRouter {
           }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "Unknown error";
+          errors.push(`${model}: ${errorMessage}`);
           console.log(`[AIRouter] ${model} threw error: ${errorMessage}`);
           
           if (retry < maxRetries - 1) {
@@ -177,11 +186,12 @@ class AIRouter {
       console.log(`[AIRouter] ${model} exhausted retries, trying next fallback`);
     }
 
-    console.log(`[AIRouter] All models failed for ${taskType}/${task}, returning graceful failure`);
+    const errorSummary = errors.length > 0 ? errors.join("; ") : "No providers available";
+    console.log(`[AIRouter] All models failed for ${taskType}/${action}: ${errorSummary}`);
     
     return {
       success: false,
-      error: `All AI models failed for ${taskType}. Please try again later.`,
+      error: `All AI providers failed for ${taskType}. Tried: ${modelsToTry.filter(m => connectorRegistry.get(m)?.isConfigured()).join(", ") || "none configured"}. Please try again later.`,
       provider: "ai_router",
     };
   }

@@ -330,6 +330,19 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
 
   return (
     <div className="space-y-6">
+      {websiteContent.status === "needs_review" && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardContent className="py-3 flex items-center gap-3 flex-wrap">
+            <Badge variant="outline" className="border-amber-500 text-amber-600 no-default-hover-elevate no-default-active-elevate">
+              Needs Review
+            </Badge>
+            <p className="text-sm text-muted-foreground">
+              Quality checks found areas that could be improved. You can still preview your site, edit sections, or regenerate to improve quality.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-lg font-semibold">Website Structure</h2>
@@ -392,8 +405,18 @@ export default function WebsitePlan({ projectId }: WebsitePlanProps) {
             </Button>
           ) : (
             <Button
-              onClick={() => publishWebsite.mutate()}
-              disabled={publishWebsite.isPending}
+              onClick={() => {
+                if (websiteContent.status === "needs_review") {
+                  toast({
+                    title: "Quality Review Needed",
+                    description: "Try regenerating your website or editing individual sections to improve quality before publishing.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                publishWebsite.mutate();
+              }}
+              disabled={publishWebsite.isPending || websiteContent.status === "needs_review"}
               data-testid="button-publish-website"
               className="w-full sm:w-auto"
             >

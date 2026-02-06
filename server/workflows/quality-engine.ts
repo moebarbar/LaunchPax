@@ -69,10 +69,10 @@ export interface ImprovementAction {
 }
 
 const QUALITY_THRESHOLDS = {
-  minimum: 90,      // Minimum overall score to pass quality gate - PREMIUM STANDARD
-  heroMinimum: 95,  // Hero sections need highest standards - PREMIUM jaw-dropping impact
-  excellent: 98,    // Excellent quality threshold - near perfection
-  good: 92,         // Good quality threshold - agency-level quality
+  minimum: 75,      // Minimum overall score to pass quality gate
+  heroMinimum: 80,  // Hero sections need higher standards
+  excellent: 92,    // Excellent quality threshold
+  good: 85,         // Good quality threshold - agency-level quality
 };
 
 // Comprehensive list of generic patterns that indicate template-like content

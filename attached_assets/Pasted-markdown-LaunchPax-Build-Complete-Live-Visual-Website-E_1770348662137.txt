@@ -1,0 +1,1776 @@
+markdown# LaunchPax: Build Complete Live Visual Website Editor System
+
+## CONTEXT
+You are building a critical platform feature for LaunchPax - an AI business operations platform. Currently, users can generate websites but editing is disconnected from the visual preview. You need to build a professional, live visual editor where users can click ANY element on their website and edit it instantly with real-time preview updates.
+
+This is a PLATFORM-LEVEL feature that must work for ALL projects, ALL industries, ALL section types, and ALL content - not just one specific website.
+
+## YOUR MISSION
+Build a complete live visual editing system with split-screen layout: live website preview on the left, context-aware editor panel on the right. Users click any element (text, image, button, background, spacing, etc.) and the editor panel instantly shows relevant controls. Changes update in real-time without save buttons.
+
+## CRITICAL ARCHITECTURE REQUIREMENTS
+
+### 1. SPLIT-SCREEN LAYOUT STRUCTURE
+
+**Desktop Layout (Main Editor View):**
+```
+┌────────────────────────────┬──────────────────────────┐
+│                            │                          │
+│   LIVE WEBSITE PREVIEW     │    EDITOR PANEL          │
+│   (60% width)              │    (40% width)           │
+│                            │                          │
+│   - Click any element      │   Context-Aware Editor:  │
+│   - Hover shows outline    │   ┌──────────────────┐  │
+│   - Selected = blue ring   │   │ Element Controls │  │
+│   - Real-time updates      │   ├──────────────────┤  │
+│                            │   │ Content Editor   │  │
+│   [Interactive Website]    │   ├──────────────────┤  │
+│                            │   │ Style Controls   │  │
+│                            │   ├──────────────────┤  │
+│                            │   │ AI Assistant     │  │
+│                            │   └──────────────────┘  │
+│                            │                          │
+│   Section Hover Toolbar:   │   Quick Actions:         │
+│   [↑][↓][⊕][⊗][⚙]        │   [Undo][Redo][Preview]  │
+└────────────────────────────┴──────────────────────────┘
+```
+
+**Mobile/Tablet: Toggle between Preview and Editor views**
+
+### 2. WHAT USERS CAN EDIT (EVERYTHING)
+
+**Text Content (Click-to-Edit):**
+- Headlines (H1, H2, H3, H4, H5, H6)
+- Paragraphs / body text
+- Button labels
+- Navigation links
+- Footer text
+- List items
+- Badges / pills / tags
+- Any text node anywhere
+
+**Images & Media:**
+- Hero images (upload, stock photo search, AI generate)
+- Section background images
+- Feature icons
+- Product images
+- Team member photos
+- Logos
+- Videos (embed URL or upload)
+
+**Styling & Design:**
+- Colors (text, background, border, overlay)
+- Typography (font family, size, weight, line-height, letter-spacing)
+- Spacing (padding, margin, gap)
+- Borders (radius, width, style, color)
+- Shadows (box-shadow, text-shadow)
+- Opacity / transparency
+- Background gradients
+- Blur effects
+
+**Layout & Structure:**
+- Section order (drag-and-drop)
+- Add new sections (12 template types)
+- Delete sections
+- Duplicate sections
+- Hide/show sections
+- Change section type
+- Column layouts (1-col, 2-col, 3-col, 4-col)
+
+**Dynamic Content Blocks:**
+- Add/remove feature cards
+- Add/remove testimonials
+- Add/remove pricing tiers
+- Add/remove team members
+- Add/remove FAQ items
+- Add/remove service offerings
+- Add/remove portfolio items
+- Add/remove step-by-step items
+
+**Advanced Controls:**
+- Animations (entrance, hover, scroll-triggered)
+- Responsive behavior (hide on mobile/desktop)
+- SEO metadata (alt text, title tags)
+- Link URLs and targets
+- Form field configurations
+- CTA button actions
+
+### 3. FRONTEND IMPLEMENTATION
+
+**Main Editor Component:**
+```tsx
+// client/src/components/editor/VisualEditor.tsx
+
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { InteractivePreview } from './InteractivePreview';
+import { EditorPanel } from './EditorPanel';
+import { SectionToolbar } from './SectionToolbar';
+import { TopToolbar } from './TopToolbar';
+
+export function VisualEditor({ projectId }: { projectId: string }) {
+  const queryClient = useQueryClient();
+  const [selectedElement, setSelectedElement] = useState(null);
+  const [hoveredSection, setHoveredSection] = useState(null);
+  const [editHistory, setEditHistory] = useState({ past: [], future: [] });
+
+  // Fetch website data
+  const { data: website } = useQuery({
+    queryKey: ['website', projectId],
+    queryFn: () => fetch(`/api/projects/${projectId}/website`).then(r => r.json())
+  });
+
+  // Real-time update mutation (optimistic updates)
+  const updateMutation = useMutation({
+    mutationFn: async (update: ElementUpdate) => {
+      const response = await fetch(`/api/projects/${projectId}/website/update`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(update)
+      });
+      return response.json();
+    },
+    onMutate: async (update) => {
+      // Optimistic update for instant UI feedback
+      await queryClient.cancelQueries({ queryKey: ['website', projectId] });
+      const previousWebsite = queryClient.getQueryData(['website', projectId]);
+      
+      queryClient.setQueryData(['website', projectId], (old: any) => {
+        return applyUpdateToWebsite(old, update);
+      });
+
+      return { previousWebsite };
+    },
+    onError: (err, update, context) => {
+      // Rollback on error
+      queryClient.setQueryData(['website', projectId], context?.previousWebsite);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['website', projectId] });
+    }
+  });
+
+  // Handle element selection
+  const handleElementClick = (element: SelectedElement) => {
+    setSelectedElement(element);
+    // Track in edit history
+    setEditHistory(prev => ({
+      past: [...prev.past, website],
+      future: []
+    }));
+  };
+
+  // Handle element changes (real-time)
+  const handleElementChange = (path: string, value: any) => {
+    updateMutation.mutate({
+      projectId,
+      path,
+      value,
+      timestamp: Date.now()
+    });
+  };
+
+  // Undo/Redo
+  const handleUndo = () => {
+    if (editHistory.past.length === 0) return;
+    const previous = editHistory.past[editHistory.past.length - 1];
+    setEditHistory({
+      past: editHistory.past.slice(0, -1),
+      future: [website, ...editHistory.future]
+    });
+    queryClient.setQueryData(['website', projectId], previous);
+  };
+
+  const handleRedo = () => {
+    if (editHistory.future.length === 0) return;
+    const next = editHistory.future[0];
+    setEditHistory({
+      past: [...editHistory.past, website],
+      future: editHistory.future.slice(1)
+    });
+    queryClient.setQueryData(['website', projectId], next);
+  };
+
+  if (!website) return ;
+
+  return (
+    
+      
+      {/* Top Toolbar */}
+       0}
+        canRedo={editHistory.future.length > 0}
+        onPreview={() => window.open(`/preview/${projectId}`, '_blank')}
+        onPublish={() => handlePublish(projectId)}
+      />
+
+      {/* Left: Live Preview */}
+      
+        
+      
+
+      {/* Right: Editor Panel */}
+      
+        <EditorPanel
+          selectedElement={selectedElement}
+          website={website}
+          onChange={handleElementChange}
+          onClose={() => setSelectedElement(null)}
+        />
+      
+
+    
+  );
+}
+
+// Helper to apply updates to website data structure
+function applyUpdateToWebsite(website: any, update: ElementUpdate) {
+  const cloned = JSON.parse(JSON.stringify(website));
+  const pathParts = update.path.split('.');
+  
+  let current = cloned;
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    const part = pathParts[i];
+    const arrayMatch = part.match(/(.+)\[(\d+)\]/);
+    
+    if (arrayMatch) {
+      const [, arrayName, index] = arrayMatch;
+      current = current[arrayName][parseInt(index)];
+    } else {
+      current = current[part];
+    }
+  }
+  
+  const finalKey = pathParts[pathParts.length - 1];
+  current[finalKey] = update.value;
+  
+  return cloned;
+}
+
+interface SelectedElement {
+  type: 'text' | 'image' | 'section' | 'block' | 'style' | 'spacing';
+  sectionId: string;
+  sectionIndex: number;
+  path: string; // e.g., "sections[0].hero.headline"
+  value: any;
+  label: string; // Human-readable label
+  elementRef?: HTMLElement;
+}
+
+interface ElementUpdate {
+  projectId: string;
+  path: string;
+  value: any;
+  timestamp: number;
+}
+
+interface EditHistory {
+  past: any[];
+  future: any[];
+}
+```
+
+**Interactive Preview Component:**
+```tsx
+// client/src/components/editor/InteractivePreview.tsx
+
+import { cn } from '@/lib/utils';
+import { SectionHoverToolbar } from './SectionHoverToolbar';
+
+export function InteractivePreview({
+  website,
+  selectedElement,
+  hoveredSection,
+  onElementClick,
+  onElementHover,
+  onElementChange
+}: InteractivePreviewProps) {
+
+  return (
+    
+      
+      {website.sections.map((section: any, index: number) => (
+        <div
+          key={section.id}
+          className="relative group"
+          onMouseEnter={() => onElementHover(section.id)}
+          onMouseLeave={() => onElementHover(null)}
+        >
+          
+          {/* Section Hover Toolbar */}
+          {hoveredSection === section.id && (
+            <SectionHoverToolbar
+              section={section}
+              sectionIndex={index}
+              totalSections={website.sections.length}
+              onMoveUp={() => onElementChange(`sections`, moveSection(website.sections, index, index - 1))}
+              onMoveDown={() => onElementChange(`sections`, moveSection(website.sections, index, index + 1))}
+              onDuplicate={() => onElementChange(`sections`, duplicateSection(website.sections, index))}
+              onDelete={() => onElementChange(`sections`, deleteSection(website.sections, index))}
+              onSettings={() => onElementClick({
+                type: 'section',
+                sectionId: section.id,
+                sectionIndex: index,
+                path: `sections[${index}]`,
+                value: section,
+                label: `${section.type} Section Settings`
+              })}
+            />
+          )}
+
+          {/* Editable Section */}
+          
+
+        
+      ))}
+
+      {/* Add Section Button */}
+      <AddSectionButton
+        onClick={() => {
+          // Show section template picker
+        }}
+      />
+
+    
+  );
+}
+
+// Editable Section - Makes EVERY element clickable
+function EditableSection({ 
+  section, 
+  sectionIndex, 
+  selectedElement, 
+  onElementClick 
+}: EditableSectionProps) {
+
+  const isSelected = selectedElement?.sectionId === section.id;
+
+  return (
+    
+      
+      {/* Section background click */}
+      <div
+        className="absolute inset-0 z-0"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onElementClick({
+              type: 'section',
+              sectionId: section.id,
+              sectionIndex,
+              path: `sections[${sectionIndex}]`,
+              value: section,
+              label: `${section.type} Section`
+            });
+          }
+        }}
+      />
+
+      {/* Section content - render based on type */}
+      
+        {renderSectionContent(section, sectionIndex, selectedElement, onElementClick)}
+      
+
+    
+  );
+}
+
+// Render content based on section type
+function renderSectionContent(
+  section: any,
+  sectionIndex: number,
+  selectedElement: SelectedElement | null,
+  onElementClick: (element: SelectedElement) => void
+) {
+  
+  switch (section.type) {
+    case 'hero':
+      return ;
+    
+    case 'features':
+      return ;
+    
+    case 'testimonials':
+      return ;
+    
+    case 'cta':
+      return ;
+    
+    // ... handle all 12 section types
+    
+    default:
+      return Unknown section type: {section.type};
+  }
+}
+
+// Example: Editable Hero Section
+function EditableHeroSection({ section, sectionIndex, selectedElement, onElementClick }: any) {
+  
+  const basePath = `sections[${sectionIndex}]`;
+  
+  return (
+    
+      
+      {/* Left: Hero Content */}
+      
+        
+        {/* Headline - Click to edit */}
+        
+
+        {/* Subheadline */}
+        
+
+        {/* CTA Buttons */}
+        
+          
+          
+          {section.hero.ctaSecondary && (
+            
+          )}
+        
+
+      
+
+      {/* Right: Hero Image */}
+      
+
+    
+  );
+}
+
+// Reusable Editable Text Component
+function EditableText({ 
+  value, 
+  path, 
+  label, 
+  className, 
+  selectedElement, 
+  onElementClick 
+}: EditableTextProps) {
+  
+  const isSelected = selectedElement?.path === path;
+
+  return (
+    <div
+      className={cn(
+        "cursor-pointer transition-all rounded",
+        "hover:outline hover:outline-2 hover:outline-blue-300",
+        isSelected && "outline outline-2 outline-blue-500"
+      )}
+      onClick={() => onElementClick({
+        type: 'text',
+        sectionId: path.split('[')[1]?.split(']')[0] || '',
+        sectionIndex: parseInt(path.match(/\[(\d+)\]/)?.[1] || '0'),
+        path,
+        value,
+        label
+      })}
+    >
+      
+        {value}
+      
+    
+  );
+}
+
+// Reusable Editable Image Component
+function EditableImage({ 
+  image, 
+  path, 
+  label, 
+  selectedElement, 
+  onElementClick 
+}: EditableImageProps) {
+  
+  const isSelected = selectedElement?.path === path;
+
+  return (
+    <div
+      className={cn(
+        "cursor-pointer transition-all rounded-lg overflow-hidden",
+        "hover:ring-2 hover:ring-blue-300",
+        isSelected && "ring-4 ring-blue-500"
+      )}
+      onClick={() => onElementClick({
+        type: 'image',
+        sectionId: path.split('[')[1]?.split(']')[0] || '',
+        sectionIndex: parseInt(path.match(/\[(\d+)\]/)?.[1] || '0'),
+        path,
+        value: image,
+        label
+      })}
+    >
+      
+      
+      {isSelected && (
+        
+          Click to change
+        
+      )}
+    
+  );
+}
+
+// Reusable Editable Button Component
+function EditableButton({ 
+  button, 
+  path, 
+  label, 
+  selectedElement, 
+  onElementClick 
+}: EditableButtonProps) {
+  
+  const isSelected = selectedElement?.path === path;
+
+  return (
+    <button
+      className={cn(
+        "px-6 py-3 rounded-lg font-semibold transition-all",
+        "hover:ring-2 hover:ring-blue-300",
+        isSelected && "ring-4 ring-blue-500",
+        button.variant === 'primary' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900'
+      )}
+      style={{
+        backgroundColor: button.style?.backgroundColor,
+        color: button.style?.color
+      }}
+      onClick={(e) => {
+        e.preventDefault();
+        onElementClick({
+          type: 'block',
+          sectionId: path.split('[')[1]?.split(']')[0] || '',
+          sectionIndex: parseInt(path.match(/\[(\d+)\]/)?.[1] || '0'),
+          path,
+          value: button,
+          label
+        });
+      }}
+    >
+      {button.text}
+    
+  );
+}
+
+interface EditableTextProps {
+  value: string;
+  path: string;
+  label: string;
+  className?: string;
+  selectedElement: SelectedElement | null;
+  onElementClick: (element: SelectedElement) => void;
+}
+
+interface EditableImageProps {
+  image: { url: string; alt?: string };
+  path: string;
+  label: string;
+  selectedElement: SelectedElement | null;
+  onElementClick: (element: SelectedElement) => void;
+}
+
+interface EditableButtonProps {
+  button: { text: string; variant: string; style?: any; url?: string };
+  path: string;
+  label: string;
+  selectedElement: SelectedElement | null;
+  onElementClick: (element: SelectedElement) => void;
+}
+```
+
+**Section Hover Toolbar:**
+```tsx
+// client/src/components/editor/SectionHoverToolbar.tsx
+
+import { ArrowUp, ArrowDown, Copy, Trash2, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+export function SectionHoverToolbar({
+  section,
+  sectionIndex,
+  totalSections,
+  onMoveUp,
+  onMoveDown,
+  onDuplicate,
+  onDelete,
+  onSettings
+}: SectionHoverToolbarProps) {
+
+  return (
+    
+      
+      {/* Move Up */}
+      {sectionIndex > 0 && (
+        
+          
+        
+      )}
+
+      {/* Move Down */}
+      {sectionIndex < totalSections - 1 && (
+        
+          
+        
+      )}
+
+      {/* Duplicate */}
+      
+        
+      
+
+      {/* Settings */}
+      
+        
+      
+
+      {/* Delete */}
+      
+        
+      
+
+    
+  );
+}
+```
+
+**Editor Panel (Right Side):**
+```tsx
+// client/src/components/editor/EditorPanel.tsx
+
+import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TextEditor } from './editors/TextEditor';
+import { ImageEditor } from './editors/ImageEditor';
+import { StyleEditor } from './editors/StyleEditor';
+import { SectionEditor } from './editors/SectionEditor';
+
+export function EditorPanel({
+  selectedElement,
+  website,
+  onChange,
+  onClose
+}: EditorPanelProps) {
+
+  if (!selectedElement) {
+    return (
+      
+        
+          No element selected
+          Click any element on the website to edit it
+        
+      
+    );
+  }
+
+  return (
+    
+      
+      {/* Header */}
+      
+        
+          {selectedElement.label}
+          {selectedElement.path}
+        
+        
+          
+        
+      
+
+      {/* Editor Content - Tabs for different edit modes */}
+      
+        
+        
+          Content
+          Style
+          AI Assist
+        
+
+        {/* Content Tab */}
+        
+          {selectedElement.type === 'text' && (
+            <TextEditor
+              value={selectedElement.value}
+              onChange={(newValue) => onChange(selectedElement.path, newValue)}
+            />
+          )}
+
+          {selectedElement.type === 'image' && (
+            <ImageEditor
+              image={selectedElement.value}
+              onChange={(newImage) => onChange(selectedElement.path, newImage)}
+            />
+          )}
+
+          {selectedElement.type === 'section' && (
+            <SectionEditor
+              section={selectedElement.value}
+              onChange={(newSection) => onChange(selectedElement.path, newSection)}
+            />
+          )}
+
+          {selectedElement.type === 'block' && (
+            <BlockEditor
+              block={selectedElement.value}
+              onChange={(newBlock) => onChange(selectedElement.path, newBlock)}
+            />
+          )}
+        
+
+        {/* Style Tab */}
+        
+          <StyleEditor
+            element={selectedElement}
+            onChange={(stylePath, styleValue) => {
+              onChange(`${selectedElement.path}.style.${stylePath}`, styleValue);
+            }}
+          />
+        
+
+        {/* AI Assist Tab */}
+        
+          <AIAssistEditor
+            element={selectedElement}
+            onChange={(newValue) => onChange(selectedElement.path, newValue)}
+          />
+        
+
+      
+
+    
+  );
+}
+
+interface EditorPanelProps {
+  selectedElement: SelectedElement | null;
+  website: any;
+  onChange: (path: string, value: any) => void;
+  onClose: () => void;
+}
+```
+
+**Text Editor:**
+```tsx
+// client/src/components/editor/editors/TextEditor.tsx
+
+import { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Bold, Italic, Link } from 'lucide-react';
+
+export function TextEditor({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  
+  const [localValue, setLocalValue] = useState(value);
+
+  // Update on blur or every 500ms
+  const handleChange = (newValue: string) => {
+    setLocalValue(newValue);
+    // Debounce real-time updates
+    clearTimeout((window as any).textEditorTimeout);
+    (window as any).textEditorTimeout = setTimeout(() => {
+      onChange(newValue);
+    }, 500);
+  };
+
+  return (
+    
+      
+      
+        Text Content
+        <Textarea
+          value={localValue}
+          onChange={(e) => handleChange(e.target.value)}
+          className="mt-2 min-h-[120px]"
+          placeholder="Enter text content..."
+        />
+      
+
+      {/* Character count */}
+      
+        {localValue.length} characters
+      
+
+      {/* Quick Actions */}
+      
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            const upper = localValue.toUpperCase();
+            setLocalValue(upper);
+            onChange(upper);
+          }}
+        >
+          UPPERCASE
+        
+        
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            const title = localValue
+              .toLowerCase()
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+            setLocalValue(title);
+            onChange(title);
+          }}
+        >
+          Title Case
+        
+      
+
+    
+  );
+}
+```
+
+**Image Editor:**
+```tsx
+// client/src/components/editor/editors/ImageEditor.tsx
+
+import { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload, Search, Sparkles } from 'lucide-react';
+
+export function ImageEditor({ 
+  image, 
+  onChange 
+}: { 
+  image: { url: string; alt?: string }; 
+  onChange: (image: any) => void;
+}) {
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [stockPhotos, setStockPhotos] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleStockPhotoSearch = async () => {
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/stock-photos/search?query=${searchQuery}`);
+      const photos = await response.json();
+      setStockPhotos(photos);
+    } catch (error) {
+      console.error('Stock photo search failed:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/upload/image', {
+      method: 'POST',
+      body: formData
+    });
+
+    const { url } = await response.json();
+    onChange({ ...image, url });
+  };
+
+  const handleAIGenerate = async () => {
+    // Trigger AI image generation
+    const response = await fetch('/api/ai/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: image.alt || 'professional business image',
+        style: 'photographic'
+      })
+    });
+
+    const { url } = await response.json();
+    onChange({ ...image, url });
+  };
+
+  return (
+    
+      
+      {/* Current Image */}
+      
+        Current Image
+        
+          
+        
+      
+
+      {/* Alt Text */}
+      
+        Alt Text (SEO)
+        <Input
+          value={image.alt || ''}
+          onChange={(e) => onChange({ ...image, alt: e.target.value })}
+          placeholder="Describe this image..."
+          className="mt-2"
+        />
+      
+
+      {/* Change Image Options */}
+      
+        
+        
+          
+            
+            Upload
+          
+          
+            
+            Stock
+          
+          
+            
+            AI Generate
+          
+        
+
+        {/* Upload Tab */}
+        
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileUpload(file);
+            }}
+          />
+        
+
+        {/* Stock Photos Tab */}
+        
+          
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search stock photos..."
+              onKeyDown={(e) => e.key === 'Enter' && handleStockPhotoSearch()}
+            />
+            
+              {isSearching ? 'Searching...' : 'Search'}
+            
+          
+
+          {/* Stock Photo Results */}
+          {stockPhotos.length > 0 && (
+            
+              {stockPhotos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="cursor-pointer border rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500"
+                  onClick={() => onChange({ url: photo.url, alt: photo.description })}
+                >
+                  
+                
+              ))}
+            
+          )}
+        
+
+        {/* AI Generate Tab */}
+        
+          
+            Generate a new image using AI based on the current alt text
+          
+          
+            
+            Generate AI Image
+          
+        
+
+      
+
+    
+  );
+}
+```
+
+**Style Editor:**
+```tsx
+// client/src/components/editor/editors/StyleEditor.tsx
+
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+export function StyleEditor({ 
+  element, 
+  onChange 
+}: { 
+  element: SelectedElement; 
+  onChange: (stylePath: string, value: any) => void;
+}) {
+
+  const currentStyle = element.value.style || {};
+
+  return (
+    
+      
+      {/* Colors */}
+      
+        Colors
+        
+        
+          Text Color
+          <Input
+            type="color"
+            value={currentStyle.color || '#000000'}
+            onChange={(e) => onChange('color', e.target.value)}
+            className="mt-1 h-10"
+          />
+        
+
+        
+          Background Color
+          <Input
+            type="color"
+            value={currentStyle.backgroundColor || '#ffffff'}
+            onChange={(e) => onChange('backgroundColor', e.target.value)}
+            className="mt-1 h-10"
+          />
+        
+      
+
+      {/* Typography */}
+      {element.type === 'text' && (
+        
+          Typography
+          
+          
+            Font Size (px)
+            <Slider
+              value={[parseInt(currentStyle.fontSize) || 16]}
+              onValueChange={([value]) => onChange('fontSize', `${value}px`)}
+              min={12}
+              max={96}
+              step={1}
+              className="mt-2"
+            />
+            
+              {parseInt(currentStyle.fontSize) || 16}px
+            
+          
+
+          
+            Font Weight
+            <Select
+              value={currentStyle.fontWeight || '400'}
+              onValueChange={(value) => onChange('fontWeight', value)}
+            >
+              
+                
+              
+              
+                Light (300)
+                Regular (400)
+                Medium (500)
+                Semibold (600)
+                Bold (700)
+                Extra Bold (800)
+              
+            
+          
+
+          
+            Line Height
+            <Slider
+              value={[parseFloat(currentStyle.lineHeight) || 1.5]}
+              onValueChange={([value]) => onChange('lineHeight', value.toString())}
+              min={1}
+              max={3}
+              step={0.1}
+              className="mt-2"
+            />
+            
+              {parseFloat(currentStyle.lineHeight) || 1.5}
+            
+          
+
+          
+            Letter Spacing (em)
+            <Slider
+              value={[parseFloat(currentStyle.letterSpacing) || 0]}
+              onValueChange={([value]) => onChange('letterSpacing', `${value}em`)}
+              min={-0.1}
+              max={0.5}
+              step={0.01}
+              className="mt-2"
+            />
+            
+              {parseFloat(currentStyle.letterSpacing) || 0}em
+            
+          
+        
+      )}
+
+      {/* Spacing */}
+      
+        Spacing
+        
+        
+          Padding (px)
+          <Slider
+            value={[parseInt(currentStyle.padding) || 0]}
+            onValueChange={([value]) => onChange('padding', `${value}px`)}
+            min={0}
+            max={100}
+            step={4}
+            className="mt-2"
+          />
+          
+            {parseInt(currentStyle.padding) || 0}px
+          
+        
+
+        
+          Margin (px)
+          <Slider
+            value={[parseInt(currentStyle.margin) || 0]}
+            onValueChange={([value]) => onChange('margin', `${value}px`)}
+            min={0}
+            max={100}
+            step={4}
+            className="mt-2"
+          />
+          
+            {parseInt(currentStyle.margin) || 0}px
+          
+        
+      
+
+      {/* Borders */}
+      
+        Borders
+        
+        
+          Border Radius (px)
+          <Slider
+            value={[parseInt(currentStyle.borderRadius) || 0]}
+            onValueChange={([value]) => onChange('borderRadius', `${value}px`)}
+            min={0}
+            max={50}
+            step={1}
+            className="mt-2"
+          />
+          
+            {parseInt(currentStyle.borderRadius) || 0}px
+          
+        
+
+        
+          Border Color
+          <Input
+            type="color"
+            value={currentStyle.borderColor || '#000000'}
+            onChange={(e) => onChange('borderColor', e.target.value)}
+            className="mt-1 h-10"
+          />
+        
+      
+
+      {/* Effects */}
+      
+        Effects
+        
+        
+          Opacity
+          <Slider
+            value={[parseFloat(currentStyle.opacity) || 1]}
+            onValueChange={([value]) => onChange('opacity', value.toString())}
+            min={0}
+            max={1}
+            step={0.1}
+            className="mt-2"
+          />
+          
+            {Math.round((parseFloat(currentStyle.opacity) || 1) * 100)}%
+          
+        
+
+        
+          Shadow
+          <Select
+            value={currentStyle.boxShadow || 'none'}
+            onValueChange={(value) => onChange('boxShadow', value)}
+          >
+            
+              
+            
+            
+              None
+              Small
+              Medium
+              Large
+              Extra Large
+            
+          
+        
+      
+
+    
+  );
+}
+```
+
+**AI Assist Editor:**
+```tsx
+// client/src/components/editor/editors/AIAssistEditor.tsx
+
+import { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Wand2, RotateCcw } from 'lucide-react';
+
+export function AIAssistEditor({ 
+  element, 
+  onChange 
+}: { 
+  element: SelectedElement; 
+  onChange: (value: any) => void;
+}) {
+
+  const [prompt, setPrompt] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+
+  const handleAIRefine = async () => {
+    setIsRefining(true);
+    try {
+      const response = await fetch('/api/ai/refine-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentValue: element.value,
+          elementType: element.type,
+          instruction: prompt
+        })
+      });
+
+      const { refined } = await response.json();
+      onChange(refined);
+      setPrompt('');
+    } catch (error) {
+      console.error('AI refinement failed:', error);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const handleQuickAction = async (action: string) => {
+    setIsRefining(true);
+    try {
+      const response = await fetch('/api/ai/quick-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentValue: element.value,
+          elementType: element.type,
+          action
+        })
+      });
+
+      const { result } = await response.json();
+      onChange(result);
+    } catch (error) {
+      console.error('Quick action failed:', error);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const handleGenerateVariations = async () => {
+    setIsRefining(true);
+    try {
+      const response = await fetch('/api/ai/generate-variations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentValue: element.value,
+          elementType: element.type,
+          count: 3
+        })
+      });
+
+      const { variations } = await response.json();
+      setSuggestions(variations);
+    } catch (error) {
+      console.error('Variation generation failed:', error);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  return (
+    
+      
+      {/* Custom AI Instruction */}
+      
+        AI Refinement
+        
+          Tell AI how to improve this {element.type}
+        
+        
+        <Textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="e.g., 'Make it more professional', 'Add urgency', 'Simplify the language'..."
+          className="min-h-[100px]"
+        />
+
+        
+          
+          {isRefining ? 'Refining...' : 'Refine with AI'}
+        
+      
+
+      {/* Quick Actions */}
+      
+        Quick Improvements
+        
+        
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('make_shorter')}
+            disabled={isRefining}
+          >
+            Make Shorter
+          
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('make_longer')}
+            disabled={isRefining}
+          >
+            Make Longer
+          
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('more_professional')}
+            disabled={isRefining}
+          >
+            More Professional
+          
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('more_casual')}
+            disabled={isRefining}
+          >
+            More Casual
+          
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('add_urgency')}
+            disabled={isRefining}
+          >
+            Add Urgency
+          
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('simplify')}
+            disabled={isRefining}
+          >
+            Simplify
+          
+        
+      
+
+      {/* Generate Variations */}
+      
+        Variations
+        
+        
+          
+          Generate 3 Variations
+        
+
+        {/* Show variations */}
+        {suggestions.length > 0 && (
+          
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  onChange(suggestion);
+                  setSuggestions([]);
+                }}
+              >
+                {suggestion}
+                
+                  Use This Version
+                
+              
+            ))}
+          
+        )}
+      
+
+      {/* Reset to Original */}
+      <Button
+        variant="outline"
+        className="w-full"
+        onClick={() => {
+          // Fetch original value from version history
+          // onChange(originalValue);
+        }}
+      >
+        
+        Reset to Original
+      
+
+    
+  );
+}
+```
+
+### 4. BACKEND API ENDPOINTS
+
+**Update Endpoint (Real-time Changes):**
+```typescript
+// server/routes/website-editor.ts
+
+import { Router } from 'express';
+import { db } from '../db';
+import { projects, websiteContent } from '../db/schema';
+import { eq } from 'drizzle-orm';
+
+const router = Router();
+
+// PATCH /api/projects/:projectId/website/update
+// Real-time element update
+router.patch('/:projectId/website/update', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { path, value, timestamp } = req.body;
+
+    // Get current website data
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+      with: { websiteContent: true }
+    });
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // Apply update to website content
+    const updatedContent = applyUpdate(
+      project.websiteContent,
+      path,
+      value
+    );
+
+    // Save to database
+    await db.update(websiteContent)
+      .set({
+        content: updatedContent,
+        updatedAt: new Date()
+      })
+      .where(eq(websiteContent.projectId, projectId));
+
+    // Track change in version history
+    await db.insert(websiteVersionHistory).values({
+      projectId,
+      path,
+      previousValue: getValueAtPath(project.websiteContent, path),
+      newValue: value,
+      timestamp: new Date(timestamp)
+    });
+
+    res.json({ success: true, content: updatedContent });
+
+  } catch (error) {
+    console.error('Update failed:', error);
+    res.status(500).json({ error: 'Failed to update website' });
+  }
+});
+
+// POST /api/ai/refine-content
+// AI-powered content refinement
+router.post('/ai/refine-content', async (req, res) => {
+  try {
+    const { currentValue, elementType, instruction } = req.body;
+
+    const systemPrompt = `You are a professional copywriter refining website content.
+Current content: "${currentValue}"
+Element type: ${elementType}
+User instruction: "${instruction}"
+
+Provide ONLY the refined content, no explanation.`;
+
+    const response = await aiRouter.chat({
+      model: 'gpt-4o',
+      prompt: systemPrompt,
+      temperature: 0.7
+    });
+
+    res.json({ refined: response.content.trim() });
+
+  } catch (error) {
+    console.error('AI refinement failed:', error);
+    res.status(500).json({ error: 'AI refinement failed' });
+  }
+});
+
+// POST /api/ai/quick-action
+// Quick AI improvements
+router.post('/ai/quick-action', async (req, res) => {
+  try {
+    const { currentValue, elementType, action } = req.body;
+
+    const actionPrompts: Record = {
+      make_shorter: 'Rewrite this to be 30% shorter while keeping the key message',
+      make_longer: 'Expand this with more detail and context',
+      more_professional: 'Rewrite this in a more professional, corporate tone',
+      more_casual: 'Rewrite this in a friendly, conversational tone',
+      add_urgency: 'Add a sense of urgency and FOMO to this content',
+      simplify: 'Simplify the language to be more accessible'
+    };
+
+    const instruction = actionPrompts[action];
+    if (!instruction) {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+
+    const systemPrompt = `${instruction}
+
+Current content: "${currentValue}"
+
+Provide ONLY the rewritten content.`;
+
+    const response = await aiRouter.chat({
+      model: 'gpt-4o',
+      prompt: systemPrompt,
+      temperature: 0.7
+    });
+
+    res.json({ result: response.content.trim() });
+
+  } catch (error) {
+    console.error('Quick action failed:', error);
+    res.status(500).json({ error: 'Quick action failed' });
+  }
+});
+
+// POST /api/ai/generate-variations
+// Generate multiple variations
+router.post('/ai/generate-variations', async (req, res) => {
+  try {
+    const { currentValue, elementType, count = 3 } = req.body;
+
+    const systemPrompt = `Generate ${count} different variations of this ${elementType}:
+"${currentValue}"
+
+Requirements:
+- Each variation should have a different strategic approach
+- Maintain similar length
+- Keep the core message but vary the angle
+
+Respond ONLY with a JSON array of strings, no explanation:
+["variation 1", "variation 2", "variation 3"]`;
+
+    const response = await aiRouter.chat({
+      model: 'gpt-4o',
+      prompt: systemPrompt,
+      temperature: 0.9,
+      response_format: { type: 'json_object' }
+    });
+
+    const variations = JSON.parse(response.content);
+    res.json({ variations: variations.variations || variations });
+
+  } catch (error) {
+    console.error('Variation generation failed:', error);
+    res.status(500).json({ error: 'Variation generation failed' });
+  }
+});
+
+export default router;
+
+// Helper functions
+function applyUpdate(content: any, path: string, value: any) {
+  const cloned = JSON.parse(JSON.stringify(content));
+  const pathParts = path.split('.');
+  
+  let current = cloned;
+  for (let i = 0; i < pathParts.length - 1; i++) {
+    const part = pathParts[i];
+    const arrayMatch = part.match(/(.+)\[(\d+)\]/);
+    
+    if (arrayMatch) {
+      const [, arrayName, index] = arrayMatch;
+      current = current[arrayName][parseInt(index)];
+    } else {
+      current = current[part];
+    }
+  }
+  
+  const finalKey = pathParts[pathParts.length - 1];
+  current[finalKey] = value;
+  
+  return cloned;
+}
+
+function getValueAtPath(content: any, path: string) {
+  const pathParts = path.split('.');
+  let current = content;
+  
+  for (const part of pathParts) {
+    const arrayMatch = part.match(/(.+)\[(\d+)\]/);
+    if (arrayMatch) {
+      const [, arrayName, index] = arrayMatch;
+      current = current[arrayName][parseInt(index)];
+    } else {
+      current = current[part];
+    }
+  }
+  
+  return current;
+}
+```
+
+### 5. DATABASE SCHEMA ADDITIONS
+```typescript
+// server/db/schema.ts
+
+export const websiteVersionHistory = pgTable('website_version_history', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text('project_id').references(() => projects.id).notNull(),
+  path: text('path').notNull(), // e.g., "sections[0].hero.headline"
+  previousValue: jsonb('previous_value'),
+  newValue: jsonb('new_value'),
+  timestamp: timestamp('timestamp').notNull(),
+  userId: text('user_id').notNull()
+});
+
+export const websiteEditSessions = pgTable('website_edit_sessions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text('project_id').references(() => projects.id).notNull(),
+  userId: text('user_id').notNull(),
+  startedAt: timestamp('started_at').notNull(),
+  endedAt: timestamp('ended_at'),
+  totalEdits: integer('total_edits').default(0),
+  aiAssistsUsed: integer('ai_assists_used').default(0)
+});
+```
+
+### 6. KEYBOARD SHORTCUTS & UX ENHANCEMENTS
+```typescript
+// client/src/components/editor/KeyboardShortcuts.tsx
+
+import { useEffect } from 'react';
+
+export function useEditorKeyboardShortcuts({
+  onUndo,
+  onRedo,
+  onSave,
+  onPreview
+}: {
+  onUndo: () => void;
+  onRedo: () => void;
+  onSave: () => void;
+  onPreview: () => void;
+}) {
+  
+  useEffect(() => {
+    const handleKeyboard = (e: KeyboardEvent) => {
+      
+      // Undo: Cmd/Ctrl + Z
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        onUndo();
+      }
+
+      // Redo: Cmd/Ctrl + Shift + Z
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        onRedo();
+      }
+
+      // Save: Cmd/Ctrl + S
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        onSave();
+      }
+
+      // Preview: Cmd/Ctrl + P
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault();
+        onPreview();
+      }
+
+      // Escape: Close editor panel
+      if (e.key === 'Escape') {
+        document.dispatchEvent(new CustomEvent('close-editor-panel'));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboard);
+    return () => window.removeEventListener('keydown', handleKeyboard);
+  }, [onUndo, onRedo, onSave, onPreview]);
+}
+```
+
+## SUCCESS CRITERIA
+
+You'll know this is working when:
+✅ User can click ANY element and see editor panel instantly
+✅ Changes appear in preview within 500ms (real-time feel)
+✅ No "Save" button needed - everything auto-saves
+✅ Undo/Redo works across all edits
+✅ AI refinement improves content quality
+✅ Users can edit without leaving the visual context
+✅ Works for ALL section types, ALL content types
+✅ Mobile responsive (toggle between preview/editor)
+✅ Keyboard shortcuts work (Cmd+Z, Cmd+S, etc.)
+✅ Version history tracks every change
+
+## PLATFORM-LEVEL REQUIREMENTS
+
+This editor must:
+- Work for EVERY project (tech, healthcare, retail, services, etc.)
+- Handle ALL 12 section types (hero, features, testimonials, etc.)
+- Support ALL content types (text, images, videos, icons, etc.)
+- Scale to websites with 20+ sections
+- Perform well even with slow network (optimistic updates)
+- Be accessible (keyboard navigation, screen readers)
+- Track analytics (which elements are edited most, AI usage rates)
+
+## DEVELOPMENT APPROACH
+
+1. Start with basic split-screen layout
+2. Add click-to-select for text elements only
+3. Build text editor panel
+4. Add real-time updates with optimistic UI
+5. Expand to images, then sections, then styles
+6. Add AI assistance features
+7. Implement undo/redo
+8. Add keyboard shortcuts
+9. Polish UX (hover states, transitions, feedback)
+10. Test with 10 different project types
+
+Build incrementally - each phase should be functional and testable.
+
+---
+
+# BEGIN IMPLEMENTATION
+
+Start by creating the main VisualEditor component with split-screen layout. Show me the initial component structure before proceeding to the interactive features. Sonnet 4.5Claude is AI and can make mistakes. Please double-check responses.

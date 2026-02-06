@@ -102,7 +102,7 @@ class ConnectorRegistry {
 
   /**
    * Execute a task using the best available connector
-   * Falls back to mock connector if the primary one fails
+   * Tries ALL configured providers for the capability before falling back to mock
    */
   async execute<I, O>(
     capability: ConnectorCapability,
@@ -112,42 +112,44 @@ class ConnectorRegistry {
   ): Promise<ConnectorResult<O>> {
     const providers = this.getByCapability(capability);
     const mockConnector = providers.find(p => p.key.endsWith("_mock"));
+    const errors: string[] = [];
     
-    // Helper to try executing with fallback
     const tryExecute = async (connector: ConnectorDefinition): Promise<ConnectorResult<O>> => {
       const task: ConnectorTask<I> = { capability, action, input };
       return await connector.execute<I, O>(task);
     };
-    
-    // Try preferred connector first if specified
-    if (options?.preferredConnector) {
-      const preferred = this.connectors.get(options.preferredConnector);
-      if (preferred?.isConfigured() && preferred.capabilities.includes(capability)) {
-        try {
-          const result = await tryExecute(preferred);
-          if (result.success) return result;
-          
-          // If preferred failed, try fallback to mock
-          if (mockConnector && mockConnector.isConfigured()) {
-            console.log(`[ConnectorRegistry] ${preferred.key} failed, falling back to mock: ${result.error}`);
-            return await tryExecute(mockConnector);
-          }
-          return result;
-        } catch (error) {
-          // On exception, try mock fallback
-          if (mockConnector && mockConnector.isConfigured()) {
-            console.log(`[ConnectorRegistry] ${preferred.key} threw error, falling back to mock`);
-            return await tryExecute(mockConnector);
-          }
-          throw error;
+
+    const buildProviderOrder = (preferred?: string): ConnectorDefinition[] => {
+      const realProviders = providers.filter(p => !p.key.endsWith("_mock") && p.isConfigured());
+      const ordered: ConnectorDefinition[] = [];
+      const seen = new Set<string>();
+
+      if (preferred) {
+        const pref = this.connectors.get(preferred);
+        if (pref?.isConfigured() && pref.capabilities.includes(capability)) {
+          ordered.push(pref);
+          seen.add(pref.key);
         }
       }
+
+      for (const p of realProviders) {
+        if (!seen.has(p.key)) {
+          ordered.push(p);
+          seen.add(p.key);
+        }
+      }
+
+      return ordered;
+    };
+
+    const providersToTry = buildProviderOrder(options?.preferredConnector);
+
+    if (providersToTry.length === 0 && mockConnector?.isConfigured()) {
+      console.log(`[ConnectorRegistry] No real providers for ${capability}, using mock`);
+      return await tryExecute(mockConnector);
     }
 
-    // Get best available connector for this capability
-    const connector = this.getBestForCapability(capability);
-    
-    if (!connector) {
+    if (providersToTry.length === 0) {
       return {
         success: false,
         error: `No connector available for capability: ${capability}`,
@@ -155,42 +157,38 @@ class ConnectorRegistry {
       };
     }
 
-    if (!connector.isConfigured()) {
-      // If main connector is not configured, try mock fallback
-      if (mockConnector && mockConnector.isConfigured() && connector.key !== mockConnector.key) {
-        console.log(`[ConnectorRegistry] ${connector.key} is not configured, falling back to mock`);
-        return await tryExecute(mockConnector);
+    for (const connector of providersToTry) {
+      try {
+        console.log(`[ConnectorRegistry] Trying ${connector.key} for ${capability}/${action}`);
+        const result = await tryExecute(connector);
+        
+        if (result.success) {
+          return result;
+        }
+        
+        errors.push(`${connector.key}: ${result.error}`);
+        console.log(`[ConnectorRegistry] ${connector.key} failed: ${result.error}, trying next provider`);
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : "Unknown error";
+        errors.push(`${connector.key}: ${msg}`);
+        console.log(`[ConnectorRegistry] ${connector.key} threw error: ${msg}, trying next provider`);
       }
-      return {
-        success: false,
-        error: `Connector ${connector.key} is not configured`,
-        provider: connector.key,
-      };
     }
 
-    try {
-      const result = await tryExecute(connector);
-      
-      // If main connector failed and we have a mock, try the mock
-      if (!result.success && mockConnector && mockConnector.isConfigured() && connector.key !== mockConnector.key) {
-        console.log(`[ConnectorRegistry] ${connector.key} failed, falling back to mock: ${result.error}`);
+    if (mockConnector && mockConnector.isConfigured()) {
+      console.log(`[ConnectorRegistry] All real providers failed for ${capability}/${action}, falling back to mock`);
+      try {
         return await tryExecute(mockConnector);
+      } catch (error) {
+        errors.push(`mock: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
-      
-      return result;
-    } catch (error) {
-      // On exception, try mock fallback
-      if (mockConnector && mockConnector.isConfigured() && connector.key !== mockConnector.key) {
-        console.log(`[ConnectorRegistry] ${connector.key} threw error, falling back to mock`);
-        return await tryExecute(mockConnector);
-      }
-      
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        provider: connector.key,
-      };
     }
+
+    return {
+      success: false,
+      error: `All providers failed for ${capability}/${action}. Errors: ${errors.join("; ")}`,
+      provider: "none",
+    };
   }
 
   /**
