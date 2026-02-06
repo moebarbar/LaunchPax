@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useSelectedProject } from "@/hooks/use-selected-project";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -158,6 +159,7 @@ const STEPS = [
 export default function NewProjectPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { selectProject } = useSelectedProject();
   const [currentStep, setCurrentStep] = useState(1);
   const [newService, setNewService] = useState({ name: "", description: "" });
   const [newUsp, setNewUsp] = useState("");
@@ -247,7 +249,7 @@ export default function NewProjectPage() {
         title: "Project created!",
         description: "Your new project is ready. Let's start building!",
       });
-      navigate(`/project/${data.id}`);
+      selectProject(data.id);
     },
     onError: () => {
       toast({

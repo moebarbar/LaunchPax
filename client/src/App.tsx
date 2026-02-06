@@ -7,13 +7,14 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ProjectSelector } from "@/components/project-selector";
 import { useAuth } from "@/hooks/use-auth";
+import { SelectedProjectProvider } from "@/hooks/use-selected-project";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import LandingPage from "@/pages/landing";
 import DashboardPage from "@/pages/dashboard";
 import NewProjectPage from "@/pages/new-project";
-import ProjectDetailPage from "@/pages/project-detail";
 import ConnectorsPage from "@/pages/connectors";
 import SettingsPage from "@/pages/settings";
 import WebsitePreview from "@/pages/website-preview";
@@ -28,20 +29,25 @@ function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
-        <AppSidebar />
-        <div className="flex flex-col flex-1 min-w-0">
-          <header className="flex items-center justify-between gap-4 p-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-            <SidebarTrigger data-testid="button-sidebar-toggle" />
-            <ThemeToggle />
-          </header>
-          <main className="flex-1 overflow-hidden flex flex-col">
-            {children}
-          </main>
+    <SelectedProjectProvider>
+      <SidebarProvider style={style as React.CSSProperties}>
+        <div className="flex h-screen w-full">
+          <AppSidebar />
+          <div className="flex flex-col flex-1 min-w-0">
+            <header className="flex items-center justify-between gap-4 p-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+              <div className="flex items-center gap-3 flex-wrap min-w-0">
+                <SidebarTrigger data-testid="button-sidebar-toggle" />
+                <ProjectSelector />
+              </div>
+              <ThemeToggle />
+            </header>
+            <main className="flex-1 overflow-hidden flex flex-col">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </SelectedProjectProvider>
   );
 }
 
@@ -69,7 +75,6 @@ function AuthenticatedRoutes() {
         <Route path="/" component={DashboardPage} />
         <Route path="/dashboard" component={DashboardPage} />
         <Route path="/project/new" component={NewProjectPage} />
-        <Route path="/project/:id" component={ProjectDetailPage} />
         <Route path="/connectors" component={ConnectorsPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route component={NotFound} />
@@ -81,11 +86,9 @@ function AuthenticatedRoutes() {
 function AppRouter() {
   return (
     <Switch>
-      {/* Public routes - accessible without auth */}
       <Route path="/preview/:token" component={WebsitePreview} />
       <Route path="/site/:projectId" component={PublishedSite} />
       <Route path="/project/:id/editor" component={VisualEditorPage} />
-      {/* Auth-gated routes */}
       <Route component={AuthenticatedRoutes} />
     </Switch>
   );

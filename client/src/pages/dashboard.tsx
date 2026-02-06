@@ -1,124 +1,66 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
+import { useSelectedProject } from "@/hooks/use-selected-project";
 import {
   Plus,
   FolderKanban,
-  ArrowRight,
   Building2,
   Clock,
+  LayoutDashboard,
+  Type,
+  Palette,
+  Globe,
+  Image,
+  Activity,
+  Settings,
+  PenTool,
 } from "lucide-react";
 import type { Project } from "@shared/schema";
+import ProjectOverview from "@/components/project/project-overview";
+import NamingDomain from "@/components/project/naming-domain";
+import BrandKit from "@/components/project/brand-kit";
+import WebsitePlan from "@/components/project/website-plan";
+import Graphics from "@/components/project/graphics";
+import ActivityLogTab from "@/components/project/activity-log";
+import { SiteSettings } from "@/components/project/site-settings";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { data: projects, isLoading } = useQuery<Project[]>({
-    queryKey: ["/api/projects"],
-  });
+  const { selectedProject, selectedProjectId, projects, isLoadingProjects } = useSelectedProject();
+  const [location, navigate] = useLocation();
+  const searchString = useSearch();
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+  const params = new URLSearchParams(searchString);
+  const activeTab = params.get("tab") || "overview";
+
+  const setActiveTab = (tab: string) => {
+    navigate(`/dashboard?tab=${tab}`);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-500/10 text-green-600 dark:text-green-400";
-      case "completed":
-        return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
-      case "paused":
-        return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const formatDate = (dateString: string | Date) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  return (
-    <div className="flex-1 p-6 space-y-8 overflow-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-greeting">
-            {getGreeting()}, {user?.firstName || "there"}
-          </h1>
-          <p className="text-muted-foreground">
-            Manage your business launch projects
-          </p>
+  if (isLoadingProjects) {
+    return (
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
         </div>
-        <Link href="/project/new">
-          <Button data-testid="button-create-project">
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </Button>
-        </Link>
+        <Skeleton className="h-[400px]" />
       </div>
+    );
+  }
 
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader className="pb-3">
-                <Skeleton className="h-5 w-32" />
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-24" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : projects && projects.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <Link key={project.id} href={`/project/${project.id}`}>
-              <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-project-${project.id}`}>
-                <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
-                  <div className="space-y-1 min-w-0">
-                    <CardTitle className="text-lg truncate">{project.name}</CardTitle>
-                    {project.industry && (
-                      <p className="text-sm text-muted-foreground truncate">
-                        {project.industry}
-                      </p>
-                    )}
-                  </div>
-                  <Badge variant="outline" className={getStatusColor(project.status)}>
-                    {project.status}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {project.businessIdea && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {project.businessIdea}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{formatDate(project.createdAt)}</span>
-                    </div>
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      ) : (
+  if (!projects || projects.length === 0) {
+    return (
+      <div className="flex-1 p-6 flex items-center justify-center overflow-auto">
         <Card className="max-w-md mx-auto">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -136,7 +78,104 @@ export default function DashboardPage() {
             </Link>
           </CardContent>
         </Card>
-      )}
+      </div>
+    );
+  }
+
+  if (!selectedProject) {
+    return (
+      <div className="flex-1 p-6 space-y-6 overflow-auto">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <Skeleton className="h-[400px]" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 p-6 space-y-6 overflow-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold" data-testid="text-project-name">
+              {selectedProject.name}
+            </h1>
+            <Badge variant="outline" className="capitalize">
+              {selectedProject.status}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm">
+            {selectedProject.industry && `${selectedProject.industry} · `}
+            Created {new Date(selectedProject.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+        <Link href={`/project/${selectedProjectId}/editor`}>
+          <Button variant="default" className="gap-2" data-testid="button-visual-editor-header">
+            <PenTool className="w-4 h-4" />
+            Visual Editor
+          </Button>
+        </Link>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="flex flex-wrap h-auto gap-1 p-1">
+          <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
+            <LayoutDashboard className="w-4 h-4" />
+            <span className="hidden sm:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="naming" className="flex items-center gap-2" data-testid="tab-naming">
+            <Type className="w-4 h-4" />
+            <span className="hidden sm:inline">Naming & Domain</span>
+          </TabsTrigger>
+          <TabsTrigger value="brand" className="flex items-center gap-2" data-testid="tab-brand">
+            <Palette className="w-4 h-4" />
+            <span className="hidden sm:inline">Brand Kit</span>
+          </TabsTrigger>
+          <TabsTrigger value="website" className="flex items-center gap-2" data-testid="tab-website">
+            <Globe className="w-4 h-4" />
+            <span className="hidden sm:inline">Website</span>
+          </TabsTrigger>
+          <TabsTrigger value="graphics" className="flex items-center gap-2" data-testid="tab-graphics">
+            <Image className="w-4 h-4" />
+            <span className="hidden sm:inline">Graphics</span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2" data-testid="tab-activity">
+            <Activity className="w-4 h-4" />
+            <span className="hidden sm:inline">Activity</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2" data-testid="tab-settings">
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Settings</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <ProjectOverview project={selectedProject} />
+        </TabsContent>
+        <TabsContent value="naming">
+          <NamingDomain projectId={selectedProjectId!} project={selectedProject} />
+        </TabsContent>
+        <TabsContent value="brand">
+          <BrandKit projectId={selectedProjectId!} project={selectedProject} />
+        </TabsContent>
+        <TabsContent value="website">
+          <WebsitePlan projectId={selectedProjectId!} />
+        </TabsContent>
+        <TabsContent value="graphics">
+          <Graphics projectId={selectedProjectId!} />
+        </TabsContent>
+        <TabsContent value="activity">
+          <ActivityLogTab projectId={selectedProjectId!} />
+        </TabsContent>
+        <TabsContent value="settings">
+          <SiteSettings project={selectedProject} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

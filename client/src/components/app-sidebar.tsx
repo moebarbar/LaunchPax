@@ -1,5 +1,6 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useSelectedProject } from "@/hooks/use-selected-project";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,23 +24,39 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Rocket,
-  FolderKanban,
-  Plug,
+  LayoutDashboard,
+  Type,
+  Palette,
+  Globe,
+  Image,
+  Activity,
   Settings,
+  Plug,
   LogOut,
   ChevronUp,
   Plus,
+  PenTool,
 } from "lucide-react";
 
-const mainNavItems = [
-  { title: "Projects", url: "/dashboard", icon: FolderKanban },
+const globalNavItems = [
   { title: "Connectors", url: "/connectors", icon: Plug },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
+const projectNavItems = [
+  { title: "Overview", tab: "overview", icon: LayoutDashboard },
+  { title: "Naming & Domain", tab: "naming", icon: Type },
+  { title: "Brand Kit", tab: "brand", icon: Palette },
+  { title: "Website", tab: "website", icon: Globe },
+  { title: "Graphics", tab: "graphics", icon: Image },
+  { title: "Activity", tab: "activity", icon: Activity },
+  { title: "Site Settings", tab: "settings", icon: Settings },
+];
+
 export function AppSidebar() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { user } = useAuth();
+  const { selectedProject } = useSelectedProject();
 
   const getUserInitials = () => {
     if (user?.firstName && user?.lastName) {
@@ -58,6 +75,9 @@ export function AppSidebar() {
     return user?.email || "User";
   };
 
+  const searchString = useSearch();
+  const currentTab = new URLSearchParams(searchString).get("tab") || "overview";
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -71,15 +91,53 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
+        {selectedProject && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="truncate">
+              {selectedProject.name}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {projectNavItems.map((item) => (
+                  <SidebarMenuItem key={item.tab}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={
+                        (location === "/" || location === "/dashboard") &&
+                        currentTab === item.tab
+                      }
+                    >
+                      <Link
+                        href={`/dashboard?tab=${item.tab}`}
+                        data-testid={`link-project-${item.tab}`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+              <div className="mt-2 px-2">
+                <Link href={`/project/${selectedProject.id}/editor`}>
+                  <Button variant="outline" className="w-full gap-2" data-testid="button-visual-editor">
+                    <PenTool className="w-4 h-4" />
+                    Visual Editor
+                  </Button>
+                </Link>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => (
+              {globalNavItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location === item.url || (item.url === "/dashboard" && location.startsWith("/project"))}
+                    isActive={location === item.url}
                   >
                     <Link href={item.url} data-testid={`link-${item.title.toLowerCase()}`}>
                       <item.icon className="w-4 h-4" />
