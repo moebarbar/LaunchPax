@@ -1,7 +1,7 @@
 import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
 import { useThemeMotion } from "./motion-wrapper";
+import { CountUpAnimation, RadialGlow, GlowLine } from "./visuals";
 
 interface StatItem {
   value: string;
@@ -16,59 +16,16 @@ interface StatsData {
   items?: StatItem[];
 }
 
-function AnimatedNumber({ value, prefix = "", suffix = "" }: { value: string; prefix?: string; suffix?: string }) {
-  const [displayValue, setDisplayValue] = useState(value);
-  const ref = useRef<HTMLDivElement>(null);
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    const numericValue = parseFloat(value.replace(/[^0-9.]/g, ''));
-    if (isNaN(numericValue) || hasAnimated) {
-      setDisplayValue(value);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated) {
-          setHasAnimated(true);
-          const duration = 2000;
-          const startTime = performance.now();
-
-          const updateNumber = (currentTime: number) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 4);
-            const current = Math.floor(eased * numericValue);
-            
-            if (numericValue >= 1000) {
-              setDisplayValue(current.toLocaleString());
-            } else {
-              setDisplayValue(current.toString());
-            }
-
-            if (progress < 1) {
-              requestAnimationFrame(updateNumber);
-            } else {
-              setDisplayValue(value);
-            }
-          };
-
-          requestAnimationFrame(updateNumber);
-        }
-      },
-      { threshold: 0.3 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, hasAnimated]);
-
-  return (
-    <div ref={ref}>
-      {prefix}{displayValue}{suffix}
-    </div>
-  );
+function parseStatValue(value: string, itemPrefix?: string, itemSuffix?: string): { numericValue: number; prefix: string; suffix: string; hasDecimals: boolean } {
+  const cleaned = value.replace(/,/g, '');
+  const match = cleaned.match(/^([^0-9.-]*)([0-9]+\.?[0-9]*)(.*)$/);
+  if (match) {
+    const extractedPrefix = itemPrefix || match[1] || "";
+    const num = parseFloat(match[2]);
+    const extractedSuffix = itemSuffix || match[3] || "";
+    return { numericValue: isNaN(num) ? 0 : num, prefix: extractedPrefix, suffix: extractedSuffix, hasDecimals: match[2].includes('.') };
+  }
+  return { numericValue: 0, prefix: itemPrefix || "", suffix: itemSuffix || value, hasDecimals: false };
 }
 
 export default function SectionStats({ section }: { section: SectionContent }) {
@@ -101,6 +58,8 @@ export default function SectionStats({ section }: { section: SectionContent }) {
         />
       </div>
 
+      <RadialGlow color="rgba(255,255,255,0.15)" size={600} x="50%" y="50%" opacity={0.12} />
+
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
         backgroundSize: "40px 40px",
@@ -125,6 +84,10 @@ export default function SectionStats({ section }: { section: SectionContent }) {
             )}
           </motion.div>
         )}
+
+        <div className="mb-10">
+          <GlowLine animated />
+        </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {items.map((item, index) => (
@@ -151,7 +114,17 @@ export default function SectionStats({ section }: { section: SectionContent }) {
                   className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 text-white tracking-tight"
                   data-testid={`text-stat-value-${index}`}
                 >
-                  <AnimatedNumber value={item.value} prefix={item.prefix} suffix={item.suffix} />
+                  {(() => {
+                    const parsed = parseStatValue(item.value, item.prefix, item.suffix);
+                    return (
+                      <CountUpAnimation
+                        value={parsed.numericValue}
+                        duration={2}
+                        prefix={parsed.prefix}
+                        suffix={parsed.suffix}
+                      />
+                    );
+                  })()}
                 </div>
                 <p 
                   className="text-sm sm:text-base text-white/70 uppercase tracking-widest font-medium"

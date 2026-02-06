@@ -3,7 +3,7 @@ import { Star, Shield, Zap, Heart, Target, Users, Clock, Check, Award, Globe, Br
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useThemeMotion } from "./motion-wrapper";
-import { FloatingOrb, GridLines } from "./visuals/floating-elements";
+import { FloatingOrb, GridLines, AbstractBlob, GlowLine } from "./visuals";
 
 interface ServiceItem {
   title: string;
@@ -87,121 +87,136 @@ export default function SectionServices({ section }: { section: SectionContent }
             const isEven = index % 2 === 0;
             
             return (
-              <motion.div 
-                key={index}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: themeMotion.duration, delay: index * 0.1 }}
-                className="group"
-                data-testid={`card-service-${index}`}
-              >
-                <div 
-                  className="relative rounded-[2rem] border overflow-hidden transition-all duration-500"
-                  style={{
-                    backgroundColor: "var(--brand-card-bg, var(--brand-surface, hsl(var(--card))))",
-                    borderColor: "var(--brand-border, rgba(0,0,0,0.06))",
-                    boxShadow: "var(--brand-card-shadow, 0 1px 3px rgba(0,0,0,0.04))",
-                  }}
+              <div key={index}>
+                <motion.div
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-80px" }}
+                  transition={{ duration: themeMotion.duration, delay: index * 0.1 }}
+                  className="group"
+                  data-testid={`card-service-${index}`}
                 >
-                  <div className={`grid md:grid-cols-5 gap-0 ${!isEven ? 'md:direction-rtl' : ''}`}>
-                    <div className={`md:col-span-3 p-8 sm:p-10 lg:p-12 ${!isEven ? 'md:order-2' : ''}`}>
-                      <div className="flex items-center gap-4 mb-6">
-                        <motion.div
-                          className="w-3 h-3 rounded-full"
-                          style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                          animate={{ scale: [1, 1.3, 1] }}
-                          transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
-                        />
-                        <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}>
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
+                  <div 
+                    className="relative rounded-[2rem] border overflow-hidden transition-all duration-500"
+                    style={{
+                      backgroundColor: "var(--brand-card-bg, var(--brand-surface, hsl(var(--card))))",
+                      borderColor: "var(--brand-border, rgba(0,0,0,0.06))",
+                      boxShadow: "var(--brand-card-shadow, 0 1px 3px rgba(0,0,0,0.04))",
+                    }}
+                  >
+                    <div className={`grid md:grid-cols-5 gap-0 ${!isEven ? 'md:direction-rtl' : ''}`}>
+                      <div className={`md:col-span-3 p-8 sm:p-10 lg:p-12 ${!isEven ? 'md:order-2' : ''}`}>
+                        <div className="flex items-center gap-4 mb-6">
+                          <motion.div
+                            className="w-3 h-3 rounded-full"
+                            style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                            animate={{ scale: [1, 1.3, 1] }}
+                            transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
+                          />
+                          <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}>
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                        </div>
+
+                        <h3 
+                          className="text-2xl sm:text-3xl font-bold mb-4 tracking-tight"
+                          style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))", letterSpacing: "-0.02em" }}
+                        >{item.title}</h3>
+                        <p 
+                          className="mb-6 leading-relaxed text-base"
+                          style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
+                        >{item.description}</p>
+
+                        {item.price && (
+                          <p className="text-3xl font-bold mb-6" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}>
+                            {item.price}
+                          </p>
+                        )}
+
+                        {item.features && item.features.length > 0 && (
+                          <ul className="space-y-3 mb-8">
+                            {item.features.map((feature, fi) => (
+                              <motion.li 
+                                key={fi} 
+                                className="flex items-center gap-3 text-[15px]"
+                                style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
+                                initial={{ opacity: 0, x: -10 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.3 + fi * 0.06 }}
+                              >
+                                <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                  style={{ background: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)" }}>
+                                  <Check className="w-3 h-3" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }} />
+                                </div>
+                                {feature}
+                              </motion.li>
+                            ))}
+                          </ul>
+                        )}
+
+                        <Button
+                          asChild variant="ghost" className="p-0 h-auto font-semibold group/link"
+                          style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
+                        >
+                          <a href="#contact" className="flex items-center gap-2">
+                            Learn more
+                            <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1.5 transition-transform duration-300" />
+                          </a>
+                        </Button>
                       </div>
 
-                      <h3 
-                        className="text-2xl sm:text-3xl font-bold mb-4 tracking-tight"
-                        style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))", letterSpacing: "-0.02em" }}
-                      >{item.title}</h3>
-                      <p 
-                        className="mb-6 leading-relaxed text-base"
-                        style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
-                      >{item.description}</p>
-
-                      {item.price && (
-                        <p className="text-3xl font-bold mb-6" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}>
-                          {item.price}
-                        </p>
-                      )}
-
-                      {item.features && item.features.length > 0 && (
-                        <ul className="space-y-3 mb-8">
-                          {item.features.map((feature, fi) => (
-                            <motion.li 
-                              key={fi} 
-                              className="flex items-center gap-3 text-[15px]"
-                              style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ delay: 0.3 + fi * 0.06 }}
-                            >
-                              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                                style={{ background: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)" }}>
-                                <Check className="w-3 h-3" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }} />
-                              </div>
-                              {feature}
-                            </motion.li>
-                          ))}
-                        </ul>
-                      )}
-
-                      <Button
-                        asChild variant="ghost" className="p-0 h-auto font-semibold group/link"
-                        style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
-                      >
-                        <a href="#contact" className="flex items-center gap-2">
-                          Learn more
-                          <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1.5 transition-transform duration-300" />
-                        </a>
-                      </Button>
-                    </div>
-
-                    <div className={`md:col-span-2 relative ${!isEven ? 'md:order-1' : ''}`}>
-                      <div 
-                        className="h-full min-h-[200px] md:min-h-0 flex items-center justify-center p-8"
-                        style={{ background: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.04)" }}
-                      >
-                        <motion.div
-                          className="relative w-24 h-24"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                      <div className={`md:col-span-2 relative ${!isEven ? 'md:order-1' : ''}`}>
+                        {isEven && (
+                          <AbstractBlob
+                            variant={((index % 5) + 1) as 1 | 2 | 3 | 4 | 5}
+                            color="var(--brand-primary, hsl(var(--primary)))"
+                            size={200}
+                            opacity={0.06}
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                          />
+                        )}
+                        <div 
+                          className="h-full min-h-[200px] md:min-h-0 flex items-center justify-center p-8"
+                          style={{ background: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.04)" }}
                         >
-                          <div className="absolute inset-0 rounded-3xl" style={{
-                            background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.15) 0%, hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`,
-                          }} />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <IconComponent className="w-12 h-12" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }} />
-                          </div>
                           <motion.div
-                            className="absolute -inset-4 rounded-[2rem] border"
-                            style={{ borderColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)" }}
-                            animate={{ rotate: [0, 360] }}
-                            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                          />
-                          <motion.div
-                            className="absolute -inset-8 rounded-[2.5rem] border border-dashed"
-                            style={{ borderColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.06)" }}
-                            animate={{ rotate: [360, 0] }}
-                            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-                          />
-                        </motion.div>
+                            className="relative w-24 h-24"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+                          >
+                            <div className="absolute inset-0 rounded-3xl" style={{
+                              background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.15) 0%, hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`,
+                            }} />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <IconComponent className="w-12 h-12" style={{ color: "var(--brand-primary, hsl(var(--primary)))" }} />
+                            </div>
+                            <motion.div
+                              className="absolute -inset-4 rounded-[2rem] border"
+                              style={{ borderColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.1)" }}
+                              animate={{ rotate: [0, 360] }}
+                              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                            />
+                            <motion.div
+                              className="absolute -inset-8 rounded-[2.5rem] border border-dashed"
+                              style={{ borderColor: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.06)" }}
+                              animate={{ rotate: [360, 0] }}
+                              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                            />
+                          </motion.div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+                {index < items.length - 1 && (
+                  <div className="py-2">
+                    <GlowLine animated={false} />
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

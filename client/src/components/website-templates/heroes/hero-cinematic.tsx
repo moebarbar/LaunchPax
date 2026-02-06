@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
-import { ShineEffect } from "../visuals/floating-elements";
+import { NoiseTexture, AnimatedGradientBorder } from "../visuals";
 
 interface HeroData {
   headline?: string;
@@ -57,6 +57,8 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           </>
         )}
       </div>
+
+      <NoiseTexture opacity={0.03} />
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(3)].map((_, i) => (
@@ -131,7 +133,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
           className="mt-14 flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6"
         >
           {data.ctaText && (
-            <ShineEffect>
+            <AnimatedGradientBorder borderRadius={999}>
               <Button
                 asChild size="lg"
                 className="w-full sm:w-auto rounded-none bg-white text-black shadow-2xl"
@@ -144,7 +146,7 @@ export default function HeroCinematic({ section, siteName }: { section: SectionC
                   </span>
                 </a>
               </Button>
-            </ShineEffect>
+            </AnimatedGradientBorder>
           )}
           {data.secondaryCtaText && (
             <Button

@@ -2,7 +2,8 @@ import type { SectionContent } from "@shared/schema";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { ShineEffect, FloatingShapes } from "../visuals/floating-elements";
+import { FloatingShapes } from "../visuals/floating-elements";
+import { NoiseTexture, AnimatedGradientBorder, AbstractBlob } from "../visuals";
 
 interface HeroData {
   headline?: string;
@@ -45,6 +46,12 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
             <FloatingShapes />
           </>
         )}
+      </div>
+
+      <NoiseTexture opacity={0.03} />
+
+      <div className="absolute top-16 left-10 pointer-events-none hidden md:block">
+        <AbstractBlob color="var(--brand-primary, hsl(var(--primary)))" size={300} opacity={0.05} />
       </div>
 
       <motion.div 
@@ -109,7 +116,7 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
           className="mt-12 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
-            <ShineEffect>
+            <AnimatedGradientBorder borderRadius={999}>
               <Button
                 asChild size="lg"
                 className="w-full sm:w-auto rounded-full bg-white text-black shadow-2xl"
@@ -120,7 +127,7 @@ export default function HeroImmersive({ section, siteName }: { section: SectionC
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </a>
               </Button>
-            </ShineEffect>
+            </AnimatedGradientBorder>
           )}
           {data.secondaryCtaText && (
             <Button

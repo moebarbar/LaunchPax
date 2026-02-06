@@ -3,7 +3,7 @@ import { Check, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
-import { FloatingOrb, ShineEffect } from "./visuals/floating-elements";
+import { FloatingOrb, AnimatedGradientBorder, HoverTilt, DecorativeCircles } from "./visuals";
 
 interface PricingPlan {
   name: string;
@@ -32,6 +32,7 @@ export default function SectionPricing({ section }: { section: SectionContent })
       <div className="absolute inset-0 bg-gradient-to-b from-muted/50 via-background to-muted/30" />
       <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={400} x="20%" y="20%" opacity={0.06} blur={120} />
       <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={350} x="80%" y="80%" delay={3} opacity={0.05} blur={100} />
+      <DecorativeCircles count={4} maxSize={400} className="absolute inset-0 opacity-[0.03] hidden sm:block" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -67,32 +68,8 @@ export default function SectionPricing({ section }: { section: SectionContent })
         )}
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-          {plans.map((plan, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: themeMotion.duration, delay: index * 0.1 }}
-              data-testid={`card-pricing-plan-${index}`}
-              className={`relative group ${plan.highlighted ? 'lg:-mt-4 lg:mb-4' : ''}`}
-              whileHover={!plan.highlighted ? { y: -6, transition: { duration: 0.3 } } : undefined}
-            >
-              {plan.highlighted && (
-                <>
-                  <motion.div 
-                    className="absolute -inset-[2px] rounded-[2rem]"
-                    style={{
-                      background: `linear-gradient(135deg, var(--brand-primary, hsl(var(--primary))) 0%, var(--brand-accent, hsl(var(--primary))) 100%)`
-                    }}
-                    animate={{ opacity: [0.4, 0.7, 0.4] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <div className="absolute -inset-4 rounded-[3rem] blur-2xl opacity-15"
-                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }} />
-                </>
-              )}
-              
+          {plans.map((plan, index) => {
+            const cardContent = (
               <div 
                 className={`relative h-full p-8 sm:p-10 rounded-3xl flex flex-col transition-all duration-500 ${
                   plan.highlighted ? "text-white shadow-2xl" : "border backdrop-blur-sm"
@@ -179,7 +156,7 @@ export default function SectionPricing({ section }: { section: SectionContent })
                 )}
 
                 {plan.highlighted ? (
-                  <ShineEffect>
+                  <AnimatedGradientBorder borderRadius={999} borderWidth={2}>
                     <Button
                       asChild size="lg"
                       className="w-full text-base py-6 rounded-xl bg-white text-gray-900 shadow-lg"
@@ -190,7 +167,7 @@ export default function SectionPricing({ section }: { section: SectionContent })
                         <ArrowRight className="w-4 h-4" />
                       </a>
                     </Button>
-                  </ShineEffect>
+                  </AnimatedGradientBorder>
                 ) : (
                   <Button
                     asChild size="lg"
@@ -205,8 +182,35 @@ export default function SectionPricing({ section }: { section: SectionContent })
                   </Button>
                 )}
               </div>
-            </motion.div>
-          ))}
+            );
+
+            return (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: themeMotion.duration, delay: index * 0.1 }}
+                data-testid={`card-pricing-plan-${index}`}
+                className={`relative group ${plan.highlighted ? 'lg:-mt-4 lg:mb-4' : ''}`}
+                whileHover={!plan.highlighted ? { y: -6, transition: { duration: 0.3 } } : undefined}
+              >
+                {plan.highlighted && (
+                  <div className="absolute -inset-4 rounded-[3rem] blur-2xl opacity-15"
+                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }} />
+                )}
+                {plan.highlighted ? (
+                  <AnimatedGradientBorder borderWidth={2} borderRadius={32}>
+                    {cardContent}
+                  </AnimatedGradientBorder>
+                ) : (
+                  <HoverTilt maxTilt={3} scale={1.01}>
+                    {cardContent}
+                  </HoverTilt>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

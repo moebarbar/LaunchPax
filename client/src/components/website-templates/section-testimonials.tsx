@@ -2,7 +2,7 @@ import type { SectionContent } from "@shared/schema";
 import { Quote, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
-import { FloatingOrb } from "./visuals/floating-elements";
+import { FloatingOrb, AnimatedGradientBorder, HoverTilt, AbstractBlob } from "./visuals";
 
 interface TestimonialItem {
   quote: string;
@@ -32,6 +32,13 @@ export default function SectionTestimonials({ section }: { section: SectionConte
       <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
       <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={500} x="85%" y="25%" opacity={0.06} blur={120} />
       <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={400} x="5%" y="75%" delay={4} opacity={0.05} blur={100} />
+      <AbstractBlob
+        variant={2}
+        color="var(--brand-primary, hsl(var(--primary)))"
+        size={300}
+        opacity={0.04}
+        className="absolute top-1/3 right-[10%] pointer-events-none hidden md:block"
+      />
       
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -74,6 +81,7 @@ export default function SectionTestimonials({ section }: { section: SectionConte
             transition={{ duration: themeMotion.durationSlow }}
             className="mb-10"
           >
+            <AnimatedGradientBorder borderWidth={2} borderRadius={24}>
             <div 
               className="relative rounded-3xl border overflow-hidden"
               style={{
@@ -123,6 +131,7 @@ export default function SectionTestimonials({ section }: { section: SectionConte
                 </div>
               </div>
             </div>
+            </AnimatedGradientBorder>
           </motion.div>
         )}
 
@@ -138,6 +147,7 @@ export default function SectionTestimonials({ section }: { section: SectionConte
               data-testid={`card-testimonial-${index}`}
               whileHover={{ y: -6, transition: { duration: 0.3 } }}
             >
+              <HoverTilt maxTilt={3} scale={1.01}>
               <div 
                 className="relative h-full p-8 sm:p-10 rounded-3xl border backdrop-blur-sm transition-all duration-500"
                 style={{
@@ -179,6 +189,7 @@ export default function SectionTestimonials({ section }: { section: SectionConte
                   </div>
                 </div>
               </div>
+              </HoverTilt>
             </motion.div>
           ))}
         </div>

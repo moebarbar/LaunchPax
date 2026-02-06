@@ -3,6 +3,7 @@ import { Star, Shield, Zap, Heart, Target, Users, Clock, Check, Award, Globe, Br
 import { motion } from "framer-motion";
 import { useThemeMotion } from "./motion-wrapper";
 import { FloatingOrb, DotGrid } from "./visuals/floating-elements";
+import { HoverTilt, GeometricPattern } from "./visuals";
 
 interface FeatureItem {
   title: string;
@@ -95,6 +96,7 @@ export default function SectionFeatures({ section }: { section: SectionContent }
       <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={400} x="80%" y="20%" opacity={0.05} blur={100} />
       <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={300} x="10%" y="80%" delay={5} opacity={0.04} blur={80} />
       <DotGrid opacity={0.02} spacing={40} />
+      <GeometricPattern pattern="circles" opacity={0.03} color="var(--brand-primary, hsl(var(--primary)))" className="absolute inset-0 pointer-events-none hidden sm:block" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         {data.headline && (
@@ -156,72 +158,74 @@ export default function SectionFeatures({ section }: { section: SectionContent }
                     boxShadow: "0 25px 50px -12px rgba(0,0,0,0.12), 0 12px 24px -8px rgba(0,0,0,0.08)",
                   }}
                 />
-                <div 
-                  className="relative h-full rounded-3xl border overflow-hidden transition-all duration-500"
-                  style={{
-                    backgroundColor: "var(--brand-card-bg, var(--brand-surface, hsl(var(--card))))",
-                    boxShadow: "var(--brand-card-shadow, 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03))",
-                    borderColor: "var(--brand-border, rgba(0,0,0,0.06))",
-                  }}
-                >
+                <HoverTilt maxTilt={3} scale={1.01}>
                   <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                    className="relative h-full rounded-3xl border overflow-hidden transition-all duration-500"
                     style={{
-                      background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.04) 0%, transparent 60%)`,
+                      backgroundColor: "var(--brand-card-bg, var(--brand-surface, hsl(var(--card))))",
+                      boxShadow: "var(--brand-card-shadow, 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03))",
+                      borderColor: "var(--brand-border, rgba(0,0,0,0.06))",
                     }}
-                  />
+                  >
+                    <div 
+                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
+                      style={{
+                        background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.04) 0%, transparent 60%)`,
+                      }}
+                    />
 
-                  <div className={`relative z-10 ${large ? 'p-10' : 'p-8'}`}>
-                    <div className="flex items-start justify-between gap-4 mb-6">
-                      <div 
-                        className={`${large ? 'w-16 h-16' : 'w-14 h-14'} rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 flex-shrink-0`}
-                        style={{ 
-                          background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.12) 0%, hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`,
-                        }}
-                      >
-                        <IconComponent 
-                          className={`${large ? 'w-8 h-8' : 'w-7 h-7'}`}
-                          style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
-                        />
+                    <div className={`relative z-10 ${large ? 'p-10' : 'p-8'}`}>
+                      <div className="flex items-start justify-between gap-4 mb-6">
+                        <div 
+                          className={`${large ? 'w-16 h-16' : 'w-14 h-14'} rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 flex-shrink-0`}
+                          style={{ 
+                            background: `linear-gradient(135deg, hsl(var(--brand-primary-hsl, var(--primary)) / 0.12) 0%, hsl(var(--brand-primary-hsl, var(--primary)) / 0.05) 100%)`,
+                          }}
+                        >
+                          <IconComponent 
+                            className={`${large ? 'w-8 h-8' : 'w-7 h-7'}`}
+                            style={{ color: "var(--brand-primary, hsl(var(--primary)))" }}
+                          />
+                        </div>
+                        <div className={`${large ? 'w-16 h-16' : 'w-12 h-12'} opacity-40 group-hover:opacity-60 transition-opacity duration-500`}>
+                          {miniVisual("var(--brand-primary, hsl(var(--primary)))")}
+                        </div>
                       </div>
-                      <div className={`${large ? 'w-16 h-16' : 'w-12 h-12'} opacity-40 group-hover:opacity-60 transition-opacity duration-500`}>
-                        {miniVisual("var(--brand-primary, hsl(var(--primary)))")}
-                      </div>
+                      
+                      <h3 
+                        className={`${large ? 'text-2xl' : 'text-xl'} font-bold mb-4 tracking-tight`}
+                        style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))", letterSpacing: "-0.02em" }}
+                      >{item.title}</h3>
+                      <p 
+                        className={`${large ? 'text-base' : 'text-[15px]'} leading-relaxed`}
+                        style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
+                      >{item.description}</p>
+
+                      {large && (
+                        <motion.div
+                          className="mt-6 h-16 rounded-xl overflow-hidden"
+                          style={{ background: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.04)" }}
+                          initial={{ opacity: 0 }}
+                          whileInView={{ opacity: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.5 }}
+                        >
+                          <svg viewBox="0 0 300 60" className="w-full h-full" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="featureChartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style={{ stopColor: "var(--brand-primary, hsl(var(--primary)))", stopOpacity: 0.2 }} />
+                                <stop offset="100%" style={{ stopColor: "var(--brand-primary, hsl(var(--primary)))", stopOpacity: 0.02 }} />
+                              </linearGradient>
+                            </defs>
+                            <motion.path d="M0,50 Q50,20 100,35 T200,15 T300,25" fill="none" stroke="var(--brand-primary, hsl(var(--primary)))" strokeWidth="2" strokeLinecap="round"
+                              initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.6 }} />
+                            <path d="M0,50 Q50,20 100,35 T200,15 T300,25 L300,60 L0,60 Z" fill="url(#featureChartGrad)" />
+                          </svg>
+                        </motion.div>
+                      )}
                     </div>
-                    
-                    <h3 
-                      className={`${large ? 'text-2xl' : 'text-xl'} font-bold mb-4 tracking-tight`}
-                      style={{ color: "var(--brand-heading, var(--brand-text, hsl(var(--foreground))))", letterSpacing: "-0.02em" }}
-                    >{item.title}</h3>
-                    <p 
-                      className={`${large ? 'text-base' : 'text-[15px]'} leading-relaxed`}
-                      style={{ color: "var(--brand-text-secondary, var(--brand-muted, hsl(var(--muted-foreground))))" }}
-                    >{item.description}</p>
-
-                    {large && (
-                      <motion.div
-                        className="mt-6 h-16 rounded-xl overflow-hidden"
-                        style={{ background: "hsl(var(--brand-primary-hsl, var(--primary)) / 0.04)" }}
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        <svg viewBox="0 0 300 60" className="w-full h-full" preserveAspectRatio="none">
-                          <defs>
-                            <linearGradient id="featureChartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" style={{ stopColor: "var(--brand-primary, hsl(var(--primary)))", stopOpacity: 0.2 }} />
-                              <stop offset="100%" style={{ stopColor: "var(--brand-primary, hsl(var(--primary)))", stopOpacity: 0.02 }} />
-                            </linearGradient>
-                          </defs>
-                          <motion.path d="M0,50 Q50,20 100,35 T200,15 T300,25" fill="none" stroke="var(--brand-primary, hsl(var(--primary)))" strokeWidth="2" strokeLinecap="round"
-                            initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }} transition={{ duration: 2, delay: 0.6 }} />
-                          <path d="M0,50 Q50,20 100,35 T200,15 T300,25 L300,60 L0,60 Z" fill="url(#featureChartGrad)" />
-                        </svg>
-                      </motion.div>
-                    )}
                   </div>
-                </div>
+                </HoverTilt>
               </motion.div>
             );
           })}

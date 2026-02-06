@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
-import { FloatingOrb, GradientMesh, ShineEffect } from "../visuals/floating-elements";
+import { FloatingOrb, GradientMesh } from "../visuals/floating-elements";
+import { GeometricPattern, AnimatedGradientBorder, GlowLine } from "../visuals";
 
 interface HeroData {
   headline?: string;
@@ -38,6 +39,9 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           <div className="absolute inset-0 opacity-[0.015]" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }} />
+          <div className="absolute inset-0 pointer-events-none hidden sm:block">
+            <GeometricPattern color="var(--brand-primary, hsl(var(--primary)))" opacity={0.02} size={400} />
+          </div>
         </>
       )}
       
@@ -107,7 +111,7 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
           className="mt-12 flex flex-col sm:flex-row flex-wrap justify-center gap-4"
         >
           {data.ctaText && (
-            <ShineEffect>
+            <AnimatedGradientBorder borderRadius={999}>
               <Button
                 asChild
                 size="lg"
@@ -123,7 +127,7 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
                   <ArrowRight className="w-5 h-5" />
                 </a>
               </Button>
-            </ShineEffect>
+            </AnimatedGradientBorder>
           )}
           {data.secondaryCtaText && (
             <Button
@@ -147,26 +151,30 @@ export default function HeroMinimal({ section, siteName }: { section: SectionCon
         </motion.div>
       </div>
       
-      <motion.div 
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: themeMotion.duration }}
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className={`w-6 h-10 rounded-full border-2 flex justify-center pt-2 ${
-            hasImage ? 'border-white/40' : 'border-muted-foreground/40'
-          }`}
+      {!hasImage ? (
+        <div className="absolute bottom-0 left-0 right-0">
+          <GlowLine animated />
+        </div>
+      ) : (
+        <motion.div 
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: themeMotion.duration }}
         >
-          <motion.div 
-            className={`w-1.5 h-1.5 rounded-full ${hasImage ? 'bg-white/60' : 'bg-muted-foreground'}`}
-            animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          />
+            className="w-6 h-10 rounded-full border-2 flex justify-center pt-2 border-white/40"
+          >
+            <motion.div 
+              className="w-1.5 h-1.5 rounded-full bg-white/60"
+              animate={{ y: [0, 12, 0], opacity: [1, 0.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
     </section>
   );
 }

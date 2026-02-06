@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useThemeMotion } from "../motion-wrapper";
-import { FloatingOrb, FloatingShapes, ShineEffect } from "../visuals/floating-elements";
+import { FloatingOrb, FloatingShapes } from "../visuals/floating-elements";
 import { MetricsGrid } from "../visuals/metrics-display";
+import { MeshGradientBackground, AnimatedGradientBorder, ParallaxLayer, DecorativeCircles } from "../visuals";
 
 interface HeroData {
   headline?: string;
@@ -31,6 +32,11 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
       <FloatingOrb color="var(--brand-primary, hsl(var(--primary)))" size={800} x="80%" y="20%" opacity={0.15} blur={100} duration={20} />
       <FloatingOrb color="var(--brand-accent, hsl(var(--primary)))" size={600} x="10%" y="80%" delay={3} opacity={0.1} blur={90} duration={18} />
       <FloatingShapes />
+      <MeshGradientBackground className="opacity-[0.08]" />
+
+      <div className="absolute top-20 right-10 pointer-events-none hidden md:block">
+        <DecorativeCircles color="var(--brand-primary, hsl(var(--primary)))" opacity={0.04} size={400} />
+      </div>
 
       <div className="relative z-10 w-full max-w-[95vw] mx-auto px-4 sm:px-8 py-20">
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16 items-center">
@@ -92,7 +98,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
               className="flex flex-col sm:flex-row flex-wrap gap-4 pt-6"
             >
               {data.ctaText && (
-                <ShineEffect>
+                <AnimatedGradientBorder borderRadius={999}>
                   <Button
                     asChild
                     size="lg"
@@ -108,7 +114,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
                       <ArrowRight className="ml-3 w-6 h-6" />
                     </a>
                   </Button>
-                </ShineEffect>
+                </AnimatedGradientBorder>
               )}
               {data.secondaryCtaText && (
                 <Button
@@ -131,28 +137,30 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
             transition={{ duration: themeMotion.durationVerySlow, delay: 0.3 }}
             className="hidden lg:block lg:col-span-2"
           >
-            {hasImage ? (
-              <div className="relative">
-                <div 
-                  className="absolute -inset-8 rounded-3xl blur-3xl opacity-30"
-                  style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                />
-                <img
-                  src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
-                  alt=""
-                  className="relative w-full rounded-2xl shadow-2xl object-cover"
-                  style={{ maxHeight: "70vh" }}
-                />
-              </div>
-            ) : (
-              <div className="relative">
-                <div 
-                  className="absolute -inset-4 rounded-3xl blur-2xl opacity-15"
-                  style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
-                />
-                <MetricsGrid />
-              </div>
-            )}
+            <ParallaxLayer speed={0.3}>
+              {hasImage ? (
+                <div className="relative">
+                  <div 
+                    className="absolute -inset-8 rounded-3xl blur-3xl opacity-30"
+                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                  />
+                  <img
+                    src={data.imageB64 ? `data:image/png;base64,${data.imageB64}` : data.image}
+                    alt=""
+                    className="relative w-full rounded-2xl shadow-2xl object-cover"
+                    style={{ maxHeight: "70vh" }}
+                  />
+                </div>
+              ) : (
+                <div className="relative">
+                  <div 
+                    className="absolute -inset-4 rounded-3xl blur-2xl opacity-15"
+                    style={{ background: "var(--brand-primary, hsl(var(--primary)))" }}
+                  />
+                  <MetricsGrid />
+                </div>
+              )}
+            </ParallaxLayer>
           </motion.div>
         </div>
       </div>
