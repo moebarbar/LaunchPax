@@ -113,7 +113,7 @@ export const shadows = {
   elevated: "0 40px 100px -30px rgb(0 0 0 / 0.2)",
 } as const;
 
-export type BrandPersonality = "bold" | "elegant" | "playful" | "minimal" | "tech" | "luxury" | "creative" | "professional";
+export type BrandPersonality = "bold" | "elegant" | "playful" | "minimal" | "tech" | "luxury" | "creative" | "professional" | "editorial" | "startup" | "saas" | "fintech" | "healthcare" | "eco" | "indie" | "enterprise" | "retro";
 export type BusinessType = "saas" | "local" | "creator" | "agency" | "ecommerce" | "startup" | "personal" | "enterprise";
 
 export interface FontPairing {
@@ -185,6 +185,75 @@ export const fontPairings: Record<BrandPersonality, FontPairing> = {
     headingWeight: 700,
     bodyWeight: 400,
     letterSpacing: { heading: "-0.01em", body: "0" },
+  },
+  editorial: {
+    heading: "Instrument Serif",
+    body: "Inter",
+    accent: "Cormorant",
+    headingWeight: 400,
+    bodyWeight: 400,
+    letterSpacing: { heading: "0.01em", body: "0" },
+  },
+  startup: {
+    heading: "Plus Jakarta Sans",
+    body: "Inter",
+    headingWeight: 700,
+    bodyWeight: 400,
+    letterSpacing: { heading: "-0.02em", body: "0" },
+  },
+  saas: {
+    heading: "Manrope",
+    body: "Inter",
+    accent: "JetBrains Mono",
+    headingWeight: 700,
+    bodyWeight: 400,
+    letterSpacing: { heading: "-0.02em", body: "0" },
+  },
+  fintech: {
+    heading: "Inter",
+    body: "Inter",
+    accent: "IBM Plex Mono",
+    headingWeight: 600,
+    bodyWeight: 400,
+    letterSpacing: { heading: "-0.01em", body: "0" },
+  },
+  healthcare: {
+    heading: "DM Sans",
+    body: "Inter",
+    headingWeight: 600,
+    bodyWeight: 400,
+    letterSpacing: { heading: "-0.01em", body: "0" },
+  },
+  eco: {
+    heading: "Fraunces",
+    body: "Outfit",
+    accent: "Caveat",
+    headingWeight: 600,
+    bodyWeight: 400,
+    letterSpacing: { heading: "0", body: "0" },
+  },
+  indie: {
+    heading: "Bricolage Grotesque",
+    body: "Inter",
+    headingWeight: 700,
+    bodyWeight: 400,
+    letterSpacing: { heading: "-0.02em", body: "0" },
+  },
+  enterprise: {
+    heading: "Inter",
+    body: "Inter",
+    accent: "IBM Plex Sans",
+    headingWeight: 600,
+    bodyWeight: 400,
+    letterSpacing: { heading: "-0.01em", body: "0" },
+  },
+  retro: {
+    heading: "Orbitron",
+    body: "Outfit",
+    accent: "Press Start 2P",
+    headingWeight: 700,
+    bodyWeight: 400,
+    letterSpacing: { heading: "0.05em", body: "0" },
   },
 };
 
@@ -364,7 +433,7 @@ export const heroArchetypes: Record<HeroArchetype, HeroConfig> = {
 };
 
 export function selectHeroArchetype(businessType: BusinessType, personality: BrandPersonality): HeroArchetype {
-  const mapping: Record<BusinessType, Record<BrandPersonality, HeroArchetype>> = {
+  const mapping: Record<BusinessType, Partial<Record<BrandPersonality, HeroArchetype>>> = {
     saas: {
       bold: "bold",
       elegant: "centered",

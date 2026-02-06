@@ -28,7 +28,21 @@ Preferred communication style: Simple, everyday language.
         - `floating-elements.tsx`: FloatingOrb, GradientMesh, DotGrid, GridLines, FloatingShapes, SectionDivider, ShineEffect - all theme-aware via CSS variables.
         - `browser-mockup.tsx`: BrowserMockup (animated dashboard preview), PhoneMockup (mobile app preview) - used as hero visual panels.
         - `checklist-panel.tsx`: ChecklistPanel, StepIndicator - animated status/progress displays.
-        - `metrics-display.tsx`: MetricsDisplay, MetricsGrid, ProgressRing - animated counters with IntersectionObserver.
+        - `metrics-display.tsx`: MetricCard, MetricsGrid, ProgressRing - animated counters with IntersectionObserver.
+        - `advanced-effects.tsx`: RadialGlow, MultiStopGradient, NoiseTexture, MeshGradientBackground, SectionColorEvolution, GlowLine, ScrollProgressBar - premium gradient and visual effects.
+        - `micro-interactions.tsx`: ParallaxLayer, StaggerReveal, MagneticElement, TextReveal, CountUpAnimation, HoverTilt, AnimatedGradientBorder - premium interaction components.
+        - `svg-illustrations.tsx`: AbstractBlob, WavesDivider, GeometricPattern, DecorativeCircles, AbstractLines, IconGrid, GradientShape - code-built SVG illustrations with brand-color matching.
+    - **Layout Intelligence System** (`client/src/lib/layout-intelligence.ts`):
+        - Smart section rhythm alternation (dense/balanced/airy/dramatic) for visual breathing room.
+        - Automated background variant cycling (default/alt/accent-subtle/gradient-subtle).
+        - Entrance animation variety (fade-up/left/right, scale, blur, slide-up) cycling per section.
+        - Section divider intelligence (line/gradient/glow styles based on theme).
+        - Content layout variation (alignment, grid pattern, card style) for unique compositions.
+        - Premium spacing computation with container width mapping.
+    - **Enhanced Typography System** (`client/src/lib/design-tokens.ts`, `typography-provider.tsx`):
+        - 57+ Google Fonts supported with intelligent weight loading.
+        - 17 brand personality types with curated font pairings (bold, elegant, playful, minimal, tech, luxury, creative, professional, editorial, startup, saas, fintech, healthcare, eco, indie, enterprise, retro).
+        - 24 style-based font pairings in the website renderer for theme matching.
     - **Design Bible v1.0 Compliance**: 90vh heroes, 64-96px headlines (weight 800+), 3+ background layers (FloatingOrb, GradientMesh, DotGrid), gradient overlays, 8px grid spacing, Bento Grid layouts, premium hover effects (8px lift + shadow), animated counters, glass-morphism effects.
     - **Hero Variants**: 6 variants (split, bold, editorial, minimal, cinematic, immersive) with split layouts, visual panels, animated gradient meshes, floating decorative shapes, CTA shine effects, code-built mockups.
     - **Section Templates**: Features (Bento Grid, mini visuals), Services (alternating split layouts, rotating icons), Testimonials (featured + grid), Pricing (animated gradient borders, shine), CTA (split layout with mockup), Process (animated timeline with progress bars), Stats (animated counters with progress), Contact (split layout with shine), FAQ (sidebar + numbered), Team (animated avatars with rotating borders), Benefits (numbered alternating layout with checklist panels), Brand Story (gradient timeline, founder quote with rotating avatar border), Case Studies (split cards with progress rings), Comparison (gradient-highlighted table), Gallery (masonry-style with hover captions), Story (editorial sticky sidebar layout), Trust Signals (gradient icon cards with animated stats), Text (scroll-reveal paragraphs).

@@ -18,8 +18,11 @@ import { SectionTrustSignals } from "./section-trust-signals";
 import { SectionBenefits } from "./section-benefits";
 import { SectionComparison } from "./section-comparison";
 import { SectionBrandStory } from "./section-brand-story";
+import { NoiseTexture, ScrollProgressBar, GlowLine } from "./visuals";
+import { getSectionLayoutConfig, getSectionEntrance, getSectionDividerConfig, getBackgroundClasses } from "@/lib/layout-intelligence";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 function useSeoMeta(
   siteName?: string, 
@@ -142,6 +145,22 @@ const popularFontPairings: Record<string, { heading: string; body: string }> = {
   minimal: { heading: "DM Sans", body: "DM Sans" },
   creative: { heading: "Poppins", body: "Nunito" },
   professional: { heading: "Montserrat", body: "Source Sans 3" },
+  editorial: { heading: "Instrument Serif", body: "Inter" },
+  startup: { heading: "Plus Jakarta Sans", body: "Inter" },
+  saas: { heading: "Manrope", body: "Inter" },
+  fintech: { heading: "Inter", body: "Inter" },
+  healthcare: { heading: "DM Sans", body: "Inter" },
+  eco: { heading: "Fraunces", body: "Outfit" },
+  indie: { heading: "Bricolage Grotesque", body: "Inter" },
+  enterprise: { heading: "Inter", body: "Inter" },
+  retro: { heading: "Orbitron", body: "Outfit" },
+  luxury: { heading: "Playfair Display", body: "Source Serif 4" },
+  artisan: { heading: "Libre Baskerville", body: "Lato" },
+  geometric: { heading: "Raleway", body: "Open Sans" },
+  humanist: { heading: "Rubik", body: "Nunito" },
+  futuristic: { heading: "Space Grotesk", body: "Inter" },
+  editorial_modern: { heading: "Newsreader", body: "Libre Franklin" },
+  clean: { heading: "Figtree", body: "Inter" },
 };
 
 function useGoogleFonts(headingFont?: string, bodyFont?: string) {
@@ -922,6 +941,8 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
     );
   }
   
+  const isDarkScheme = (siteSettings as any)?.colorScheme === "dark";
+  
   const combinedStyles: React.CSSProperties = {
     ...brandStyles,
     fontFamily: `var(--font-body, "Inter", sans-serif)`,
@@ -1058,12 +1079,70 @@ export default function WebsiteRenderer({ content, pageSlug = "home", isPreview 
           background: var(--brand-muted, rgba(0,0,0,0.25));
         }
       `}</style>
+      <ScrollProgressBar />
+      <NoiseTexture opacity={isDarkScheme ? 0.025 : 0.015} />
       <WebsiteHeader globalContent={globalContent || undefined} onNavigate={onNavigate} siteSettings={siteSettings} />
       
       <main>
-        {currentPage.sections.map((section) => (
-          <SectionRenderer key={section.id} section={section} globalContent={globalContent || undefined} />
-        ))}
+        {currentPage.sections.map((section, index) => {
+          const totalSections = currentPage.sections.length;
+          const layoutConfig = getSectionLayoutConfig(index, totalSections, section.type, siteSettings?.style);
+          const entrance = getSectionEntrance(layoutConfig.entranceAnimation);
+          const dividerConfig = layoutConfig.showDivider 
+            ? getSectionDividerConfig(index, siteSettings?.style) 
+            : { show: false, style: "none" as const, color: "", opacity: 0 };
+          const isHero = section.type === "hero";
+          
+          const bgClasses = getBackgroundClasses(layoutConfig.backgroundVariant);
+          
+          return (
+            <div key={section.id}>
+              {dividerConfig.show && index > 0 && !isHero && (
+                <div style={{ opacity: dividerConfig.opacity }}>
+                  {dividerConfig.style === "glow" ? (
+                    <GlowLine animated />
+                  ) : dividerConfig.style === "gradient" ? (
+                    <div className="mx-auto" style={{ maxWidth: "80%", height: "1px", background: `linear-gradient(90deg, transparent, var(--brand-primary, hsl(var(--primary))), transparent)` }} />
+                  ) : (
+                    <div className="mx-auto" style={{ maxWidth: "90%", height: "1px", backgroundColor: "var(--brand-border, hsl(var(--border)))" }} />
+                  )}
+                </div>
+              )}
+              {isHero ? (
+                <SectionRenderer section={section} globalContent={globalContent || undefined} />
+              ) : (
+                <motion.div
+                  initial={entrance.initial}
+                  whileInView={entrance.animate}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={entrance.transition}
+                  className={`relative ${layoutConfig.paddingY} ${bgClasses}`}
+                >
+                  {layoutConfig.hasFloatingDecor && (
+                    <div 
+                      className="absolute inset-0 pointer-events-none overflow-hidden"
+                      aria-hidden="true"
+                    >
+                      <div 
+                        className="absolute rounded-full blur-3xl opacity-[0.04]"
+                        style={{
+                          width: "40%",
+                          height: "60%",
+                          background: "var(--brand-primary, hsl(var(--primary)))",
+                          top: layoutConfig.decorVariant % 2 === 0 ? "10%" : "auto",
+                          bottom: layoutConfig.decorVariant % 2 !== 0 ? "10%" : "auto",
+                          left: layoutConfig.decorVariant < 3 ? "-10%" : "auto",
+                          right: layoutConfig.decorVariant >= 3 ? "-10%" : "auto",
+                        }}
+                      />
+                    </div>
+                  )}
+                  <SectionRenderer section={section} globalContent={globalContent || undefined} />
+                </motion.div>
+              )}
+            </div>
+          );
+        })}
       </main>
       
       <WebsiteFooter globalContent={globalContent || undefined} siteSettings={siteSettings} />
