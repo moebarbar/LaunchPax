@@ -117,6 +117,16 @@ export interface WorkflowStep {
   optional?: boolean;
 }
 
+export class WorkflowStepError extends Error {
+  code = "workflow_step_failed";
+  stepName: string;
+
+  constructor(stepName: string, message: string) {
+    super(message);
+    this.stepName = stepName;
+  }
+}
+
 /**
  * Execute a workflow with progress tracking, recovery, and self-healing
  */
@@ -181,7 +191,7 @@ async function executeWorkflow(
           stepResult = { skipped: true, error: stepError.message };
         } else {
           workflowRecovery.markFailed(ctx.jobId, stepError.message);
-          throw stepError;
+          throw new WorkflowStepError(step.name, stepError.message);
         }
       }
       
@@ -204,16 +214,21 @@ async function executeWorkflow(
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorDetails =
+      error instanceof WorkflowStepError
+        ? { code: error.code, step: error.stepName, message: errorMessage }
+        : { code: "workflow_failed", message: errorMessage };
     
     await storage.updateWorkflowJob(ctx.jobId, {
       status: "failed",
       error: errorMessage,
+      result: { error: errorDetails },
     });
     
     await storage.createActivityLog({
       projectId: ctx.projectId,
       action: `${workflowType} failed`,
-      details: errorMessage,
+      details: JSON.stringify(errorDetails),
       status: "failed",
     });
     
