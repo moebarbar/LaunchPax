@@ -10,6 +10,15 @@ export async function registerRoutes(server: Server, app: Express): Promise<void
   // Initialize connectors
   initializeConnectors();
 
+  // Health check (no auth)
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.json({
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   // Setup authentication
   await setupAuth(app);
   registerAuthRoutes(app);
