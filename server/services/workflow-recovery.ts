@@ -117,14 +117,13 @@ class WorkflowRecovery {
             error: timeSinceUpdate > STUCK_TIMEOUT_MS 
               ? `Workflow stuck at step "${checkpoint.lastStepName}" for ${Math.round(timeSinceUpdate / 1000)}s`
               : `Workflow exceeded maximum time (${Math.round(totalTime / 60000)} minutes)`,
-            completedAt: now,
           });
           
           await storage.createActivityLog({
             projectId: checkpoint.projectId,
             action: `${checkpoint.workflowType}: Auto-cleanup`,
             status: "error",
-            details: { reason: "stuck_timeout", step: checkpoint.lastStepName },
+            details: JSON.stringify({ reason: "stuck_timeout", step: checkpoint.lastStepName }),
           });
         } catch (error) {
           console.error(`[WorkflowRecovery] Failed to cleanup job ${jobId}:`, error);

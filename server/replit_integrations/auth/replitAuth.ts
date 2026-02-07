@@ -61,6 +61,10 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express) {
+  if (process.env.AUTH_DISABLED === "true") {
+    console.warn("[Auth] AUTH_DISABLED=true. Skipping OIDC setup.");
+    return;
+  }
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -132,6 +136,10 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
+
+  if (typeof req.isAuthenticated !== "function") {
+    return res.status(503).json({ message: "Auth is not configured on this server." });
+  }
 
   if (!req.isAuthenticated() || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });

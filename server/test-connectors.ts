@@ -91,7 +91,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
         const names = Array.isArray(result.data) ? result.data : [result.data];
         return { success: true, message: `OpenAI generated ${names.length} name(s): "${names[0]?.name || names[0]}"` };
       }
-      return { success: false, error: result.error || "No response" };
+      return { success: false, message: result.error || "No response", error: result.error || "No response" };
     }
 
     case "claude": {
@@ -109,7 +109,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
         const data = result.data as { title?: string; content?: string };
         return { success: true, message: `Claude wrote: "${data.title || String(result.data).substring(0, 50)}..."` };
       }
-      return { success: false, error: result.error || "No response" };
+      return { success: false, message: result.error || "No response", error: result.error || "No response" };
     }
 
     case "nanobanana": {
@@ -123,7 +123,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       if (result.success && result.data) {
         return { success: true, message: `Google Studio responded: "${String(result.data).substring(0, 60)}..."` };
       }
-      return { success: false, error: result.error || "No response" };
+      return { success: false, message: result.error || "No response", error: result.error || "No response" };
     }
 
     case "launchpax": {
@@ -136,7 +136,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       if (result.success && result.data) {
         return { success: true, message: `LaunchPax Engine responded: "${String(result.data).substring(0, 60)}..."` };
       }
-      return { success: false, error: result.error || "No response" };
+      return { success: false, message: result.error || "No response", error: result.error || "No response" };
     }
 
     case "dalle": {
@@ -165,7 +165,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       if (result.success && result.data?.photos?.length > 0) {
         return { success: true, message: `Pexels found ${result.data.photos.length} photo(s)` };
       }
-      return { success: false, error: result.error || "No photos returned" };
+      return { success: false, message: result.error || "No photos returned", error: result.error || "No photos returned" };
     }
 
     case "unsplash": {
@@ -179,7 +179,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       if (result.success && result.data?.photos?.length > 0) {
         return { success: true, message: `Unsplash found ${result.data.photos.length} photo(s)` };
       }
-      return { success: false, error: result.error || "No photos returned" };
+      return { success: false, message: result.error || "No photos returned", error: result.error || "No photos returned" };
     }
 
     case "cloudinary": {
@@ -194,7 +194,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       if (result.success && result.data) {
         return { success: true, message: `Cloudinary optimized URL: ${String(result.data).substring(0, 50)}...` };
       }
-      return { success: false, error: result.error || "No URL returned" };
+      return { success: false, message: result.error || "No URL returned", error: result.error || "No URL returned" };
     }
 
     case "lottie": {
@@ -205,7 +205,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
       if (result.success && result.data?.animations?.length > 0) {
         return { success: true, message: `Lottie has ${result.data.animations.length} preset animations` };
       }
-      return { success: false, error: result.error || "No presets returned" };
+      return { success: false, message: result.error || "No presets returned", error: result.error || "No presets returned" };
     }
 
     case "ai_mock":
@@ -223,7 +223,7 @@ async function makeActualApiCall(key: string, connector: any): Promise<{ success
         const pricing = result.data as { tld: string; registerPrice: number }[];
         return { success: true, message: `Namecheap pricing: ${pricing.length} TLDs available` };
       }
-      return { success: false, error: result.error || "No pricing returned" };
+      return { success: false, message: result.error || "No pricing returned", error: result.error || "No pricing returned" };
     }
 
     case "stripe":

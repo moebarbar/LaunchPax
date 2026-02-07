@@ -105,6 +105,17 @@ function enforceHeroArchetype(pages: any[], industry: string, creativeTheme?: Cr
   }));
 }
 
+function getResultData<T>(result: ConnectorResult<T>): T | null {
+  return result.success && result.data ? result.data : null;
+}
+
+function getFirstStockPhoto(
+  result: ConnectorResult<{ photos: { url: string; alt?: string }[] }>
+): { url: string; alt?: string } | undefined {
+  const data = getResultData(result);
+  return data?.photos?.[0];
+}
+
 export interface WorkflowContext {
   projectId: number;
   project: Project;
@@ -115,6 +126,16 @@ export interface WorkflowStep {
   name: string;
   execute: (ctx: WorkflowContext, prevResult?: unknown) => Promise<unknown>;
   optional?: boolean;
+}
+
+export class WorkflowStepError extends Error {
+  code = "workflow_step_failed";
+  stepName: string;
+
+  constructor(stepName: string, message: string) {
+    super(message);
+    this.stepName = stepName;
+  }
 }
 
 /**
@@ -181,7 +202,7 @@ async function executeWorkflow(
           stepResult = { skipped: true, error: stepError.message };
         } else {
           workflowRecovery.markFailed(ctx.jobId, stepError.message);
-          throw stepError;
+          throw new WorkflowStepError(step.name, stepError.message);
         }
       }
       
@@ -204,16 +225,21 @@ async function executeWorkflow(
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorDetails =
+      error instanceof WorkflowStepError
+        ? { code: error.code, step: error.stepName, message: errorMessage }
+        : { code: "workflow_failed", message: errorMessage };
     
     await storage.updateWorkflowJob(ctx.jobId, {
       status: "failed",
       error: errorMessage,
+      result: { error: errorDetails },
     });
     
     await storage.createActivityLog({
       projectId: ctx.projectId,
       action: `${workflowType} failed`,
-      details: errorMessage,
+      details: JSON.stringify(errorDetails),
       status: "failed",
     });
     
@@ -680,8 +706,9 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
             }
           );
           
-          if (stockResult.success && stockResult.data?.photos?.length > 0) {
-            heroImageUrl = stockResult.data.photos[0].url;
+          const fallbackPhoto = getFirstStockPhoto(stockResult);
+          if (fallbackPhoto) {
+            heroImageUrl = fallbackPhoto.url;
             console.log(`[Graphics] Using stock photo for hero: ${heroImageUrl}`);
           }
         }
@@ -816,7 +843,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
           { preferredConnector: "launchpax" }
         );
         
-        if (claudeResult.success && claudeResult.data) {
+        const claudeData = getResultData(claudeResult);
+        if (claudeData) {
           console.log("[Multi-AI] LaunchPax Engine generated enhanced About page content");
           
           // Find and enhance the About page text section
@@ -830,9 +858,11 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                       ...section,
                       data: {
                         ...section.data,
-                        headline: claudeResult.data.title || section.data.headline,
-                        content: claudeResult.data.content || section.data.content,
-                        paragraphs: claudeResult.data.content?.split('\n\n').filter((p: string) => p.trim()) || section.data.paragraphs,
+                        headline: claudeData.title || section.data.headline,
+                        content: claudeData.content || section.data.content,
+                        paragraphs:
+                          claudeData.content?.split("\n\n").filter((p: string) => p.trim()) ||
+                          section.data.paragraphs,
                       },
                     };
                   }
@@ -1293,8 +1323,9 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                 }
               );
               
-              if (stockResult.success && stockResult.data?.photos?.length > 0) {
-                const photo = stockResult.data.photos[0];
+              const heroPhoto = getFirstStockPhoto(stockResult);
+              if (heroPhoto) {
+                const photo = heroPhoto;
                 console.log(`[Image Auto-Fill] Added hero image: ${photo.url}`);
                 heroesUpdated++;
                 return {
@@ -1319,10 +1350,11 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                     { query, perPage: 1, page: idx + 1, orientation: "square" }
                   );
                   
-                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                  const testimonialPhoto = getFirstStockPhoto(stockResult);
+                  if (testimonialPhoto) {
                     imagesAdded++;
                     testimonialsUpdated++;
-                    return { ...item, avatar: stockResult.data.photos[0].url };
+                    return { ...item, avatar: testimonialPhoto.url };
                   }
                 }
                 return item;
@@ -1346,10 +1378,11 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                     { query, perPage: 1, page: idx + 1, orientation: "square" }
                   );
                   
-                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                  const servicePhoto = getFirstStockPhoto(stockResult);
+                  if (servicePhoto) {
                     imagesAdded++;
                     servicesUpdated++;
-                    return { ...item, image: stockResult.data.photos[0].url };
+                    return { ...item, image: servicePhoto.url };
                   }
                 }
                 return item;
@@ -1372,7 +1405,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                 { query, perPage: 1, orientation: "landscape" }
               );
               
-              if (stockResult.success && stockResult.data?.photos?.length > 0) {
+              const storyPhoto = getFirstStockPhoto(stockResult);
+              if (storyPhoto) {
                 imagesAdded++;
                 storyUpdated++;
                 console.log(`[Image Auto-Fill] Added story section image`);
@@ -1380,8 +1414,8 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                   ...section,
                   data: {
                     ...section.data,
-                    image: stockResult.data.photos[0].url,
-                    founderImage: sectionType === "brand-story" ? stockResult.data.photos[0].url : section.data?.founderImage,
+                    image: storyPhoto.url,
+                    founderImage: sectionType === "brand-story" ? storyPhoto.url : section.data?.founderImage,
                   },
                 };
               }
@@ -1397,12 +1431,13 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                 { query, perPage: 1, orientation: "landscape" }
               );
               
-              if (stockResult.success && stockResult.data?.photos?.length > 0) {
+              const aboutPhoto = getFirstStockPhoto(stockResult);
+              if (aboutPhoto) {
                 imagesAdded++;
                 console.log(`[Image Auto-Fill] Added about section image`);
                 return {
                   ...section,
-                  data: { ...section.data, image: stockResult.data.photos[0].url },
+                  data: { ...section.data, image: aboutPhoto.url },
                 };
               }
             }
@@ -1419,9 +1454,10 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                     { query, perPage: 1, page: idx + 1, orientation: "square" }
                   );
                   
-                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                  const galleryPhoto = getFirstStockPhoto(stockResult);
+                  if (galleryPhoto) {
                     imagesAdded++;
-                    return { ...item, image: stockResult.data.photos[0].url };
+                    return { ...item, image: galleryPhoto.url };
                   }
                 }
                 return item;
@@ -1442,9 +1478,10 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                     { query, perPage: 1, page: idx + 1, orientation: "square" }
                   );
                   
-                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                  const teamPhoto = getFirstStockPhoto(stockResult);
+                  if (teamPhoto) {
                     imagesAdded++;
-                    return { ...member, image: stockResult.data.photos[0].url };
+                    return { ...member, image: teamPhoto.url };
                   }
                 }
                 return member;
@@ -1465,9 +1502,10 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                     { query, perPage: 1, page: idx + 1, orientation: "landscape" }
                   );
                   
-                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                  const caseStudyPhoto = getFirstStockPhoto(stockResult);
+                  if (caseStudyPhoto) {
                     imagesAdded++;
-                    return { ...item, image: stockResult.data.photos[0].url };
+                    return { ...item, image: caseStudyPhoto.url };
                   }
                 }
                 return item;
@@ -1489,10 +1527,11 @@ export async function runWebsitePlanWorkflow(ctx: WorkflowContext): Promise<void
                     { query, perPage: 1, page: idx + 1, orientation: "square" }
                   );
                   
-                  if (stockResult.success && stockResult.data?.photos?.length > 0) {
+                  const processPhoto = getFirstStockPhoto(stockResult);
+                  if (processPhoto) {
                     imagesAdded++;
                     stepsWithImages++;
-                    return { ...step, image: stockResult.data.photos[0].url };
+                    return { ...step, image: processPhoto.url };
                   }
                 }
                 return step;
@@ -1604,8 +1643,9 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
             }
           );
           
-          if (stockResult.success && stockResult.data?.photos?.length > 0) {
-            heroImageUrl = stockResult.data.photos[0].url;
+          const fallbackPhoto = getFirstStockPhoto(stockResult);
+          if (fallbackPhoto) {
+            heroImageUrl = fallbackPhoto.url;
             console.log(`[Workflow] Using stock photo for hero: ${heroImageUrl}`);
           }
         }
@@ -1684,7 +1724,8 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
           }
         );
         
-        if (!result.success) {
+        const graphicsData = getResultData(result);
+        if (!graphicsData) {
           throw new Error(result.error || "Failed to generate graphics");
         }
         
@@ -1704,7 +1745,7 @@ export async function runGraphicsWorkflow(ctx: WorkflowContext): Promise<void> {
         console.log(`[Workflow] Fetched ${stockPhotos.length} stock photos for marketing graphics`);
         
         // Save each graphic asset with stock photo if available
-        const graphics = result.data.graphics || [];
+        const graphics = graphicsData.graphics || [];
         for (let i = 0; i < graphics.length; i++) {
           const graphic = graphics[i];
           const stockPhoto = stockPhotos[i] || null;

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 // Re-export auth models
 export * from "./models/auth";
+export * from "./models/chat";
 
 // ============================================================================
 // PROJECTS - Isolated website/app instances following Replit-style architecture
