@@ -252,19 +252,21 @@ export interface CreativeThemeConfig {
   layoutDensity: LayoutDensity;
   
   // LEGACY: Top-level properties for backward compatibility
-  headingFont: string;
-  bodyFont: string;
-  headingWeight: number;
-  headingStyle: "uppercase" | "capitalize" | "none";
-  style: string;
-  colorScheme: "light" | "dark";
-  heroArchetype: string;
+  headingFont?: string;
+  bodyFont?: string;
+  headingWeight?: number | string;
+  headingStyle?: string;
+  style?: string;
+  colorScheme?: "light" | "dark";
+  heroArchetype?: string;
   
   colors: ColorPalette;
   gradients: {
     hero: GradientDefinition;
     accent: GradientDefinition;
-    surface: GradientDefinition;
+    surface?: GradientDefinition;
+    card?: GradientDefinition;
+    overlay?: GradientDefinition;
   };
   shadows: ShadowSystem;
   
@@ -272,11 +274,12 @@ export interface CreativeThemeConfig {
     headingFont: string;
     bodyFont: string;
     accentFont: string;
-    headingWeight: number;
-    bodyWeight: number;
-    headingStyle: "uppercase" | "capitalize" | "none";
-    scale: TypographyScale;
+    headingWeight: number | string;
+    bodyWeight: number | string;
+    headingStyle: string;
+    scale?: TypographyScale;
   };
+  typographyScale?: TypographyScale;
   
   spacing: SpacingScale;
   borderRadius: BorderRadiusScale;

@@ -96,7 +96,7 @@ export default function HeroBold({ section, siteName }: { section: SectionConten
 
       {personality.showDecorativeSvgs && (
         <div className="absolute top-20 right-10 pointer-events-none hidden md:block">
-          <DecorativeCircles color="var(--brand-primary, hsl(var(--primary)))" opacity={0.04} size={400} />
+          <DecorativeCircles maxSize={400} className="opacity-[0.04]" />
         </div>
       )}
 

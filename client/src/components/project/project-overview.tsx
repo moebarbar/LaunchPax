@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
   Circle,
@@ -13,12 +14,16 @@ import {
 } from "lucide-react";
 import type { Project, NamingResult, BrandKit, WebsiteContent, GraphicAsset } from "@shared/schema";
 import { IndustryRecommendations } from "./industry-recommendations";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { WorkflowJob } from "@shared/schema";
 
 interface ProjectOverviewProps {
   project: Project;
 }
 
 export default function ProjectOverview({ project }: ProjectOverviewProps) {
+  const { toast } = useToast();
   const { data: namingResult } = useQuery<NamingResult>({
     queryKey: ["/api/projects", project.id, "naming-domain", "results"],
   });
@@ -33,6 +38,32 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
 
   const { data: graphics } = useQuery<GraphicAsset[]>({
     queryKey: ["/api/projects", project.id, "graphics"],
+  });
+
+  const { data: launchJob } = useQuery<WorkflowJob>({
+    queryKey: ["/api/projects", project.id, "workflows", "launch", "status"],
+    refetchInterval: (query) =>
+      query.state.data?.status === "running" ? 2000 : false,
+  });
+
+  const launchMutation = useMutation({
+    mutationFn: async () => apiRequest("POST", `/api/projects/${project.id}/workflows/launch/run`),
+    onSuccess: () => {
+      toast({
+        title: "Launch started",
+        description: "We’re building naming, brand, website, and graphics.",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/projects", project.id, "workflows", "launch", "status"],
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Failed to start launch",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+    },
   });
 
   const steps = [
@@ -60,6 +91,7 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
 
   const completedSteps = steps.filter((s) => s.completed).length;
   const progress = (completedSteps / steps.length) * 100;
+  const isLaunching = launchJob?.status === "running" || launchMutation.isPending;
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -153,6 +185,25 @@ export default function ProjectOverview({ project }: ProjectOverviewProps) {
             <CardTitle className="text-lg">Launch Progress</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={() => launchMutation.mutate()}
+                disabled={isLaunching}
+                data-testid="button-launch-project"
+              >
+                {isLaunching ? "Launching..." : "Run Full Launch"}
+              </Button>
+              {launchJob?.status === "failed" && (
+                <p className="text-sm text-destructive">
+                  Launch failed. Check activity logs for details.
+                </p>
+              )}
+              {launchJob?.status === "running" && (
+                <p className="text-sm text-muted-foreground">
+                  Launch workflow running ({launchJob.progress ?? 0}%)
+                </p>
+              )}
+            </div>
             <div>
               <div className="flex items-center justify-between text-sm mb-2">
                 <span className="text-muted-foreground">Overall Progress</span>
