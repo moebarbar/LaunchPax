@@ -22,7 +22,8 @@ export function registerWebsiteRoutes(app: Express): void {
   });
 
   app.get("/api/preview/:token", async (req: Request, res: Response) => {
-    const content = await storage.getWebsiteContentByToken(req.params.token);
+    const token = Array.isArray(req.params.token) ? req.params.token[0] : req.params.token;
+    const content = await storage.getWebsiteContentByToken(token);
     if (!content) {
       return res.status(404).json({ error: "Preview not found" });
     }
@@ -124,7 +125,8 @@ export function registerWebsiteRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/publish", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -195,7 +197,8 @@ export function registerWebsiteRoutes(app: Express): void {
   });
 
   app.patch("/api/projects/:id/website-settings", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 

@@ -5,7 +5,8 @@ import { idParamSchema, parseRequest } from "./validation";
 
 export function registerQualityReportRoutes(app: Express): void {
   app.get("/api/projects/:id/quality-report", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 

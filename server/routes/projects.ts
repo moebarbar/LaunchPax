@@ -9,7 +9,8 @@ const updateProjectSchema = insertProjectSchema.omit({ userId: true }).partial()
 
 export function registerProjectsRoutes(app: Express): void {
   app.get("/api/projects", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -18,7 +19,8 @@ export function registerProjectsRoutes(app: Express): void {
   });
 
   app.get("/api/projects/:id", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -30,7 +32,8 @@ export function registerProjectsRoutes(app: Express): void {
   });
 
   app.post("/api/projects", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -54,7 +57,8 @@ export function registerProjectsRoutes(app: Express): void {
   });
 
   app.patch("/api/projects/:id", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -71,7 +75,8 @@ export function registerProjectsRoutes(app: Express): void {
   });
 
   app.delete("/api/projects/:id", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 

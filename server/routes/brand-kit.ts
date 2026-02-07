@@ -25,7 +25,8 @@ export function registerBrandKitRoutes(app: Express): void {
   });
 
   app.patch("/api/projects/:id/brand-kit", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -51,7 +52,8 @@ export function registerBrandKitRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/brand-kit/generate-logo", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -176,7 +178,8 @@ export function registerBrandKitRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/brand-kit/upload-logo", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 

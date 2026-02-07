@@ -40,7 +40,8 @@ export function registerImagesRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/images/hero", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -51,6 +52,12 @@ export function registerImagesRoutes(app: Express): void {
 
     try {
       const brandKit = await storage.getBrandKit(params.id);
+      const brandColors = brandKit?.colorPalette?.length
+        ? {
+            primary: brandKit.colorPalette[0]?.hex || "#3b82f6",
+            secondary: brandKit.colorPalette[1]?.hex,
+          }
+        : undefined;
 
       const result = await connectorRegistry.execute<
         {
@@ -64,14 +71,8 @@ export function registerImagesRoutes(app: Express): void {
       >("image_generation", "generate_hero_image", {
         businessName: project.name,
         businessIdea: project.businessIdea || "",
-        industry: project.industry,
-        brandColors: brandKit
-          ? {
-              primary: brandKit.colors?.primary || "#3b82f6",
-              secondary: brandKit.colors?.secondary,
-            }
-          : undefined,
-        style: brandKit?.designStyle,
+        industry: project.industry ?? undefined,
+        brandColors,
       });
 
       if (!result.success) {
@@ -81,11 +82,11 @@ export function registerImagesRoutes(app: Express): void {
         });
       }
 
-      await storage.createGeneratedAsset({
+      await storage.createGraphicAsset({
         projectId: params.id,
         type: "hero_image",
         name: "Hero Background",
-        data: { url: result.data?.url || "generated" },
+        imageUrl: result.data?.url || undefined,
         status: "completed",
       });
 
@@ -99,7 +100,8 @@ export function registerImagesRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/images/logo", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -110,6 +112,13 @@ export function registerImagesRoutes(app: Express): void {
 
     try {
       const brandKit = await storage.getBrandKit(params.id);
+      const brandColors = brandKit?.colorPalette?.length
+        ? {
+            primary: brandKit.colorPalette[0]?.hex || "#3b82f6",
+            secondary: brandKit.colorPalette[1]?.hex,
+            accent: brandKit.colorPalette[2]?.hex,
+          }
+        : undefined;
 
       const result = await connectorRegistry.execute<
         {
@@ -121,9 +130,9 @@ export function registerImagesRoutes(app: Express): void {
         { b64_json?: string; url?: string; type?: string }
       >("image_generation", "generate_logo", {
         businessName: project.name,
-        industry: project.industry,
-        style: brandKit?.designStyle,
-        brandColors: brandKit?.colors,
+        industry: project.industry ?? undefined,
+        style: brandKit?.logoStyle || undefined,
+        brandColors,
       });
 
       if (!result.success) {
@@ -133,11 +142,11 @@ export function registerImagesRoutes(app: Express): void {
         });
       }
 
-      await storage.createGeneratedAsset({
+      await storage.createGraphicAsset({
         projectId: params.id,
         type: "logo",
         name: "Brand Logo",
-        data: { url: result.data?.url || "generated" },
+        imageUrl: result.data?.url || undefined,
         status: "completed",
       });
 

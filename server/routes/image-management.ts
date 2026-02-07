@@ -12,7 +12,8 @@ const sectionImageSchema = z.object({
 
 export function registerImageManagementRoutes(app: Express): void {
   app.post("/api/projects/:id/sections/:sectionId/image", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -41,7 +42,8 @@ export function registerImageManagementRoutes(app: Express): void {
       for (let si = 0; si < page.sections.length; si++) {
         if (page.sections[si].id === req.params.sectionId) {
           sectionType = page.sections[si].type;
-          sectionHeadline = page.sections[si].data?.headline || "";
+          const headlineValue = (page.sections[si].data as { headline?: unknown } | undefined)?.headline;
+          sectionHeadline = typeof headlineValue === "string" ? headlineValue : "";
           pages[pi].sections[si].data = {
             ...pages[pi].sections[si].data,
             imageB64: payload.imageBase64,
@@ -80,7 +82,8 @@ export function registerImageManagementRoutes(app: Express): void {
   });
 
   app.get("/api/projects/:id/visual-completeness", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -101,7 +104,8 @@ export function registerImageManagementRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/auto-fill-images", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 

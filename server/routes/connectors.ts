@@ -10,7 +10,7 @@ export function registerConnectorsRoutes(app: Express): void {
   });
 
   app.post("/api/connectors/:key/test", isAuthenticated, async (req: Request, res: Response) => {
-    const key = req.params.key;
+    const key = Array.isArray(req.params.key) ? req.params.key[0] : req.params.key;
     const result = await connectorRegistry.test(key);
 
     await storage.upsertConnectorConfig({

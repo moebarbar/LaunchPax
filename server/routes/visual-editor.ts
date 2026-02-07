@@ -30,7 +30,8 @@ const aiVariationsSchema = z.object({
 
 export function registerVisualEditorRoutes(app: Express): void {
   app.patch("/api/projects/:id/website/element", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -118,7 +119,8 @@ export function registerVisualEditorRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/editor/ai-refine", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -159,7 +161,8 @@ export function registerVisualEditorRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/editor/ai-quick-action", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
@@ -211,7 +214,8 @@ export function registerVisualEditorRoutes(app: Express): void {
   });
 
   app.post("/api/projects/:id/editor/ai-variations", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 

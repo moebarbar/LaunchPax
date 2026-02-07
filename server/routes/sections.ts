@@ -20,7 +20,8 @@ export function registerSectionRoutes(app: Express): void {
     "/api/projects/:id/sections/:sectionId/refine",
     isAuthenticated,
     async (req: Request, res: Response) => {
-      const userId = req.user?.claims?.sub;
+      const user = req.user as any;
+      const userId = user?.claims?.sub;
       const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
       if (!params) return;
 
@@ -105,7 +106,8 @@ export function registerSectionRoutes(app: Express): void {
   );
 
   app.patch("/api/projects/:id/sections/:sectionId", isAuthenticated, async (req: Request, res: Response) => {
-    const userId = req.user?.claims?.sub;
+    const user = req.user as any;
+    const userId = user?.claims?.sub;
     const params = parseRequest(idParamSchema, req.params, res, "Invalid project id");
     if (!params) return;
 
