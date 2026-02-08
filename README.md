@@ -30,6 +30,53 @@ LaunchPax is an AI-powered platform that helps users launch and grow businesses 
 3. Set up environment variables (see `.env.example` or configure secrets)
 4. Start the development server: `npm run dev`
 
+## Local Development
+
+**Option A: Run locally with auth disabled (fastest for UI/API work)**
+
+```bash
+AUTH_DISABLED=true DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres npm run dev
+```
+
+**Option B: Run on Replit to test the full auth flow**
+
+Replit provides the required OIDC secrets automatically. If you're missing values locally, configure them in the Replit Secrets/Auth pane and run the dev server there.
+
+### Quick Start (Local)
+
+```bash
+npm install
+npm run dev
+```
+
+Once the server is running, verify the API is up:
+
+```bash
+curl http://localhost:5000/api/health
+```
+
+Expected response (example):
+
+```json
+{
+  "status": "ok",
+  "uptime": 123.45,
+  "timestamp": "2025-01-01T00:00:00.000Z"
+}
+```
+
+### Smoke Tests
+
+Run the smoke checks after starting the server:
+
+```bash
+npm run smoke
+```
+
+Optional authenticated checks:
+- Set `SMOKE_AUTH_COOKIE` to a valid session cookie string to enable project creation checks.
+- Set `SMOKE_BASE_URL` to target a different server (defaults to `http://localhost:5000`).
+
 ## Project Structure
 
 ```

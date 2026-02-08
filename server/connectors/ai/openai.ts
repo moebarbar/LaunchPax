@@ -597,23 +597,19 @@ Return a JSON object with these fields:
         const prompt = `You are an elite conversion copywriter who has written for Apple, Stripe, Airbnb, and Linear. Create an EXCEPTIONAL, award-winning website that would impress Awwwards judges.
 
 CRITICAL QUALITY REQUIREMENTS - READ CAREFULLY:
-Your output will be scored by an AI quality evaluator. To score 85+, you MUST:
-
-1. NEVER use these generic phrases (automatic FAILURE if used):
-   - "Welcome to" (ANY variation - "Welcome to our", "Welcome to [name]", etc.)
+Your output will be scored by an AI quality evaluator. To score 85+, you should avoid generic, low-information phrases and placeholders. Replace them with specific, concrete language. In particular, avoid or rewrite these common weak phrases:
+   - "Welcome to" (e.g., "Welcome to our", "Welcome to [name]")
    - "Start your journey" / "Begin your journey" / "Embark on"
    - "Your trusted partner" / "Your one-stop solution" / "Your go-to"
    - "Best in class" / "Industry-leading" / "World-class" / "Top-tier"
    - "We are passionate about..." / "We pride ourselves on..."
    - "Quality service guaranteed" / "Excellence is our priority"
    - "Lorem ipsum" or any placeholder text
-   - ANY brackets like [Your Name], [Insert Here], [Company], {placeholder}
+   - Brackets like [Your Name], [Insert Here], [Company], {placeholder}
    - "Contact us today" / "Get in touch" (use specific, benefit-driven CTAs instead)
-   - "Discover" / "Explore" / "Experience" as the first word of headlines
+   - Headlines that start with generic verbs like "Discover", "Explore", "Experience"
    - "Solutions for all your needs" / "All your [X] needs"
    - "Learn more" / "Click here" / "Find out more"
-   
-AUTOMATIC FAILURE: If ANY of the above phrases appear in your output, the quality score will be 0.
    
 2. ALWAYS include specificity:
    - Use real numbers: "Save 12 hours per week" not "Save time"
@@ -951,7 +947,14 @@ JSON STRUCTURE (follow exactly):
 
         const prompt = `Create design briefs for marketing graphics for ${input.businessName}.
 Business idea: ${input.businessIdea}
+Preferred brand colors: ${input.brandColors?.length ? input.brandColors.join(", ") : "not specified"}
 Create 2-3 briefs for these types: ${types.join(", ")}
+
+Guidelines:
+- Each brief must include a distinct campaign angle and a clear goal (awareness, lead gen, conversion, or retention).
+- Use concrete visuals (subjects, composition, lighting, props) instead of generic adjectives.
+- Provide copy that sounds human and specific to the business idea, not generic slogans.
+- Avoid placeholder text, overused phrases, or vague CTAs.
 
 Return JSON with "graphics" array. Each item has: type, name, dimensions, designBrief (object with prompt, style, colors array, mood), copyText.`;
 
@@ -1140,7 +1143,7 @@ Requirements:
                           input.style === "tech" ? "futuristic, digital, innovative" :
                           "modern, clean, professional";
 
-        const logoPrompt = `Design a stunning, professional logo mark for "${input.businessName}".
+        const logoPrompt = `Design a stunning, professional combination logo for "${input.businessName}" (icon + wordmark).
 
 BUSINESS CONTEXT:
 - Industry: ${input.industry || "business"}
@@ -1148,7 +1151,7 @@ BUSINESS CONTEXT:
 - Brand Personality: ${designGuide.mood}
 
 DESIGN REQUIREMENTS:
-1. Create a sophisticated, memorable ICON/SYMBOL only (no text, no letters, no words)
+1. Create a sophisticated, memorable icon paired with a clean wordmark using the business name
 2. Draw inspiration from: ${designGuide.symbols}
 3. Style: ${designGuide.style}
 4. Use these brand colors: Primary ${primaryColor}${secondaryColor ? `, Secondary ${secondaryColor}` : ""}
@@ -1158,9 +1161,10 @@ DESIGN REQUIREMENTS:
    - Balanced, harmonious composition
    - Professional enough for Fortune 500, creative enough to stand out
    - Clean negative space
-6. Clean white background with centered composition
-7. NO text, NO letters, NO words - pure symbol/icon only
-8. Think Apple, Nike, Twitter level of iconic simplicity
+6. Wordmark should be modern, legible, and matched to the icon style
+7. Clean white background with centered composition
+8. No taglines or extra text beyond the business name
+9. Think Apple, Nike, Twitter level of iconic simplicity
 
 QUALITY: HD, vector-quality edges, perfect proportions`;
 

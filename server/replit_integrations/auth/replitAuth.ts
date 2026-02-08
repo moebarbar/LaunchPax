@@ -61,6 +61,24 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express) {
+  if (process.env.AUTH_DISABLED === "true") {
+    console.warn("[Auth] AUTH_DISABLED=true. Skipping OIDC setup.");
+    return;
+  }
+
+  const missingEnv: string[] = [];
+  if (!process.env.REPL_ID) missingEnv.push("REPL_ID");
+  if (!process.env.SESSION_SECRET) missingEnv.push("SESSION_SECRET");
+  if (!process.env.DATABASE_URL) missingEnv.push("DATABASE_URL");
+
+  if (missingEnv.length > 0) {
+    console.error("[Auth] Missing required auth configuration.");
+    console.error(`[Auth] Missing env vars: ${missingEnv.join(", ")}`);
+    console.error("[Auth] Local dev: set AUTH_DISABLED=true");
+    console.error("[Auth] Replit: configure missing values in Secrets/Auth pane");
+    process.exit(1);
+  }
+
   app.set("trust proxy", 1);
   app.use(getSession());
   app.use(passport.initialize());
@@ -132,6 +150,10 @@ export async function setupAuth(app: Express) {
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   const user = req.user as any;
+
+  if (typeof req.isAuthenticated !== "function") {
+    return res.status(503).json({ message: "Auth is not configured on this server." });
+  }
 
   if (!req.isAuthenticated() || !user.expires_at) {
     return res.status(401).json({ message: "Unauthorized" });
