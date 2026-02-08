@@ -97,7 +97,7 @@ export function registerBrandKitRoutes(app: Express): void {
           industry,
           style: logoStyle,
           colors,
-          prompt: `Professional logo design for "${businessName}", a ${industry} company. Style: ${logoStyle}. Colors: ${colors.join(", ")}. Clean, scalable, memorable logo on white background.`,
+          prompt: `Professional combination logo for "${businessName}", a ${industry} company. Style: ${logoStyle}. Colors: ${colors.join(", ")}. Include a clean icon and a matching wordmark (business name only). Clean, scalable, memorable logo on white background.`,
           width: 1024,
           height: 1024,
         },
